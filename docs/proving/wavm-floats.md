@@ -1,14 +1,14 @@
 # WAVM Floating point implementation
 
 Implementing correct, consistent, and deterministic floating point operations directly in WAVM
-(meaning both a Rust Arbitrator implementation and Solidity OSP implementation)
+(meaning both a Rust Mtitrator implementation and Solidity OSP implementation)
 would be an extremely tricky endeavor.
 WASM specifies floating point operations as being compliant to IEEE 754-2019,
 which is not deterministic, and full of edge cases.
 
 Instead, floating point operations (apart from trivial bit-casts like i32 <-> f32)
 are implemented using the C Berkeley SoftFloat-3e library running inside WAVM.
-Arbitrator links other WAVM guests against this,
+Mtitrator links other WAVM guests against this,
 by replacing float point operations with cross module calls to the library.
 
 Berkeley SoftFloat does not implement all necessary floating point operations, however.
@@ -17,7 +17,7 @@ The implementation of these operations,
 along with the export of convenient APIs for WASM opcode implementations,
 are contained in bindings32.c for 32 bit integers and bindings64.c for 64 bit integers.
 
-This ensures that floating point operations are deterministic and consistent between Arbitrator and the OSP,
+This ensures that floating point operations are deterministic and consistent between Mtitrator and the OSP,
 as they are implemented exclusively using operations already known to be deterministic and consistent.
 However, it does not ensure that the floating point operations are perfectly compliant to the WASM specification.
 Go uses floating points in its JS<->Go WASM interface,

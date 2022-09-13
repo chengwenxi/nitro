@@ -44,7 +44,7 @@ RUN apt-get install -y clang=1:11.0-51+nmu5 lld=1:11.0-51+nmu5
     # pinned rust 1.61.0
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.61.0 --target x86_64-unknown-linux-gnu wasm32-unknown-unknown wasm32-wasi
 COPY ./Makefile ./
-COPY arbitrator/wasm-libraries arbitrator/wasm-libraries
+COPY mtitrator/wasm-libraries mtitrator/wasm-libraries
 COPY --from=brotli-wasm-export / target/
 RUN . ~/.cargo/env && NITRO_BUILD_IGNORE_TIMESTAMPS=1 RUSTFLAGS='-C symbol-mangling-version=v0' make build-wasm-libs
 
@@ -52,9 +52,9 @@ FROM wasm-base as wasm-bin-builder
     # pinned go version
 RUN curl -L https://golang.org/dl/go1.19.linux-`dpkg --print-architecture`.tar.gz | tar -C /usr/local -xzf -
 COPY ./Makefile ./go.mod ./go.sum ./
-COPY ./arbcompress ./arbcompress
-COPY ./arbos ./arbos
-COPY ./arbstate ./arbstate
+COPY ./mtcompress ./mtcompress
+COPY ./mtos ./mtos
+COPY ./mtstate ./mtstate
 COPY ./blsSignatures ./blsSignatures
 COPY ./cmd/replay ./cmd/replay
 COPY ./das/dastree ./das/dastree
@@ -79,10 +79,10 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
     apt-get install -y make && \
     cargo install --force cbindgen
-COPY arbitrator/Cargo.* arbitrator/cbindgen.toml arbitrator/
+COPY mtitrator/Cargo.* mtitrator/cbindgen.toml mtitrator/
 COPY ./Makefile ./
-COPY arbitrator/prover arbitrator/prover
-COPY arbitrator/jit arbitrator/jit
+COPY mtitrator/prover mtitrator/prover
+COPY mtitrator/jit mtitrator/jit
 RUN NITRO_BUILD_IGNORE_TIMESTAMPS=1 make build-prover-header
 
 FROM scratch as prover-header-export
@@ -97,19 +97,19 @@ RUN wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add - && \
     add-apt-repository 'deb http://apt.llvm.org/bullseye/ llvm-toolchain-bullseye-12 main' && \
     apt-get update && \
     apt-get install -y llvm-12-dev libclang-common-12-dev
-COPY arbitrator/Cargo.* arbitrator/
-COPY arbitrator/prover/Cargo.toml arbitrator/prover/
-COPY arbitrator/jit/Cargo.toml arbitrator/jit/
-RUN mkdir arbitrator/prover/src arbitrator/jit/src && \
-    echo "fn test() {}" > arbitrator/jit/src/lib.rs && \
-    echo "fn test() {}" > arbitrator/prover/src/lib.rs && \
-    cargo build --manifest-path arbitrator/Cargo.toml --release --lib && \
-    rm arbitrator/jit/src/lib.rs
+COPY mtitrator/Cargo.* mtitrator/
+COPY mtitrator/prover/Cargo.toml mtitrator/prover/
+COPY mtitrator/jit/Cargo.toml mtitrator/jit/
+RUN mkdir mtitrator/prover/src mtitrator/jit/src && \
+    echo "fn test() {}" > mtitrator/jit/src/lib.rs && \
+    echo "fn test() {}" > mtitrator/prover/src/lib.rs && \
+    cargo build --manifest-path mtitrator/Cargo.toml --release --lib && \
+    rm mtitrator/jit/src/lib.rs
 COPY ./Makefile ./
-COPY arbitrator/prover arbitrator/prover
-COPY arbitrator/jit arbitrator/jit
+COPY mtitrator/prover mtitrator/prover
+COPY mtitrator/jit mtitrator/jit
 COPY --from=brotli-library-export / target/
-RUN touch -a -m arbitrator/prover/src/lib.rs
+RUN touch -a -m mtitrator/prover/src/lib.rs
 RUN NITRO_BUILD_IGNORE_TIMESTAMPS=1 make build-prover-lib
 RUN NITRO_BUILD_IGNORE_TIMESTAMPS=1 make build-prover-bin
 RUN NITRO_BUILD_IGNORE_TIMESTAMPS=1 make build-jit
@@ -126,10 +126,10 @@ COPY --from=prover-export / target/
 COPY --from=wasm-bin-builder /workspace/target/ target/
 COPY --from=wasm-bin-builder /workspace/.make/ .make/
 COPY --from=wasm-libs-builder /workspace/target/ target/
-COPY --from=wasm-libs-builder /workspace/arbitrator/wasm-libraries/ arbitrator/wasm-libraries/
+COPY --from=wasm-libs-builder /workspace/mtitrator/wasm-libraries/ mtitrator/wasm-libraries/
 COPY --from=wasm-libs-builder /workspace/.make/ .make/
 COPY ./Makefile ./
-COPY ./arbitrator ./arbitrator
+COPY ./mtitrator ./mtitrator
 COPY ./solgen ./solgen
 COPY ./contracts ./contracts
 RUN NITRO_BUILD_IGNORE_TIMESTAMPS=1 make build-replay-env
@@ -187,7 +187,7 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
     /usr/sbin/update-ca-certificates && \
     useradd -s /bin/bash user && \
     mkdir -p /home/user/l1keystore && \
-    mkdir -p /home/user/.arbitrum/local/nitro && \
+    mkdir -p /home/user/.mantle/local/nitro && \
     chown -R user:user /home/user && \
     chmod -R 555 /home/user/target/machines && \
     apt-get clean && \

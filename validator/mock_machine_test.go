@@ -1,4 +1,4 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package validator
@@ -10,7 +10,7 @@ import (
 )
 
 type IncorrectMachine struct {
-	inner         *ArbitratorMachine
+	inner         *MtitratorMachine
 	incorrectStep uint64
 	stepCount     uint64
 }
@@ -19,7 +19,7 @@ var badGlobalState = GoGlobalState{Batch: 0xbadbadbadbad, PosInBatch: 0xbadbadba
 
 var _ MachineInterface = (*IncorrectMachine)(nil)
 
-func NewIncorrectMachine(inner *ArbitratorMachine, incorrectStep uint64) *IncorrectMachine {
+func NewIncorrectMachine(inner *MtitratorMachine, incorrectStep uint64) *IncorrectMachine {
 	return &IncorrectMachine{
 		inner:         inner.Clone(),
 		incorrectStep: incorrectStep,

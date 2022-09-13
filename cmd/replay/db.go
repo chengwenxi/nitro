@@ -1,4 +1,4 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package main
@@ -11,7 +11,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/core/rawdb"
 	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/offchainlabs/nitro/wavmio"
+	"github.com/mantlenetworkio/mantle/wavmio"
 )
 
 type PreimageDb struct{}

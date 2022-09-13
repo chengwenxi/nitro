@@ -1,10 +1,10 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package util
 
 import (
-	"github.com/offchainlabs/nitro/arbos/l2pricing"
+	"github.com/mantlenetworkio/mantle/mtos/l2pricing"
 )
 
 // This function, for testing, adjusts an L2 gas amount that represents L1 gas spending, to compensate for

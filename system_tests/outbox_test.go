@@ -1,4 +1,4 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package arbtest
@@ -16,21 +16,21 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/solgen/go/node_interfacegen"
-	"github.com/offchainlabs/nitro/solgen/go/precompilesgen"
-	"github.com/offchainlabs/nitro/util/arbmath"
-	"github.com/offchainlabs/nitro/util/merkletree"
+	"github.com/mantlenetworkio/mantle/mtstate"
+	"github.com/mantlenetworkio/mantle/solgen/go/node_interfacegen"
+	"github.com/mantlenetworkio/mantle/solgen/go/precompilesgen"
+	"github.com/mantlenetworkio/mantle/util/merkletree"
+	"github.com/mantlenetworkio/mantle/util/mtmath"
 )
 
 func TestOutboxProofs(t *testing.T) {
 	t.Parallel()
-	arbstate.RequireHookedGeth()
+	mtstate.RequireHookedGeth()
 	rand.Seed(time.Now().UTC().UnixNano())
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	arbSysAbi, err := precompilesgen.ArbSysMetaData.GetAbi()
+	arbSysAbi, err := precompilesgen.MtSysMetaData.GetAbi()
 	Require(t, err, "failed to get abi")
 	withdrawTopic := arbSysAbi.Events["L2ToL1Tx"].ID
 	merkleTopic := arbSysAbi.Events["SendMerkleUpdate"].ID
@@ -40,7 +40,7 @@ func TestOutboxProofs(t *testing.T) {
 
 	auth := l2info.GetDefaultTransactOpts("Owner", ctx)
 
-	arbSys, err := precompilesgen.NewArbSys(types.ArbSysAddress, client)
+	arbSys, err := precompilesgen.NewMtSys(types.MtSysAddress, client)
 	Require(t, err)
 	nodeInterface, err := node_interfacegen.NewNodeInterface(types.NodeInterfaceAddress, client)
 	Require(t, err)
@@ -67,7 +67,7 @@ func TestOutboxProofs(t *testing.T) {
 		auth.Value = big.NewInt(i * 1000000000)
 		auth.Nonce = big.NewInt(i + 1)
 		tx, err := arbSys.WithdrawEth(&auth, common.Address{})
-		Require(t, err, "ArbSys failed")
+		Require(t, err, "MtSys failed")
 		txns = append(txns, tx.Hash())
 
 		time.Sleep(4 * time.Millisecond) // Geth takes a few ms for the receipt to show up
@@ -117,10 +117,10 @@ func TestOutboxProofs(t *testing.T) {
 		rootHash := root.root
 		treeSize := root.size
 
-		balanced := treeSize == arbmath.NextPowerOf2(treeSize)/2
-		treeLevels := int(arbmath.Log2ceil(treeSize)) // the # of levels in the tree
-		proofLevels := treeLevels - 1                 // the # of levels where a hash is needed (all but root)
-		walkLevels := treeLevels                      // the # of levels we need to consider when building walks
+		balanced := treeSize == mtmath.NextPowerOf2(treeSize)/2
+		treeLevels := int(mtmath.Log2ceil(treeSize)) // the # of levels in the tree
+		proofLevels := treeLevels - 1                // the # of levels where a hash is needed (all but root)
+		walkLevels := treeLevels                     // the # of levels we need to consider when building walks
 		if balanced {
 			walkLevels -= 1 // skip the root
 		}
@@ -189,7 +189,7 @@ func TestOutboxProofs(t *testing.T) {
 			if len(query) > 0 {
 				logs, err = client.FilterLogs(ctx, ethereum.FilterQuery{
 					Addresses: []common.Address{
-						types.ArbSysAddress,
+						types.MtSysAddress,
 					},
 					Topics: [][]common.Hash{
 						{merkleTopic, withdrawTopic},

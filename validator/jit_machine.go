@@ -1,4 +1,4 @@
-// Copyright 2022, Offchain Labs, Inc.
+// Copyright 2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package validator
@@ -15,7 +15,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/offchainlabs/nitro/util/arbmath"
+	"github.com/mantlenetworkio/mantle/util/mtmath"
 	"github.com/pkg/errors"
 )
 
@@ -106,7 +106,7 @@ func (machine *JitMachine) prove(
 		return writeExact([]byte{data})
 	}
 	writeUint64 := func(data uint64) error {
-		return writeExact(arbmath.UintToBytes(data))
+		return writeExact(mtmath.UintToBytes(data))
 	}
 	writeBytes := func(data []byte) error {
 		if err := writeUint64(uint64(len(data))); err != nil {

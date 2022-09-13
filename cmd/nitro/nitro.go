@@ -1,4 +1,4 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package main
@@ -36,15 +36,15 @@ import (
 	"github.com/ethereum/go-ethereum/metrics/exp"
 	"github.com/ethereum/go-ethereum/node"
 
-	"github.com/offchainlabs/nitro/arbnode"
-	"github.com/offchainlabs/nitro/cmd/conf"
-	"github.com/offchainlabs/nitro/cmd/genericconf"
-	"github.com/offchainlabs/nitro/cmd/util"
-	_ "github.com/offchainlabs/nitro/nodeInterface"
-	"github.com/offchainlabs/nitro/util/colors"
-	"github.com/offchainlabs/nitro/util/headerreader"
-	"github.com/offchainlabs/nitro/util/stopwaiter"
-	"github.com/offchainlabs/nitro/validator"
+	"github.com/mantlenetworkio/mantle/cmd/conf"
+	"github.com/mantlenetworkio/mantle/cmd/genericconf"
+	"github.com/mantlenetworkio/mantle/cmd/util"
+	"github.com/mantlenetworkio/mantle/mtnode"
+	_ "github.com/mantlenetworkio/mantle/nodeInterface"
+	"github.com/mantlenetworkio/mantle/util/colors"
+	"github.com/mantlenetworkio/mantle/util/headerreader"
+	"github.com/mantlenetworkio/mantle/util/stopwaiter"
+	"github.com/mantlenetworkio/mantle/validator"
 )
 
 func printSampleUsage(name string) {
@@ -131,7 +131,7 @@ func main() {
 	}
 
 	vcsRevision, vcsTime := util.GetVersion()
-	log.Info("Running Arbitrum nitro node", "revision", vcsRevision, "vcs.time", vcsTime)
+	log.Info("Running Mantle nitro node", "revision", vcsRevision, "vcs.time", vcsTime)
 
 	if nodeConfig.Node.Dangerous.NoL1Listener {
 		nodeConfig.Node.L1Reader.Enable = false
@@ -160,7 +160,7 @@ func main() {
 		}
 	}
 
-	var rollupAddrs arbnode.RollupAddresses
+	var rollupAddrs mtnode.RollupAddresses
 	var l1TransactionOpts *bind.TransactOpts
 	var daSigner func([]byte) ([]byte, error)
 	setupNeedsKey := l1Wallet.OnlyCreateKey || nodeConfig.Node.Validator.OnlyCreateWalletContract
@@ -193,7 +193,7 @@ func main() {
 		}
 		if !nodeConfig.Node.Validator.Dangerous.WithoutBlockValidator {
 			nodeConfig.Node.BlockValidator.Enable = true
-			nodeConfig.Node.BlockValidator.ArbitratorValidator = true
+			nodeConfig.Node.BlockValidator.MtitratorValidator = true
 		}
 	}
 
@@ -253,13 +253,13 @@ func main() {
 		}
 	}
 
-	chainDb, l2BlockChain, err := openInitializeChainDb(ctx, stack, nodeConfig, new(big.Int).SetUint64(nodeConfig.L2.ChainID), arbnode.DefaultCacheConfigFor(stack, &nodeConfig.Node.Caching))
+	chainDb, l2BlockChain, err := openInitializeChainDb(ctx, stack, nodeConfig, new(big.Int).SetUint64(nodeConfig.L2.ChainID), mtnode.DefaultCacheConfigFor(stack, &nodeConfig.Node.Caching))
 	if err != nil {
 		util.HandleError(err, printSampleUsage)
 		return
 	}
 
-	arbDb, err := stack.OpenDatabase("arbitrumdata", 0, 0, "", false)
+	arbDb, err := stack.OpenDatabase("mantledata", 0, 0, "", false)
 	if err != nil {
 		panic(fmt.Sprintf("Failed to open database: %v", err))
 	}
@@ -268,7 +268,7 @@ func main() {
 		return
 	}
 
-	if l2BlockChain.Config().ArbitrumChainParams.DataAvailabilityCommittee && !nodeConfig.Node.DataAvailability.Enable {
+	if l2BlockChain.Config().MantleChainParams.DataAvailabilityCommittee && !nodeConfig.Node.DataAvailability.Enable {
 		flag.Usage()
 		panic("a data availability service must be configured for this chain (see the --node.data-availability family of options)")
 	}
@@ -284,7 +284,7 @@ func main() {
 
 	liveNodeConfig := NewLiveNodeConfig(args, nodeConfig)
 	fatalErrChan := make(chan error, 10)
-	currentNode, err := arbnode.CreateNode(
+	currentNode, err := mtnode.CreateNode(
 		ctx,
 		stack,
 		chainDb,
@@ -345,7 +345,7 @@ func main() {
 
 type NodeConfig struct {
 	Conf          genericconf.ConfConfig          `koanf:"conf" reload:"hot"`
-	Node          arbnode.Config                  `koanf:"node" reload:"hot"`
+	Node          mtnode.Config                   `koanf:"node" reload:"hot"`
 	L1            conf.L1Config                   `koanf:"l1"`
 	L2            conf.L2Config                   `koanf:"l2"`
 	LogLevel      int                             `koanf:"log-level" reload:"hot"`
@@ -361,7 +361,7 @@ type NodeConfig struct {
 
 var NodeConfigDefault = NodeConfig{
 	Conf:          genericconf.ConfConfigDefault,
-	Node:          arbnode.ConfigDefault,
+	Node:          mtnode.ConfigDefault,
 	L1:            conf.L1ConfigDefault,
 	L2:            conf.L2ConfigDefault,
 	LogLevel:      int(log.LvlInfo),
@@ -375,7 +375,7 @@ var NodeConfigDefault = NodeConfig{
 
 func NodeConfigAddOptions(f *flag.FlagSet) {
 	genericconf.ConfConfigAddOptions("conf", f)
-	arbnode.ConfigAddOptions("node", f, true, true)
+	mtnode.ConfigAddOptions("node", f, true, true)
 	conf.L1ConfigAddOptions("l1", f)
 	conf.L2ConfigAddOptions("l2", f)
 	f.Int("log-level", NodeConfigDefault.LogLevel, "log level")
@@ -507,12 +507,12 @@ func ParseNode(ctx context.Context, args []string) (*NodeConfig, *genericconf.Wa
 		case 0:
 			return nil, nil, nil, nil, nil, errors.New("must specify --l2.chain-id to choose rollup")
 		case 42161:
-			if err := applyArbitrumOneParameters(k); err != nil {
+			if err := applyMantleOneParameters(k); err != nil {
 				return nil, nil, nil, nil, nil, err
 			}
 			chainFound = true
 		case 42170:
-			if err := applyArbitrumNovaParameters(k); err != nil {
+			if err := applyMantleNovaParameters(k); err != nil {
 				return nil, nil, nil, nil, nil, err
 			}
 			chainFound = true
@@ -522,7 +522,7 @@ func ParseNode(ctx context.Context, args []string) (*NodeConfig, *genericconf.Wa
 		case 0:
 			return nil, nil, nil, nil, nil, errors.New("must specify --l2.chain-id to choose rollup")
 		case 421611:
-			if err := applyArbitrumRollupRinkebyTestnetParameters(k); err != nil {
+			if err := applyMantleRollupRinkebyTestnetParameters(k); err != nil {
 				return nil, nil, nil, nil, nil, err
 			}
 			chainFound = true
@@ -532,12 +532,12 @@ func ParseNode(ctx context.Context, args []string) (*NodeConfig, *genericconf.Wa
 		case 0:
 			return nil, nil, nil, nil, nil, errors.New("must specify --l2.chain-id to choose rollup")
 		case 421613:
-			if err := applyArbitrumRollupGoerliTestnetParameters(k); err != nil {
+			if err := applyMantleRollupGoerliTestnetParameters(k); err != nil {
 				return nil, nil, nil, nil, nil, err
 			}
 			chainFound = true
 		case 421703:
-			if err := applyArbitrumAnytrustGoerliTestnetParameters(k); err != nil {
+			if err := applyMantleAnytrustGoerliTestnetParameters(k); err != nil {
 				return nil, nil, nil, nil, nil, err
 			}
 			chainFound = true
@@ -589,11 +589,11 @@ func ParseNode(ctx context.Context, args []string) (*NodeConfig, *genericconf.Wa
 	return &nodeConfig, &l1Wallet, &l2DevWallet, l1Client, l1ChainId, nil
 }
 
-func applyArbitrumOneParameters(k *koanf.Koanf) error {
+func applyMantleOneParameters(k *koanf.Koanf) error {
 	return k.Load(confmap.Provider(map[string]interface{}{
 		"persistent.chain":                   "arb1",
-		"node.forwarding-target":             "https://arb1.arbitrum.io/rpc",
-		"node.feed.input.url":                "wss://arb1.arbitrum.io/feed",
+		"node.forwarding-target":             "https://arb1.mantle.io/rpc",
+		"node.feed.input.url":                "wss://arb1.mantle.io/feed",
 		"l1.rollup.bridge":                   "0x8315177ab297ba92a06054ce80a67ed4dbd7ed3a",
 		"l1.rollup.inbox":                    "0x4dbd4fc535ac27206064b68ffcf827b0a60bab3f",
 		"l1.rollup.rollup":                   "0x5ef0d09d1e6204141b4d37530808ed19f60fba35",
@@ -605,14 +605,14 @@ func applyArbitrumOneParameters(k *koanf.Koanf) error {
 	}, "."), nil)
 }
 
-func applyArbitrumNovaParameters(k *koanf.Koanf) error {
+func applyMantleNovaParameters(k *koanf.Koanf) error {
 	return k.Load(confmap.Provider(map[string]interface{}{
 		"persistent.chain":                                       "nova",
-		"node.forwarding-target":                                 "https://nova.arbitrum.io/rpc",
-		"node.feed.input.url":                                    "wss://nova.arbitrum.io/feed",
+		"node.forwarding-target":                                 "https://nova.mantle.io/rpc",
+		"node.feed.input.url":                                    "wss://nova.mantle.io/feed",
 		"node.data-availability.enable":                          true,
 		"node.data-availability.rest-aggregator.enable":          true,
-		"node.data-availability.rest-aggregator.online-url-list": "https://nova.arbitrum.io/das-servers",
+		"node.data-availability.rest-aggregator.online-url-list": "https://nova.mantle.io/das-servers",
 		"l1.rollup.bridge":                                       "0xc1ebd02f738644983b6c4b2d440b8e77dde276bd",
 		"l1.rollup.inbox":                                        "0xc4448b71118c9071bcb9734a0eac55d18a153949",
 		"l1.rollup.rollup":                                       "0xfb209827c58283535b744575e11953dcc4bead88",
@@ -625,11 +625,11 @@ func applyArbitrumNovaParameters(k *koanf.Koanf) error {
 	}, "."), nil)
 }
 
-func applyArbitrumRollupGoerliTestnetParameters(k *koanf.Koanf) error {
+func applyMantleRollupGoerliTestnetParameters(k *koanf.Koanf) error {
 	return k.Load(confmap.Provider(map[string]interface{}{
 		"persistent.chain":                   "goerli-rollup",
-		"node.forwarding-target":             "https://goerli-rollup.arbitrum.io/rpc",
-		"node.feed.input.url":                "wss://goerli-rollup.arbitrum.io/feed",
+		"node.forwarding-target":             "https://goerli-rollup.mantle.io/rpc",
+		"node.feed.input.url":                "wss://goerli-rollup.mantle.io/feed",
 		"l1.rollup.bridge":                   "0xaf4159a80b6cc41ed517db1c453d1ef5c2e4db72",
 		"l1.rollup.inbox":                    "0x6bebc4925716945d46f0ec336d5c2564f419682c",
 		"l1.rollup.rollup":                   "0x45e5caea8768f42b385a366d3551ad1e0cbfab17",
@@ -642,11 +642,11 @@ func applyArbitrumRollupGoerliTestnetParameters(k *koanf.Koanf) error {
 	}, "."), nil)
 }
 
-func applyArbitrumRollupRinkebyTestnetParameters(k *koanf.Koanf) error {
+func applyMantleRollupRinkebyTestnetParameters(k *koanf.Koanf) error {
 	return k.Load(confmap.Provider(map[string]interface{}{
 		"persistent.chain":                   "rinkeby-nitro",
-		"node.forwarding-target":             "https://rinkeby.arbitrum.io/rpc",
-		"node.feed.input.url":                "wss://rinkeby.arbitrum.io/feed",
+		"node.forwarding-target":             "https://rinkeby.mantle.io/rpc",
+		"node.feed.input.url":                "wss://rinkeby.mantle.io/feed",
 		"l1.rollup.bridge":                   "0x85c720444e436e1f9407e0c3895d3fe149f41168",
 		"l1.rollup.inbox":                    "0x578BAde599406A8fE3d24Fd7f7211c0911F5B29e",
 		"l1.rollup.rollup":                   "0x71c6093c564eddcfaf03481c3f59f88849f1e644",
@@ -658,7 +658,7 @@ func applyArbitrumRollupRinkebyTestnetParameters(k *koanf.Koanf) error {
 	}, "."), nil)
 }
 
-func applyArbitrumAnytrustGoerliTestnetParameters(k *koanf.Koanf) error {
+func applyMantleAnytrustGoerliTestnetParameters(k *koanf.Koanf) error {
 	return k.Load(confmap.Provider(map[string]interface{}{
 		"persistent.chain": "goerli-anytrust",
 	}, "."), nil)
@@ -745,7 +745,7 @@ type NodeConfigFetcher struct {
 	*LiveNodeConfig
 }
 
-func (f *NodeConfigFetcher) Get() *arbnode.Config {
+func (f *NodeConfigFetcher) Get() *mtnode.Config {
 	return &f.LiveNodeConfig.get().Node
 }
 

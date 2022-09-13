@@ -1,12 +1,12 @@
 {
-  "name": "@arbitrum/nitro-contracts",
+  "name": "@mantle/nitro-contracts",
   "version": "1.0.0-beta.8",
-  "description": "Layer 2 precompiles and rollup for Arbitrum Nitro",
-  "author": "Offchain Labs, Inc.",
+  "description": "Layer 2 precompiles and rollup for Mantle Nitro",
+  "author": "Mantlenetwork, Inc.",
   "license": "BUSL-1.1",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/offchainlabs/nitro.git",
+    "url": "git+https://github.com/mantlenetworkio/mantle.git",
     "directory": "contracts"
   },
   "files": [
@@ -15,7 +15,7 @@
     "hardhat.prod-config.js"
   ],
   "bugs": {
-    "url": "https://github.com/offchainlabs/nitro/issues"
+    "url": "https://github.com/mantlenetworkio/mantle/issues"
   },
   "scripts": {
     "build": "./scripts/build.bash",

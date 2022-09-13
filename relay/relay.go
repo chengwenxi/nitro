@@ -1,4 +1,4 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package relay
@@ -9,35 +9,35 @@ import (
 	"net"
 	"time"
 
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/arbutil"
-	"github.com/offchainlabs/nitro/broadcastclient"
-	"github.com/offchainlabs/nitro/broadcaster"
-	"github.com/offchainlabs/nitro/util/stopwaiter"
-	"github.com/offchainlabs/nitro/wsbroadcastserver"
+	"github.com/mantlenetworkio/mantle/broadcastclient"
+	"github.com/mantlenetworkio/mantle/broadcaster"
+	"github.com/mantlenetworkio/mantle/mtstate"
+	"github.com/mantlenetworkio/mantle/mtutil"
+	"github.com/mantlenetworkio/mantle/util/stopwaiter"
+	"github.com/mantlenetworkio/mantle/wsbroadcastserver"
 )
 
 type Relay struct {
 	stopwaiter.StopWaiter
 	broadcastClients            []*broadcastclient.BroadcastClient
 	broadcaster                 *broadcaster.Broadcaster
-	confirmedSequenceNumberChan chan arbutil.MessageIndex
+	confirmedSequenceNumberChan chan mtutil.MessageIndex
 	messageChan                 chan broadcastFeedMessage
 }
 
 type broadcastFeedMessage struct {
-	message        arbstate.MessageWithMetadata
-	sequenceNumber arbutil.MessageIndex
+	message        mtstate.MessageWithMetadata
+	sequenceNumber mtutil.MessageIndex
 }
 
 type RelayMessageQueue struct {
 	queue chan broadcastFeedMessage
 }
 
-func (q *RelayMessageQueue) AddBroadcastMessages(pos arbutil.MessageIndex, messages []arbstate.MessageWithMetadata) error {
+func (q *RelayMessageQueue) AddBroadcastMessages(pos mtutil.MessageIndex, messages []mtstate.MessageWithMetadata) error {
 	for i, message := range messages {
 		q.queue <- broadcastFeedMessage{
-			sequenceNumber: pos + arbutil.MessageIndex(i),
+			sequenceNumber: pos + mtutil.MessageIndex(i),
 			message:        message,
 		}
 	}
@@ -50,7 +50,7 @@ func NewRelay(serverConf wsbroadcastserver.BroadcasterConfig, clientConf broadca
 
 	q := RelayMessageQueue{make(chan broadcastFeedMessage, 100)}
 
-	confirmedSequenceNumberListener := make(chan arbutil.MessageIndex, 10)
+	confirmedSequenceNumberListener := make(chan mtutil.MessageIndex, 10)
 
 	for _, address := range clientConf.URLs {
 		client := broadcastclient.NewBroadcastClient(address, chainId, 0, clientConf.Timeout, &q, feedErrChan)
@@ -83,7 +83,7 @@ func (r *Relay) Start(ctx context.Context) error {
 		client.Start(ctx)
 	}
 
-	recentFeedItems := make(map[arbutil.MessageIndex]time.Time)
+	recentFeedItems := make(map[mtutil.MessageIndex]time.Time)
 	r.LaunchThread(func(ctx context.Context) {
 		recentFeedItemsCleanup := time.NewTicker(RECENT_FEED_ITEM_TTL)
 		defer recentFeedItemsCleanup.Stop()

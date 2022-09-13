@@ -1,4 +1,4 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package precompiles
@@ -7,10 +7,10 @@ import (
 	"log"
 	"math/big"
 
-	"github.com/offchainlabs/nitro/arbos"
-	"github.com/offchainlabs/nitro/arbos/arbosState"
-	"github.com/offchainlabs/nitro/arbos/burn"
-	"github.com/offchainlabs/nitro/arbos/util"
+	"github.com/mantlenetworkio/mantle/mtos"
+	"github.com/mantlenetworkio/mantle/mtos/burn"
+	"github.com/mantlenetworkio/mantle/mtos/mtosState"
+	"github.com/mantlenetworkio/mantle/mtos/util"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -29,8 +29,8 @@ type Context struct {
 	caller      addr
 	gasSupplied uint64
 	gasLeft     uint64
-	txProcessor *arbos.TxProcessor
-	State       *arbosState.ArbosState
+	txProcessor *mtos.TxProcessor
+	State       *mtosState.MtosState
 	tracingInfo *util.TracingInfo
 	readOnly    bool
 }
@@ -62,7 +62,7 @@ func (c *Context) TracingInfo() *util.TracingInfo {
 }
 
 func testContext(caller addr, evm mech) *Context {
-	tracingInfo := util.NewTracingInfo(evm, common.Address{}, types.ArbosAddress, util.TracingDuringEVM)
+	tracingInfo := util.NewTracingInfo(evm, common.Address{}, types.MtosAddress, util.TracingDuringEVM)
 	ctx := &Context{
 		caller:      caller,
 		gasSupplied: ^uint64(0),
@@ -70,13 +70,13 @@ func testContext(caller addr, evm mech) *Context {
 		tracingInfo: tracingInfo,
 		readOnly:    false,
 	}
-	state, err := arbosState.OpenArbosState(evm.StateDB, burn.NewSystemBurner(tracingInfo, false))
+	state, err := mtosState.OpenMtosState(evm.StateDB, burn.NewSystemBurner(tracingInfo, false))
 	if err != nil {
 		panic(err)
 	}
 	ctx.State = state
 	var ok bool
-	ctx.txProcessor, ok = evm.ProcessingHook.(*arbos.TxProcessor)
+	ctx.txProcessor, ok = evm.ProcessingHook.(*mtos.TxProcessor)
 	if !ok {
 		panic("must have tx processor")
 	}

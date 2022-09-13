@@ -1,4 +1,4 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package arbtest
@@ -17,10 +17,10 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/params"
-	"github.com/offchainlabs/nitro/arbnode"
-	"github.com/offchainlabs/nitro/solgen/go/mocksgen"
-	"github.com/offchainlabs/nitro/util/arbmath"
-	"github.com/offchainlabs/nitro/util/colors"
+	"github.com/mantlenetworkio/mantle/mtnode"
+	"github.com/mantlenetworkio/mantle/solgen/go/mocksgen"
+	"github.com/mantlenetworkio/mantle/util/colors"
+	"github.com/mantlenetworkio/mantle/util/mtmath"
 )
 
 func TestSequencerRejection(t *testing.T) {
@@ -28,12 +28,12 @@ func TestSequencerRejection(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	seqNodeConfig := arbnode.ConfigDefaultL2Test()
+	seqNodeConfig := mtnode.ConfigDefaultL2Test()
 	seqNodeConfig.Feed.Output = *newBroadcasterConfigTest()
 	feedErrChan := make(chan error, 10)
 	l2info1, nodeA, client1, l2stackA := CreateTestL2WithConfig(t, ctx, nil, seqNodeConfig, true)
 	defer requireClose(t, l2stackA)
-	clientNodeConfig := arbnode.ConfigDefaultL2Test()
+	clientNodeConfig := mtnode.ConfigDefaultL2Test()
 	port := nodeA.BroadcastServer.ListenerAddr().(*net.TCPAddr).Port
 	clientNodeConfig.Feed.Input = *newBroadcastClientConfigTest(port)
 
@@ -75,7 +75,7 @@ func TestSequencerRejection(t *testing.T) {
 			txData := &types.DynamicFeeTx{
 				To:        &simpleAddr,
 				Gas:       l2info1.TransferGas + 10000,
-				GasFeeCap: arbmath.BigMulByUint(l2info1.GasPrice, 100),
+				GasFeeCap: mtmath.BigMulByUint(l2info1.GasPrice, 100),
 				Value:     common.Big0,
 			}
 			for atomic.LoadInt32(&stopBackground) == 0 {

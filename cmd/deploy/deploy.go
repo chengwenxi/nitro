@@ -1,4 +1,4 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package main
@@ -11,16 +11,16 @@ import (
 	"os"
 	"time"
 
-	"github.com/offchainlabs/nitro/cmd/genericconf"
-	"github.com/offchainlabs/nitro/util/headerreader"
-	"github.com/offchainlabs/nitro/validator"
+	"github.com/mantlenetworkio/mantle/cmd/genericconf"
+	"github.com/mantlenetworkio/mantle/util/headerreader"
+	"github.com/mantlenetworkio/mantle/validator"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
-	"github.com/offchainlabs/nitro/arbnode"
-	"github.com/offchainlabs/nitro/cmd/util"
+	"github.com/mantlenetworkio/mantle/cmd/util"
+	"github.com/mantlenetworkio/mantle/mtnode"
 )
 
 func main() {
@@ -42,7 +42,7 @@ func main() {
 	l1passphrase := flag.String("l1passphrase", "passphrase", "l1 private key file passphrase")
 	outfile := flag.String("l1deployment", "deploy.json", "deployment output json file")
 	l1ChainIdUint := flag.Uint64("l1chainid", 1337, "L1 chain ID")
-	l2ChainIdUint := flag.Uint64("l2chainid", params.ArbitrumDevTestChainConfig().ChainID.Uint64(), "L2 chain ID")
+	l2ChainIdUint := flag.Uint64("l2chainid", params.MantleDevTestChainConfig().ChainID.Uint64(), "L2 chain ID")
 	authorizevalidators := flag.Uint64("authorizevalidators", 0, "Number of validators to preemptively authorize")
 	txTimeout := flag.Duration("txtimeout", 10*time.Minute, "Timeout when waiting for a transaction to be included in a block")
 	prod := flag.Bool("prod", false, "Whether to configure the rollup for production or testing")
@@ -51,7 +51,7 @@ func main() {
 	l2ChainId := new(big.Int).SetUint64(*l2ChainIdUint)
 
 	if *prod {
-		if *l2ChainIdUint == params.ArbitrumDevTestChainConfig().ChainID.Uint64() {
+		if *l2ChainIdUint == params.MantleDevTestChainConfig().ChainID.Uint64() {
 			panic("must specify l2 chain id when launching a prod chain")
 		}
 		if *wasmmoduleroot == "" {
@@ -101,7 +101,7 @@ func main() {
 	headerReaderConfig := headerreader.DefaultConfig
 	headerReaderConfig.TxTimeout = *txTimeout
 
-	deployPtr, err := arbnode.DeployOnL1(
+	deployPtr, err := mtnode.DeployOnL1(
 		ctx,
 		l1client,
 		l1TransactionOpts,
@@ -109,7 +109,7 @@ func main() {
 		*authorizevalidators,
 		headerReaderConfig,
 		machineConfig,
-		arbnode.GenerateRollupConfig(*prod, common.HexToHash(*wasmmoduleroot), ownerAddress, l2ChainId, loserEscrowAddress),
+		mtnode.GenerateRollupConfig(*prod, common.HexToHash(*wasmmoduleroot), ownerAddress, l2ChainId, loserEscrowAddress),
 	)
 	if err != nil {
 		flag.Usage()

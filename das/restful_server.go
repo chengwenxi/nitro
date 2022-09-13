@@ -1,4 +1,4 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package das
@@ -17,9 +17,9 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/metrics"
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/cmd/genericconf"
-	"github.com/offchainlabs/nitro/util/pretty"
+	"github.com/mantlenetworkio/mantle/cmd/genericconf"
+	"github.com/mantlenetworkio/mantle/mtstate"
+	"github.com/mantlenetworkio/mantle/util/pretty"
 )
 
 var (
@@ -37,12 +37,12 @@ var (
 
 type RestfulDasServer struct {
 	server               *http.Server
-	storage              arbstate.DataAvailabilityReader
+	storage              mtstate.DataAvailabilityReader
 	httpServerExitedChan chan interface{}
 	httpServerError      error
 }
 
-func NewRestfulDasServer(address string, port uint64, restServerTimeouts genericconf.HTTPServerTimeoutConfig, storageService arbstate.DataAvailabilityReader) (*RestfulDasServer, error) {
+func NewRestfulDasServer(address string, port uint64, restServerTimeouts genericconf.HTTPServerTimeoutConfig, storageService mtstate.DataAvailabilityReader) (*RestfulDasServer, error) {
 	listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", address, port))
 	if err != nil {
 		return nil, err
@@ -50,7 +50,7 @@ func NewRestfulDasServer(address string, port uint64, restServerTimeouts generic
 	return NewRestfulDasServerOnListener(listener, restServerTimeouts, storageService)
 }
 
-func NewRestfulDasServerOnListener(listener net.Listener, restServerTimeouts genericconf.HTTPServerTimeoutConfig, storageService arbstate.DataAvailabilityReader) (*RestfulDasServer, error) {
+func NewRestfulDasServerOnListener(listener net.Listener, restServerTimeouts genericconf.HTTPServerTimeoutConfig, storageService mtstate.DataAvailabilityReader) (*RestfulDasServer, error) {
 
 	ret := &RestfulDasServer{
 		storage:              storageService,

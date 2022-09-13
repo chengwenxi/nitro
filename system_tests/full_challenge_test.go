@@ -1,11 +1,11 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 //go:build fullchallengetest
 // +build fullchallengetest
 
 //
-// Copyright 2021-2022, Offchain Labs, Inc. All rights reserved.
+// Copyright 2021-2022, Mantlenetwork, Inc. All rights reserved.
 //
 
 package arbtest

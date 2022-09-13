@@ -1,4 +1,4 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package validator
@@ -9,16 +9,15 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/offchainlabs/nitro/arbstate"
-
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/offchainlabs/nitro/arbutil"
-	"github.com/offchainlabs/nitro/solgen/go/rollupgen"
+	"github.com/mantlenetworkio/mantle/mtstate"
+	"github.com/mantlenetworkio/mantle/mtutil"
+	"github.com/mantlenetworkio/mantle/solgen/go/rollupgen"
 	"github.com/pkg/errors"
 )
 
@@ -44,14 +43,14 @@ type L1Validator struct {
 	rollupAddress           common.Address
 	challengeManagerAddress common.Address
 	validatorUtils          *rollupgen.ValidatorUtils
-	client                  arbutil.L1Interface
+	client                  mtutil.L1Interface
 	builder                 *ValidatorTxBuilder
 	wallet                  *ValidatorWallet
 	callOpts                bind.CallOpts
 	genesisBlockNumber      uint64
 
 	l2Blockchain       *core.BlockChain
-	das                arbstate.DataAvailabilityReader
+	das                mtstate.DataAvailabilityReader
 	inboxTracker       InboxTrackerInterface
 	txStreamer         TransactionStreamerInterface
 	blockValidator     *BlockValidator
@@ -59,12 +58,12 @@ type L1Validator struct {
 }
 
 func NewL1Validator(
-	client arbutil.L1Interface,
+	client mtutil.L1Interface,
 	wallet *ValidatorWallet,
 	validatorUtilsAddress common.Address,
 	callOpts bind.CallOpts,
 	l2Blockchain *core.BlockChain,
-	das arbstate.DataAvailabilityReader,
+	das mtstate.DataAvailabilityReader,
 	inboxTracker InboxTrackerInterface,
 	txStreamer TransactionStreamerInterface,
 	blockValidator *BlockValidator,
@@ -229,7 +228,7 @@ type OurStakerInfo struct {
 // Returns (block number, global state inbox position is invalid, error).
 // If global state is invalid, block number is set to the last of the batch.
 func (v *L1Validator) blockNumberFromGlobalState(gs GoGlobalState) (int64, bool, error) {
-	var batchHeight arbutil.MessageIndex
+	var batchHeight mtutil.MessageIndex
 	if gs.Batch > 0 {
 		var err error
 		batchHeight, err = v.inboxTracker.GetBatchMessageCount(gs.Batch - 1)
@@ -248,11 +247,11 @@ func (v *L1Validator) blockNumberFromGlobalState(gs GoGlobalState) (int64, bool,
 		if gs.PosInBatch >= uint64(nextBatchHeight-batchHeight) {
 			// This PosInBatch would enter the next batch. Return the last block before the next batch.
 			// We can be sure that MessageCountToBlockNumber will return a non-negative number as nextBatchHeight must be nonzero.
-			return arbutil.MessageCountToBlockNumber(nextBatchHeight, v.genesisBlockNumber), true, nil
+			return mtutil.MessageCountToBlockNumber(nextBatchHeight, v.genesisBlockNumber), true, nil
 		}
 	}
 
-	return arbutil.MessageCountToBlockNumber(batchHeight+arbutil.MessageIndex(gs.PosInBatch), v.genesisBlockNumber), false, nil
+	return mtutil.MessageCountToBlockNumber(batchHeight+mtutil.MessageIndex(gs.PosInBatch), v.genesisBlockNumber), false, nil
 }
 
 func (v *L1Validator) generateNodeAction(ctx context.Context, stakerInfo *OurStakerInfo, strategy StakerStrategy, makeAssertionInterval time.Duration) (nodeAction, bool, error) {
@@ -330,7 +329,7 @@ func (v *L1Validator) generateNodeAction(ctx context.Context, stakerInfo *OurSta
 				return nil, false, err
 			}
 			// Must be non-negative as a batch must contain at least one message
-			lastBatchBlock := uint64(arbutil.MessageCountToBlockNumber(messageCount, v.genesisBlockNumber))
+			lastBatchBlock := uint64(mtutil.MessageCountToBlockNumber(messageCount, v.genesisBlockNumber))
 			if lastBlockValidated > lastBatchBlock {
 				lastBlockValidated = lastBatchBlock
 			}
@@ -507,8 +506,8 @@ func (v *L1Validator) createNewNodeAction(
 			return nil, err
 		}
 		// Must be non-negative as a batch must contain at least one message
-		lastBlockNum := uint64(arbutil.MessageCountToBlockNumber(batchMessageCount, v.genesisBlockNumber))
-		prevBlockNum := uint64(arbutil.MessageCountToBlockNumber(prevBatchMessageCount, v.genesisBlockNumber))
+		lastBlockNum := uint64(mtutil.MessageCountToBlockNumber(batchMessageCount, v.genesisBlockNumber))
+		prevBlockNum := uint64(mtutil.MessageCountToBlockNumber(prevBatchMessageCount, v.genesisBlockNumber))
 		if lastBlockValidated > lastBlockNum {
 			return nil, fmt.Errorf("%v blocks have been validated but only %v appear in the latest batch", lastBlockValidated, lastBlockNum)
 		}

@@ -1,4 +1,4 @@
-// Copyright 2022, Offchain Labs, Inc.
+// Copyright 2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package das
@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/allegro/bigcache"
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/das/dastree"
-	"github.com/offchainlabs/nitro/util/pretty"
+	"github.com/mantlenetworkio/mantle/das/dastree"
+	"github.com/mantlenetworkio/mantle/mtstate"
+	"github.com/mantlenetworkio/mantle/util/pretty"
 	flag "github.com/spf13/pflag"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -103,7 +103,7 @@ func (bcs *BigCacheStorageService) Close(ctx context.Context) error {
 	return bcs.baseStorageService.Close(ctx)
 }
 
-func (bcs *BigCacheStorageService) ExpirationPolicy(ctx context.Context) (arbstate.ExpirationPolicy, error) {
+func (bcs *BigCacheStorageService) ExpirationPolicy(ctx context.Context) (mtstate.ExpirationPolicy, error) {
 	return bcs.baseStorageService.ExpirationPolicy(ctx)
 }
 

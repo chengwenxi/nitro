@@ -1,4 +1,4 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package main
@@ -19,12 +19,12 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/cmd/genericconf"
+	"github.com/mantlenetworkio/mantle/cmd/genericconf"
+	"github.com/mantlenetworkio/mantle/mtstate"
 
-	"github.com/offchainlabs/nitro/cmd/util"
-	"github.com/offchainlabs/nitro/das"
-	"github.com/offchainlabs/nitro/das/dastree"
+	"github.com/mantlenetworkio/mantle/cmd/util"
+	"github.com/mantlenetworkio/mantle/das"
+	"github.com/mantlenetworkio/mantle/das/dastree"
 	flag "github.com/spf13/pflag"
 )
 
@@ -161,7 +161,7 @@ func startClientStore(args []string) error {
 	}
 
 	ctx := context.Background()
-	var cert *arbstate.DataAvailabilityCertificate
+	var cert *mtstate.DataAvailabilityCertificate
 
 	if config.RandomMessageSize > 0 {
 		message := make([]byte, config.RandomMessageSize)

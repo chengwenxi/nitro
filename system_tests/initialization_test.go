@@ -1,4 +1,4 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package arbtest
@@ -11,9 +11,9 @@ import (
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/params"
-	"github.com/offchainlabs/nitro/arbnode"
-	"github.com/offchainlabs/nitro/statetransfer"
-	"github.com/offchainlabs/nitro/util/testhelpers"
+	"github.com/mantlenetworkio/mantle/mtnode"
+	"github.com/mantlenetworkio/mantle/statetransfer"
+	"github.com/mantlenetworkio/mantle/util/testhelpers"
 )
 
 // Each contract gets a set of storage cells with values, and code that returns a sum of their cell
@@ -50,7 +50,7 @@ func TestInitContract(t *testing.T) {
 	defer cancel()
 	expectedSums := make(map[common.Address]*big.Int)
 	prand := testhelpers.NewPseudoRandomDataSource(t, 1)
-	l2info := NewArbTestInfo(t, params.ArbitrumDevTestChainConfig().ChainID)
+	l2info := NewArbTestInfo(t, params.MantleDevTestChainConfig().ChainID)
 	for i := 0; i < 50; i++ {
 		contractData, sum := InitOneContract(prand)
 		accountAddress := prand.GetAddress()
@@ -63,7 +63,7 @@ func TestInitContract(t *testing.T) {
 		l2info.ArbInitData.Accounts = append(l2info.ArbInitData.Accounts, accountInfo)
 		expectedSums[accountAddress] = sum
 	}
-	_, _, client, stack := CreateTestL2WithConfig(t, ctx, l2info, arbnode.ConfigDefaultL2Test(), true)
+	_, _, client, stack := CreateTestL2WithConfig(t, ctx, l2info, mtnode.ConfigDefaultL2Test(), true)
 	defer requireClose(t, stack)
 
 	for accountAddress, sum := range expectedSums {

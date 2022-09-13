@@ -1,4 +1,4 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package validator
@@ -14,8 +14,8 @@ import (
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/offchainlabs/nitro/arbutil"
-	"github.com/offchainlabs/nitro/solgen/go/challengegen"
+	"github.com/mantlenetworkio/mantle/mtutil"
+	"github.com/mantlenetworkio/mantle/solgen/go/challengegen"
 
 	"github.com/pkg/errors"
 )
@@ -80,7 +80,7 @@ func NewBlockChallengeBackend(
 	genesisBlockNumber uint64,
 ) (*BlockChallengeBackend, error) {
 	startGs := GoGlobalStateFromSolidity(initialState.StartState)
-	startBlockNum := arbutil.MessageCountToBlockNumber(0, genesisBlockNumber)
+	startBlockNum := mtutil.MessageCountToBlockNumber(0, genesisBlockNumber)
 	if startGs.BlockHash != (common.Hash{}) {
 		startBlock := bc.GetBlockByHash(startGs.BlockHash)
 		if startBlock == nil {
@@ -89,7 +89,7 @@ func NewBlockChallengeBackend(
 		startBlockNum = int64(startBlock.NumberU64())
 	}
 
-	var startMsgCount arbutil.MessageIndex
+	var startMsgCount mtutil.MessageIndex
 	if startGs.Batch > 0 {
 		var err error
 		startMsgCount, err = inboxTracker.GetBatchMessageCount(startGs.Batch - 1)
@@ -97,14 +97,14 @@ func NewBlockChallengeBackend(
 			return nil, errors.Wrap(err, "failed to get challenge start batch metadata")
 		}
 	}
-	startMsgCount += arbutil.MessageIndex(startGs.PosInBatch)
-	expectedMsgCount := arbutil.SignedBlockNumberToMessageCount(startBlockNum, genesisBlockNumber)
+	startMsgCount += mtutil.MessageIndex(startGs.PosInBatch)
+	expectedMsgCount := mtutil.SignedBlockNumberToMessageCount(startBlockNum, genesisBlockNumber)
 	if startMsgCount != expectedMsgCount {
 		return nil, fmt.Errorf("start block %v and start message count %v don't correspond", startBlockNum, startMsgCount)
 	}
 
 	endGs := GoGlobalStateFromSolidity(initialState.EndState)
-	var endMsgCount arbutil.MessageIndex
+	var endMsgCount mtutil.MessageIndex
 	if endGs.Batch > 0 {
 		var err error
 		endMsgCount, err = inboxTracker.GetBatchMessageCount(endGs.Batch - 1)
@@ -112,7 +112,7 @@ func NewBlockChallengeBackend(
 			return nil, errors.Wrap(err, "failed to get challenge end batch metadata")
 		}
 	}
-	endMsgCount += arbutil.MessageIndex(endGs.PosInBatch)
+	endMsgCount += mtutil.MessageIndex(endGs.PosInBatch)
 
 	return &BlockChallengeBackend{
 		bc:                     bc,
@@ -127,7 +127,7 @@ func NewBlockChallengeBackend(
 	}, nil
 }
 
-func (b *BlockChallengeBackend) findBatchFromMessageCount(msgCount arbutil.MessageIndex) (uint64, error) {
+func (b *BlockChallengeBackend) findBatchFromMessageCount(msgCount mtutil.MessageIndex) (uint64, error) {
 	if msgCount == 0 {
 		return 0, nil
 	}
@@ -164,12 +164,12 @@ func (b *BlockChallengeBackend) FindGlobalStateFromHeader(header *types.Header) 
 	if header == nil {
 		return GoGlobalState{}, nil
 	}
-	msgCount := arbutil.BlockNumberToMessageCount(header.Number.Uint64(), b.genesisBlockNumber)
+	msgCount := mtutil.BlockNumberToMessageCount(header.Number.Uint64(), b.genesisBlockNumber)
 	batch, err := b.findBatchFromMessageCount(msgCount)
 	if err != nil {
 		return GoGlobalState{}, err
 	}
-	var batchMsgCount arbutil.MessageIndex
+	var batchMsgCount mtutil.MessageIndex
 	if batch > 0 {
 		batchMsgCount, err = b.inboxTracker.GetBatchMessageCount(batch - 1)
 		if err != nil {

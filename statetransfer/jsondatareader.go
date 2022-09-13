@@ -1,4 +1,4 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package statetransfer
@@ -13,7 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-type ArbosInitFileContents struct {
+type MtosInitFileContents struct {
 	NextBlockNumber          uint64 `json:"NextBlockNumber"`
 	AddressTableContentsPath string `json:"AddressTableContentsPath"`
 	RetryableDataPath        string `json:"RetryableDataPath"`
@@ -22,7 +22,7 @@ type ArbosInitFileContents struct {
 
 type JsonInitDataReader struct {
 	basePath string
-	data     ArbosInitFileContents
+	data     MtosInitFileContents
 }
 
 func (r *JsonInitDataReader) GetNextBlockNumber() (uint64, error) {

@@ -1,4 +1,4 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package das
@@ -14,8 +14,8 @@ import (
 	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/das/dastree"
+	"github.com/mantlenetworkio/mantle/das/dastree"
+	"github.com/mantlenetworkio/mantle/mtstate"
 )
 
 // Implements DataAvailabilityReader
@@ -65,7 +65,7 @@ func (c *RestfulDasClient) GetByHash(ctx context.Context, hash common.Hash) ([]b
 		return nil, err
 	}
 	if !dastree.ValidHash(hash, decodedBytes) {
-		return nil, arbstate.ErrHashMismatch
+		return nil, mtstate.ErrHashMismatch
 	}
 
 	return decodedBytes, nil
@@ -82,7 +82,7 @@ func (c *RestfulDasClient) HealthCheck(ctx context.Context) error {
 	return nil
 }
 
-func (c *RestfulDasClient) ExpirationPolicy(ctx context.Context) (arbstate.ExpirationPolicy, error) {
+func (c *RestfulDasClient) ExpirationPolicy(ctx context.Context) (mtstate.ExpirationPolicy, error) {
 	res, err := http.Get(c.url + expirationPolicyRequestPath)
 	if err != nil {
 		return -1, err
@@ -101,5 +101,5 @@ func (c *RestfulDasClient) ExpirationPolicy(ctx context.Context) (arbstate.Expir
 		return -1, err
 	}
 
-	return arbstate.StringToExpirationPolicy(response.ExpirationPolicy)
+	return mtstate.StringToExpirationPolicy(response.ExpirationPolicy)
 }

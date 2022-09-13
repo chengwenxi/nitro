@@ -1,4 +1,4 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 // SPDX-License-Identifier: BUSL-1.1
 
@@ -88,7 +88,7 @@ contract OutboxWithoutOptTester is DelegateCallAware, IOutbox {
      * is only created once the rollup confirms the respective assertion.
      * @param proof Merkle proof of message inclusion in send root
      * @param index Merkle path to message
-     * @param l2Sender sender if original message (i.e., caller of ArbSys.sendTxToL1)
+     * @param l2Sender sender if original message (i.e., caller of MtSys.sendTxToL1)
      * @param to destination address for L1 contract call
      * @param l2Block l2 block number at which sendTxToL1 call was made
      * @param l1Block l1 block number at which sendTxToL1 call was made

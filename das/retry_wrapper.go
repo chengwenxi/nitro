@@ -1,4 +1,4 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package das
@@ -10,8 +10,7 @@ import (
 
 	"github.com/cenkalti/backoff/v4"
 	"github.com/ethereum/go-ethereum/common"
-
-	"github.com/offchainlabs/nitro/arbstate"
+	"github.com/mantlenetworkio/mantle/mtstate"
 )
 
 type RetryWrapper struct {
@@ -47,8 +46,8 @@ func (w *RetryWrapper) GetByHash(ctx context.Context, hash common.Hash) ([]byte,
 	return res, nil
 }
 
-func (w *RetryWrapper) Store(ctx context.Context, message []byte, timeout uint64, sig []byte) (*arbstate.DataAvailabilityCertificate, error) {
-	var res *arbstate.DataAvailabilityCertificate
+func (w *RetryWrapper) Store(ctx context.Context, message []byte, timeout uint64, sig []byte) (*mtstate.DataAvailabilityCertificate, error) {
+	var res *mtstate.DataAvailabilityCertificate
 	err := backoff.Retry(func() error {
 		if ctx.Err() != nil {
 			return backoff.Permanent(ctx.Err())

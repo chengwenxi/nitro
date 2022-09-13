@@ -12,7 +12,7 @@ TARGET_DIR=target/
 SOURCE_DIR=brotli
 
 usage(){
-    echo "brotli builder for arbitrum"
+    echo "brotli builder for mantle"
     echo
     echo "usage: $0 [options]"
     echo

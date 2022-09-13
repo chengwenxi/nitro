@@ -1,4 +1,4 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 // race detection makes things slow and miss timeouts
@@ -13,17 +13,17 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/offchainlabs/nitro/arbnode"
-	"github.com/offchainlabs/nitro/arbos/l2pricing"
-	"github.com/offchainlabs/nitro/solgen/go/precompilesgen"
-	"github.com/offchainlabs/nitro/util/arbmath"
+	"github.com/mantlenetworkio/mantle/mtnode"
+	"github.com/mantlenetworkio/mantle/mtos/l2pricing"
+	"github.com/mantlenetworkio/mantle/solgen/go/precompilesgen"
+	"github.com/mantlenetworkio/mantle/util/mtmath"
 )
 
 func TestInfraFee(t *testing.T) {
 	t.Parallel()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	nodeconfig := arbnode.ConfigDefaultL2Test()
+	nodeconfig := mtnode.ConfigDefaultL2Test()
 
 	l2info, _, client, stack := CreateTestL2WithConfig(t, ctx, nil, nodeconfig, true)
 	defer requireClose(t, stack)
@@ -34,9 +34,9 @@ func TestInfraFee(t *testing.T) {
 	ownerTxOpts.Context = ctx
 	ownerCallOpts := l2info.GetDefaultCallOpts("Owner", ctx)
 
-	arbowner, err := precompilesgen.NewArbOwner(common.HexToAddress("70"), client)
+	arbowner, err := precompilesgen.NewMtOwner(common.HexToAddress("70"), client)
 	Require(t, err)
-	arbownerPublic, err := precompilesgen.NewArbOwnerPublic(common.HexToAddress("6b"), client)
+	arbownerPublic, err := precompilesgen.NewMtOwnerPublic(common.HexToAddress("6b"), client)
 	Require(t, err)
 	networkFeeAddr, err := arbownerPublic.GetNetworkFeeAccount(ownerCallOpts)
 	Require(t, err)
@@ -58,18 +58,18 @@ func TestInfraFee(t *testing.T) {
 	receipt, err := EnsureTxSucceeded(ctx, client, tx)
 	Require(t, err)
 	l2GasUsed := receipt.GasUsed - receipt.GasUsedForL1
-	expectedFunds := arbmath.BigMulByUint(arbmath.UintToBig(l2pricing.InitialBaseFeeWei), l2GasUsed)
-	expectedBalanceAfter := arbmath.BigAdd(infraFeeBalanceBefore, expectedFunds)
+	expectedFunds := mtmath.BigMulByUint(mtmath.UintToBig(l2pricing.InitialBaseFeeWei), l2GasUsed)
+	expectedBalanceAfter := mtmath.BigAdd(infraFeeBalanceBefore, expectedFunds)
 
 	netFeeBalanceAfter, err := client.BalanceAt(ctx, networkFeeAddr, nil)
 	Require(t, err)
 	infraFeeBalanceAfter, err := client.BalanceAt(ctx, infraFeeAddr, nil)
 	Require(t, err)
 
-	if !arbmath.BigEquals(netFeeBalanceBefore, netFeeBalanceAfter) {
+	if !mtmath.BigEquals(netFeeBalanceBefore, netFeeBalanceAfter) {
 		Fail(t, netFeeBalanceBefore, netFeeBalanceAfter)
 	}
-	if !arbmath.BigEquals(infraFeeBalanceAfter, expectedBalanceAfter) {
+	if !mtmath.BigEquals(infraFeeBalanceAfter, expectedBalanceAfter) {
 		Fail(t, infraFeeBalanceBefore, expectedFunds, infraFeeBalanceAfter, expectedBalanceAfter)
 	}
 }

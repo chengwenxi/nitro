@@ -1,4 +1,4 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package wsbroadcastserver
@@ -16,18 +16,17 @@ import (
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws-examples/src/gopool"
 	"github.com/mailru/easygo/netpoll"
+	"github.com/mantlenetworkio/mantle/mtutil"
 	"github.com/pkg/errors"
 	flag "github.com/spf13/pflag"
 
 	"github.com/ethereum/go-ethereum/log"
-
-	"github.com/offchainlabs/nitro/arbutil"
 )
 
-const HTTPHeaderFeedServerVersion = "Arbitrum-Feed-Server-Version"
-const HTTPHeaderFeedClientVersion = "Arbitrum-Feed-Client-Version"
-const HTTPHeaderRequestedSequenceNumber = "Arbitrum-Requested-Sequence-Number"
-const HTTPHeaderChainId = "Arbitrum-Chain-Id"
+const HTTPHeaderFeedServerVersion = "Mantle-Feed-Server-Version"
+const HTTPHeaderFeedClientVersion = "Mantle-Feed-Client-Version"
+const HTTPHeaderRequestedSequenceNumber = "Mantle-Requested-Sequence-Number"
+const HTTPHeaderChainId = "Mantle-Chain-Id"
 const FeedServerVersion = 2
 const FeedClientVersion = 2
 
@@ -153,7 +152,7 @@ func (s *WSBroadcastServer) Start(ctx context.Context) error {
 		})
 
 		var feedClientVersionSeen bool
-		var requestedSeqNum arbutil.MessageIndex
+		var requestedSeqNum mtutil.MessageIndex
 		upgrader := ws.Upgrader{
 			OnHeader: func(key []byte, value []byte) error {
 				headerName := string(key)
@@ -174,7 +173,7 @@ func (s *WSBroadcastServer) Start(ctx context.Context) error {
 					if err != nil {
 						return fmt.Errorf("unable to parse HTTP header key: %s, value: %s", headerName, string(value))
 					}
-					requestedSeqNum = arbutil.MessageIndex(num)
+					requestedSeqNum = mtutil.MessageIndex(num)
 				}
 
 				return nil
@@ -250,7 +249,7 @@ func (s *WSBroadcastServer) Start(ctx context.Context) error {
 
 	s.listener = ln
 
-	log.Info("arbitrum websocket broadcast server is listening", "address", ln.Addr().String())
+	log.Info("mantle websocket broadcast server is listening", "address", ln.Addr().String())
 
 	// Create netpoll descriptor for the listener.
 	// We use OneShot here to synchronously manage the rate that new connections are accepted

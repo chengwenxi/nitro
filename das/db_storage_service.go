@@ -1,4 +1,4 @@
-// Copyright 2022, Offchain Labs, Inc.
+// Copyright 2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package das
@@ -12,10 +12,10 @@ import (
 	badger "github.com/dgraph-io/badger/v3"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/das/dastree"
-	"github.com/offchainlabs/nitro/util/pretty"
-	"github.com/offchainlabs/nitro/util/stopwaiter"
+	"github.com/mantlenetworkio/mantle/das/dastree"
+	"github.com/mantlenetworkio/mantle/mtstate"
+	"github.com/mantlenetworkio/mantle/util/pretty"
+	"github.com/mantlenetworkio/mantle/util/stopwaiter"
 	flag "github.com/spf13/pflag"
 )
 
@@ -123,11 +123,11 @@ func (dbs *DBStorageService) Close(ctx context.Context) error {
 	return nil
 }
 
-func (dbs *DBStorageService) ExpirationPolicy(ctx context.Context) (arbstate.ExpirationPolicy, error) {
+func (dbs *DBStorageService) ExpirationPolicy(ctx context.Context) (mtstate.ExpirationPolicy, error) {
 	if dbs.discardAfterTimeout {
-		return arbstate.DiscardAfterDataTimeout, nil
+		return mtstate.DiscardAfterDataTimeout, nil
 	} else {
-		return arbstate.KeepForever, nil
+		return mtstate.KeepForever, nil
 	}
 }
 

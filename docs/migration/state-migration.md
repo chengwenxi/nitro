@@ -1,17 +1,17 @@
-# Migrating State and History from a Classic Arbitrum Node to Nitro
+# Migrating State and History from a Classic Mantle Node to Nitro
 
-Nitro software has the option to initialize a chain with state imported from a classic arbitrum node. Rinkeby Testnet, and later Arbitrum One, use this option. Entire state of the rollup is preserved when it is upgraded from classic to nitro.
+Nitro software has the option to initialize a chain with state imported from a classic mantle node. Rinkeby Testnet, and later Mantle One, use this option. Entire state of the rollup is preserved when it is upgraded from classic to nitro.
 
 When importing history - Nitro's genesis block will be the block that follows the imported history, and not block 0.
 
 The recommended way to initialize a nitro node is to point it to a pre-initialized database using the `--init.url` option. This documentation is for users who wish to create the full state on their own classic node.
 
-## Exporting Data from a Classic Arbitrum Node
+## Exporting Data from a Classic Mantle Node
 
-Launch node with the option `--node.rpc.nitroexport.enable=true` note: this is only recommended for nodes with no public/external interfaces. All exported data will be written to directory "nitroexport" under the classic instance directory - e.g. `${HOME}/.arbitrum/rinkeby/nitroexport`.
+Launch node with the option `--node.rpc.nitroexport.enable=true` note: this is only recommended for nodes with no public/external interfaces. All exported data will be written to directory "nitroexport" under the classic instance directory - e.g. `${HOME}/.mantle/rinkeby/nitroexport`.
 Make sure the classic node has read the entire rollup state. 
 
-**Important Note:** Exporting the state on your own classic node should produce the same state as using files supplied by offchain labs (e.g. the same genesis blockhash). However, multiple exports of the same state will not necessarily create identical intermediate files. For example - state export is done in parallel, so order of entries in the file is not deterministic.
+**Important Note:** Exporting the state on your own classic node should produce the same state as using files supplied by Mantlenetwork (e.g. the same genesis blockhash). However, multiple exports of the same state will not necessarily create identical intermediate files. For example - state export is done in parallel, so order of entries in the file is not deterministic.
 
 ### Exporting Block & Transaction History
 
@@ -42,7 +42,7 @@ Rollup state is exported as a series of json files. State read from these json f
 
 State Import requires more resources than normal run of a nitro node.
 
-- Place l2chaindata and classic-msg (optional) directories in nitro's instance directory - e.g. ${HOME}/.arbitrum/rinkeby-nitro/
+- Place l2chaindata and classic-msg (optional) directories in nitro's instance directory - e.g. ${HOME}/.mantle/rinkeby-nitro/
 - Launch the node with argument `--init.import-file=/path/to/state/index.json`
 
 ### Other Nitro Options

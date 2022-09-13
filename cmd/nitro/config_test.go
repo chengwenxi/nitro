@@ -1,4 +1,4 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package main
@@ -14,8 +14,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/offchainlabs/nitro/util/colors"
-	"github.com/offchainlabs/nitro/util/testhelpers"
+	"github.com/mantlenetworkio/mantle/util/colors"
+	"github.com/mantlenetworkio/mantle/util/testhelpers"
 )
 
 func TestSeqConfig(t *testing.T) {

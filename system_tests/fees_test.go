@@ -1,4 +1,4 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 // these tests seems to consume too much memory with race detection
@@ -19,14 +19,14 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/params"
-	"github.com/offchainlabs/nitro/arbcompress"
-	"github.com/offchainlabs/nitro/arbnode"
-	"github.com/offchainlabs/nitro/arbos/l1pricing"
+	"github.com/mantlenetworkio/mantle/mtcompress"
+	"github.com/mantlenetworkio/mantle/mtnode"
+	"github.com/mantlenetworkio/mantle/mtos/l1pricing"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/offchainlabs/nitro/solgen/go/precompilesgen"
-	"github.com/offchainlabs/nitro/util/arbmath"
-	"github.com/offchainlabs/nitro/util/colors"
+	"github.com/mantlenetworkio/mantle/solgen/go/precompilesgen"
+	"github.com/mantlenetworkio/mantle/util/colors"
+	"github.com/mantlenetworkio/mantle/util/mtmath"
 )
 
 func TestSequencerFeePaid(t *testing.T) {
@@ -40,10 +40,10 @@ func TestSequencerFeePaid(t *testing.T) {
 	callOpts := l2info.GetDefaultCallOpts("Owner", ctx)
 
 	// get the network fee account
-	arbOwnerPublic, err := precompilesgen.NewArbOwnerPublic(common.HexToAddress("0x6b"), l2client)
-	Require(t, err, "could not deploy ArbOwner contract")
-	arbGasInfo, err := precompilesgen.NewArbGasInfo(common.HexToAddress("0x6c"), l2client)
-	Require(t, err, "could not deploy ArbOwner contract")
+	arbOwnerPublic, err := precompilesgen.NewMtOwnerPublic(common.HexToAddress("0x6b"), l2client)
+	Require(t, err, "could not deploy MtOwner contract")
+	arbGasInfo, err := precompilesgen.NewMtGasInfo(common.HexToAddress("0x6c"), l2client)
+	Require(t, err, "could not deploy MtOwner contract")
 	networkFeeAccount, err := arbOwnerPublic.GetNetworkFeeAccount(callOpts)
 	Require(t, err, "could not get the network fee account")
 
@@ -56,15 +56,15 @@ func TestSequencerFeePaid(t *testing.T) {
 	txSize := compressedTxSize(t, tx)
 
 	networkAfter := GetBalance(t, ctx, l2client, networkFeeAccount)
-	l1Charge := arbmath.BigMulByUint(l2info.GasPrice, receipt.GasUsedForL1)
+	l1Charge := mtmath.BigMulByUint(l2info.GasPrice, receipt.GasUsedForL1)
 
-	networkRevenue := arbmath.BigSub(networkAfter, networkBefore)
+	networkRevenue := mtmath.BigSub(networkAfter, networkBefore)
 	gasUsedForL2 := receipt.GasUsed - receipt.GasUsedForL1
-	if !arbmath.BigEquals(networkRevenue, arbmath.BigMulByUint(tx.GasPrice(), gasUsedForL2)) {
+	if !mtmath.BigEquals(networkRevenue, mtmath.BigMulByUint(tx.GasPrice(), gasUsedForL2)) {
 		Fail(t, "network didn't receive expected payment")
 	}
 
-	l1GasBought := arbmath.BigDiv(l1Charge, l1Estimate).Uint64()
+	l1GasBought := mtmath.BigDiv(l1Charge, l1Estimate).Uint64()
 	l1GasActual := txSize * params.TxDataNonZeroGasEIP2028
 
 	colors.PrintBlue("bytes ", l1GasBought/params.TxDataNonZeroGasEIP2028, txSize)
@@ -87,8 +87,8 @@ func testSequencerPriceAdjustsFrom(t *testing.T, initialEstimate uint64) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	chainConfig := params.ArbitrumDevTestChainConfig()
-	conf := arbnode.ConfigDefaultL1Test()
+	chainConfig := params.MantleDevTestChainConfig()
+	conf := mtnode.ConfigDefaultL1Test()
 	conf.DelayedSequencer.FinalizeDistance = 1
 
 	l2info, node, l2client, l2stack, _, _, l1client, l1stack := createTestNodeOnL1WithConfig(t, ctx, true, conf, chainConfig)
@@ -98,7 +98,7 @@ func testSequencerPriceAdjustsFrom(t *testing.T, initialEstimate uint64) {
 	ownerAuth := l2info.GetDefaultTransactOpts("Owner", ctx)
 
 	// make ownerAuth a chain owner
-	arbdebug, err := precompilesgen.NewArbDebug(common.HexToAddress("0xff"), l2client)
+	arbdebug, err := precompilesgen.NewMtDebug(common.HexToAddress("0xff"), l2client)
 	Require(t, err)
 	tx, err := arbdebug.BecomeChainOwner(&ownerAuth)
 	Require(t, err)
@@ -106,14 +106,14 @@ func testSequencerPriceAdjustsFrom(t *testing.T, initialEstimate uint64) {
 
 	// use ownerAuth to set the L1 price per unit
 	Require(t, err)
-	arbOwner, err := precompilesgen.NewArbOwner(common.HexToAddress("0x70"), l2client)
+	arbOwner, err := precompilesgen.NewMtOwner(common.HexToAddress("0x70"), l2client)
 	Require(t, err)
-	tx, err = arbOwner.SetL1PricePerUnit(&ownerAuth, arbmath.UintToBig(initialEstimate))
+	tx, err = arbOwner.SetL1PricePerUnit(&ownerAuth, mtmath.UintToBig(initialEstimate))
 	Require(t, err)
 	_, err = WaitForTx(ctx, l2client, tx.Hash(), time.Second*5)
 	Require(t, err)
 
-	arbGasInfo, err := precompilesgen.NewArbGasInfo(common.HexToAddress("0x6c"), l2client)
+	arbGasInfo, err := precompilesgen.NewMtGasInfo(common.HexToAddress("0x6c"), l2client)
 	Require(t, err)
 	lastEstimate, err := arbGasInfo.GetL1BaseFeeEstimate(&bind.CallOpts{Context: ctx})
 	Require(t, err)
@@ -136,9 +136,9 @@ func testSequencerPriceAdjustsFrom(t *testing.T, initialEstimate uint64) {
 		Require(t, err)
 
 		units := compressedTxSize(t, tx) * params.TxDataNonZeroGasEIP2028
-		estimatedL1FeePerUnit := arbmath.BigDivByUint(arbmath.BigMulByUint(header.BaseFee, receipt.GasUsedForL1), units)
+		estimatedL1FeePerUnit := mtmath.BigDivByUint(mtmath.BigMulByUint(header.BaseFee, receipt.GasUsedForL1), units)
 
-		if !arbmath.BigEquals(lastEstimate, estimatedL1FeePerUnit) {
+		if !mtmath.BigEquals(lastEstimate, estimatedL1FeePerUnit) {
 			l1Header, err = l1client.HeaderByNumber(ctx, nil)
 			Require(t, err)
 
@@ -148,7 +148,7 @@ func testSequencerPriceAdjustsFrom(t *testing.T, initialEstimate uint64) {
 			surplus, err := arbGasInfo.GetL1PricingSurplus(callOpts)
 			Require(t, err)
 
-			colors.PrintGrey("ArbOS updated its L1 estimate")
+			colors.PrintGrey("MtOS updated its L1 estimate")
 			colors.PrintGrey("    L1 base fee ", l1Header.BaseFee)
 			colors.PrintGrey("    L1 estimate ", lastEstimate, " ➤ ", estimatedL1FeePerUnit, " = ", actualL1FeePerUnit)
 			colors.PrintGrey("    Surplus ", surplus)
@@ -157,10 +157,10 @@ func testSequencerPriceAdjustsFrom(t *testing.T, initialEstimate uint64) {
 				estimatedL1FeePerUnit, actualL1FeePerUnit, surplus,
 			)
 
-			oldDiff := arbmath.BigAbs(arbmath.BigSub(lastEstimate, l1Header.BaseFee))
-			newDiff := arbmath.BigAbs(arbmath.BigSub(actualL1FeePerUnit, l1Header.BaseFee))
-			cmpDiff := arbmath.BigGreaterThan(newDiff, oldDiff)
-			signums := surplus.Sign() == arbmath.BigSub(actualL1FeePerUnit, l1Header.BaseFee).Sign()
+			oldDiff := mtmath.BigAbs(mtmath.BigSub(lastEstimate, l1Header.BaseFee))
+			newDiff := mtmath.BigAbs(mtmath.BigSub(actualL1FeePerUnit, l1Header.BaseFee))
+			cmpDiff := mtmath.BigGreaterThan(newDiff, oldDiff)
+			signums := surplus.Sign() == mtmath.BigSub(actualL1FeePerUnit, l1Header.BaseFee).Sign()
 
 			if timesPriceAdjusted > 0 && cmpDiff && signums {
 				numRetrogradeMoves++
@@ -172,12 +172,12 @@ func testSequencerPriceAdjustsFrom(t *testing.T, initialEstimate uint64) {
 			} else {
 				numRetrogradeMoves = 0
 			}
-			diff := arbmath.BigAbs(arbmath.BigSub(actualL1FeePerUnit, estimatedL1FeePerUnit))
-			maxDiffToAllow := arbmath.BigDivByUint(actualL1FeePerUnit, 100)
-			if arbmath.BigLessThan(maxDiffToAllow, diff) { // verify that estimates is within 1% of actual
+			diff := mtmath.BigAbs(mtmath.BigSub(actualL1FeePerUnit, estimatedL1FeePerUnit))
+			maxDiffToAllow := mtmath.BigDivByUint(actualL1FeePerUnit, 100)
+			if mtmath.BigLessThan(maxDiffToAllow, diff) { // verify that estimates is within 1% of actual
 				Fail(t, "New L1 estimate differs too much from receipt")
 			}
-			if arbmath.BigEquals(actualL1FeePerUnit, common.Big0) {
+			if mtmath.BigEquals(actualL1FeePerUnit, common.Big0) {
 				Fail(t, "Estimate is zero", i)
 			}
 			lastEstimate = actualL1FeePerUnit
@@ -203,18 +203,18 @@ func testSequencerPriceAdjustsFrom(t *testing.T, initialEstimate uint64) {
 		}
 	}
 
-	rewardRecipientBalanceAfter := GetBalance(t, ctx, l2client, chainConfig.ArbitrumChainParams.InitialChainOwner)
+	rewardRecipientBalanceAfter := GetBalance(t, ctx, l2client, chainConfig.MantleChainParams.InitialChainOwner)
 	colors.PrintMint("reward recipient balance ", rewardRecipientBalanceBefore, " ➤ ", rewardRecipientBalanceAfter)
 	colors.PrintMint("price changes     ", timesPriceAdjusted)
 
 	if timesPriceAdjusted == 0 {
 		Fail(t, "L1 gas price estimate never adjusted")
 	}
-	if !arbmath.BigGreaterThan(rewardRecipientBalanceAfter, rewardRecipientBalanceBefore) {
+	if !mtmath.BigGreaterThan(rewardRecipientBalanceAfter, rewardRecipientBalanceBefore) {
 		Fail(t, "reward recipient didn't get paid")
 	}
 
-	arbAggregator, err := precompilesgen.NewArbAggregator(common.HexToAddress("0x6d"), l2client)
+	arbAggregator, err := precompilesgen.NewMtAggregator(common.HexToAddress("0x6d"), l2client)
 	Require(t, err)
 	batchPosterAddresses, err := arbAggregator.GetBatchPosters(&bind.CallOpts{Context: ctx})
 	Require(t, err)
@@ -257,7 +257,7 @@ func TestSequencerPriceAdjustsFrom25Gwei(t *testing.T) {
 func compressedTxSize(t *testing.T, tx *types.Transaction) uint64 {
 	txBin, err := tx.MarshalBinary()
 	Require(t, err)
-	compressed, err := arbcompress.CompressFast(txBin)
+	compressed, err := mtcompress.CompressFast(txBin)
 	Require(t, err)
 	return uint64(len(compressed))
 }

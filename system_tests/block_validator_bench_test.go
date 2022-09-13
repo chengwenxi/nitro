@@ -1,4 +1,4 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 // race detection makes things slow and miss timeouts
@@ -10,7 +10,7 @@ package arbtest
 import (
 	"testing"
 
-	"github.com/offchainlabs/nitro/das"
+	"github.com/mantlenetworkio/mantle/das"
 )
 
 func TestBlockValidatorBenchmark(t *testing.T) {

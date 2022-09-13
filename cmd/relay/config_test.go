@@ -1,13 +1,14 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package main
 
 import (
 	"context"
-	"github.com/offchainlabs/nitro/util/testhelpers"
 	"strings"
 	"testing"
+
+	"github.com/mantlenetworkio/mantle/util/testhelpers"
 )
 
 func TestRelayConfig(t *testing.T) {

@@ -1,4 +1,4 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 // SPDX-License-Identifier: BUSL-1.1
 
@@ -7,7 +7,7 @@ pragma solidity >=0.4.21 <0.9.0;
 /** @title Interface for providing gas estimation for retryable auto-redeems and constructing outbox proofs
  *  @notice This contract doesn't exist on-chain. Instead it is a virtual interface accessible at
  *  0x00000000000000000000000000000000000000C8
- *  This is a cute trick to allow an Arbitrum node to provide data without us having to implement additional RPCs
+ *  This is a cute trick to allow an Mantle node to provide data without us having to implement additional RPCs
  */
 interface NodeInterface {
     /**
@@ -79,7 +79,7 @@ interface NodeInterface {
      * @return gasEstimate an estimate of the total amount of gas needed for this tx
      * @return gasEstimateForL1 an estimate of the amount of gas needed for the l1 component of this tx
      * @return baseFee the l2 base fee
-     * @return l1BaseFeeEstimate ArbOS's l1 estimate of the l1 base fee
+     * @return l1BaseFeeEstimate MtOS's l1 estimate of the l1 base fee
      */
     function gasEstimateComponents(
         address to,
@@ -105,7 +105,7 @@ interface NodeInterface {
      * @param contractCreation whether "To" is omitted
      * @return gasEstimateForL1 an estimate of the amount of gas needed for the l1 component of this tx
      * @return baseFee the l2 base fee
-     * @return l1BaseFeeEstimate ArbOS's l1 estimate of the l1 base fee
+     * @return l1BaseFeeEstimate MtOS's l1 estimate of the l1 base fee
      */
     function gasEstimateL1Component(
         address to,
@@ -126,7 +126,7 @@ interface NodeInterface {
      * @param index index of outgoing message in outbox entry
      * @return proof Merkle proof of message inclusion in outbox entry
      * @return path Merkle path to message
-     * @return l2Sender sender if original message (i.e., caller of ArbSys.sendTxToL1)
+     * @return l2Sender sender if original message (i.e., caller of MtSys.sendTxToL1)
      * @return l1Dest destination address for L1 contract call
      * @return l2Block l2 block number at which sendTxToL1 call was made
      * @return l1Block l1 block number at which sendTxToL1 call was made

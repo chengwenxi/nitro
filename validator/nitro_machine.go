@@ -1,11 +1,11 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package validator
 
 /*
 #cgo CFLAGS: -g -Wall -I../target/include/
-#include "arbitrator.h"
+#include "mtitrator.h"
 #include <stdlib.h>
 */
 import "C"
@@ -72,7 +72,7 @@ func (c NitroMachineConfig) ReadLatestWasmModuleRoot() (common.Hash, error) {
 }
 
 type loaderMachineStatus struct {
-	machine    *ArbitratorMachine
+	machine    *MtitratorMachine
 	jitMachine *JitMachine
 	chanSignal chan struct{}
 	jit        bool
@@ -89,7 +89,7 @@ func (s *loaderMachineStatus) createZeroStepMachineInternal(config NitroMachineC
 	cBinPath := C.CString(binPath)
 	defer C.free(unsafe.Pointer(cBinPath))
 	log.Info("creating nitro machine", "binpath", binPath)
-	baseMachine := C.arbitrator_load_wavm_binary(cBinPath)
+	baseMachine := C.mtitrator_load_wavm_binary(cBinPath)
 	if baseMachine == nil {
 		s.err = errors.New("failed to load base machine")
 		return
@@ -106,7 +106,7 @@ func (s *loaderMachineStatus) createZeroStepMachineInternal(config NitroMachineC
 
 // We try to store/load state before first host_io to a file.
 // We will chicken out of that if something fails, but still try to calculate the machine
-func (s *loaderMachineStatus) createHostIoMachineInternal(config NitroMachineConfig, moduleRoot common.Hash, zerostep *ArbitratorMachine) {
+func (s *loaderMachineStatus) createHostIoMachineInternal(config NitroMachineConfig, moduleRoot common.Hash, zerostep *MtitratorMachine) {
 	defer s.signalReady()
 	ctx := context.Background()
 	machine := zerostep.Clone()
@@ -166,7 +166,7 @@ func NewNitroMachineLoader(config NitroMachineConfig, fatalErrChan chan error) *
 	}
 }
 
-func (s *loaderMachineStatus) waitForMachine(ctx context.Context) (*ArbitratorMachine, *JitMachine, error) {
+func (s *loaderMachineStatus) waitForMachine(ctx context.Context) (*MtitratorMachine, *JitMachine, error) {
 	select {
 	case <-s.chanSignal:
 	case <-ctx.Done():
@@ -296,7 +296,7 @@ func (l *NitroMachineLoader) CreateMachine(moduleRoot common.Hash, untilHostIo, 
 // Returns with proper error if context aborts
 func (l *NitroMachineLoader) GetMachine(
 	ctx context.Context, moduleRoot common.Hash, untilHostIo bool,
-) (*ArbitratorMachine, error) {
+) (*MtitratorMachine, error) {
 	loader, err := l.createMachineImpl(moduleRoot, untilHostIo, false)
 	if err != nil {
 		return nil, err

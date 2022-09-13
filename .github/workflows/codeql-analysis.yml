@@ -83,11 +83,11 @@ jobs:
         path: |
           ~/.cargo/registry/
           ~/.cargo/git/
-          arbitrator/target/
-          arbitrator/wasm-libraries/target/
-          arbitrator/wasm-libraries/soft-float/SoftFloat/build
+          mtitrator/target/
+          mtitrator/wasm-libraries/target/
+          mtitrator/wasm-libraries/soft-float/SoftFloat/build
           target/etc/initial-machine-cache/
-        key: ${{ runner.os }}-cargo-${{ steps.install-rust.outputs.rustc_hash }}-min-${{ hashFiles('arbitrator/Cargo.lock') }}
+        key: ${{ runner.os }}-cargo-${{ steps.install-rust.outputs.rustc_hash }}-min-${{ hashFiles('mtitrator/Cargo.lock') }}
         restore-keys: ${{ runner.os }}-cargo-${{ steps.install-rust.outputs.rustc_hash }}-
 
     - name: Cache cbrotli
@@ -100,7 +100,7 @@ jobs:
           target/lib/libbrotlicommon-static.a
           target/lib/libbrotlienc-static.a
           target/lib/libbrotlidec-static.a
-        key: ${{ runner.os }}-brotli-${{ hashFiles('build-brotli.sh') }}-${{ hashFiles('.github/workflows/arbitrator-ci.yaml') }}
+        key: ${{ runner.os }}-brotli-${{ hashFiles('build-brotli.sh') }}-${{ hashFiles('.github/workflows/mtitrator-ci.yaml') }}
         restore-keys: ${{ runner.os }}-brotli-
 
     - name: Build cbrotli-local

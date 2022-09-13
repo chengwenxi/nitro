@@ -1,4 +1,4 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package headerreader
@@ -15,8 +15,8 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/offchainlabs/nitro/arbutil"
-	"github.com/offchainlabs/nitro/util/stopwaiter"
+	"github.com/mantlenetworkio/mantle/mtutil"
+	"github.com/mantlenetworkio/mantle/util/stopwaiter"
 	"github.com/pkg/errors"
 	flag "github.com/spf13/pflag"
 )
@@ -24,7 +24,7 @@ import (
 type HeaderReader struct {
 	stopwaiter.StopWaiter
 	config Config
-	client arbutil.L1Interface
+	client mtutil.L1Interface
 
 	chanMutex sync.Mutex
 	// All fields below require the chanMutex
@@ -66,7 +66,7 @@ var TestConfig = Config{
 	TxTimeout:    time.Second * 5,
 }
 
-func New(client arbutil.L1Interface, config Config) *HeaderReader {
+func New(client mtutil.L1Interface, config Config) *HeaderReader {
 	return &HeaderReader{
 		client:            client,
 		config:            config,
@@ -141,7 +141,7 @@ func (s *HeaderReader) possiblyBroadcast(h *types.Header) {
 	}
 
 	if s.requiresPendingCallUpdates > 0 {
-		pendingCallBlockNr, err := arbutil.GetPendingCallBlockNumber(s.GetContext(), s.client)
+		pendingCallBlockNr, err := mtutil.GetPendingCallBlockNumber(s.GetContext(), s.client)
 		if err == nil && pendingCallBlockNr.IsUint64() {
 			pendingU64 := pendingCallBlockNr.Uint64()
 			if pendingU64 > s.lastPendingCallBlockNr {
@@ -256,7 +256,7 @@ func (s *HeaderReader) WaitForTxApproval(ctxIn context.Context, tx *types.Transa
 			receiptBlockNr := receipt.BlockNumber.Uint64()
 			callBlockNr := s.LastPendingCallBlockNr()
 			if callBlockNr > receiptBlockNr {
-				return receipt, arbutil.DetailTxError(ctx, s.client, tx, receipt)
+				return receipt, mtutil.DetailTxError(ctx, s.client, tx, receipt)
 			}
 		}
 		select {
@@ -304,7 +304,7 @@ func (s *HeaderReader) LatestFinalizedHeader() (*types.Header, error) {
 	return s.client.HeaderByNumber(s.GetContext(), big.NewInt(rpc.FinalizedBlockNumber.Int64()))
 }
 
-func (s *HeaderReader) Client() arbutil.L1Interface {
+func (s *HeaderReader) Client() mtutil.L1Interface {
 	return s.client
 }
 

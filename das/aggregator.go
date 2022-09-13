@@ -1,4 +1,4 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package das
@@ -13,17 +13,17 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/offchainlabs/nitro/arbutil"
-	"github.com/offchainlabs/nitro/das/dastree"
-	"github.com/offchainlabs/nitro/solgen/go/bridgegen"
-	"github.com/offchainlabs/nitro/util/pretty"
+	"github.com/mantlenetworkio/mantle/das/dastree"
+	"github.com/mantlenetworkio/mantle/mtstate"
+	"github.com/mantlenetworkio/mantle/mtutil"
+	"github.com/mantlenetworkio/mantle/solgen/go/bridgegen"
+	"github.com/mantlenetworkio/mantle/util/pretty"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/metrics"
 
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/blsSignatures"
+	"github.com/mantlenetworkio/mantle/blsSignatures"
 	flag "github.com/spf13/pflag"
 )
 
@@ -104,7 +104,7 @@ func NewAggregator(ctx context.Context, config DataAvailabilityConfig, services 
 func NewAggregatorWithL1Info(
 	config DataAvailabilityConfig,
 	services []ServiceDetails,
-	l1client arbutil.L1Interface,
+	l1client mtutil.L1Interface,
 	seqInboxAddress common.Address,
 ) (*Aggregator, error) {
 	seqInboxCaller, err := bridgegen.NewSequencerInboxCaller(seqInboxAddress, l1client)
@@ -132,7 +132,7 @@ func NewAggregatorWithSeqInboxCaller(
 		return nil, errors.New("At least two signers share a mask")
 	}
 
-	keyset := &arbstate.DataAvailabilityKeyset{
+	keyset := &mtstate.DataAvailabilityKeyset{
 		AssumedHonest: uint64(config.AggregatorConfig.AssumedHonest),
 		PubKeys:       pubKeys,
 	}
@@ -191,7 +191,7 @@ type storeResponse struct {
 // constructed, calls to Store(...) will try to verify the passed-in data's signature
 // is from the batch poster. If the contract details are not provided, then the
 // signature is not checked, which is useful for testing.
-func (a *Aggregator) Store(ctx context.Context, message []byte, timeout uint64, sig []byte) (*arbstate.DataAvailabilityCertificate, error) {
+func (a *Aggregator) Store(ctx context.Context, message []byte, timeout uint64, sig []byte) (*mtstate.DataAvailabilityCertificate, error) {
 	log.Trace("das.Aggregator.Store", "message", pretty.FirstFewBytes(message), "timeout", time.Unix(int64(timeout), 0), "sig", pretty.FirstFewBytes(sig))
 	if a.bpVerifier != nil {
 		actualSigner, err := DasRecoverSigner(message, timeout, sig)
@@ -270,7 +270,7 @@ func (a *Aggregator) Store(ctx context.Context, message []byte, timeout uint64, 
 		}(ctx, d)
 	}
 
-	var aggCert arbstate.DataAvailabilityCertificate
+	var aggCert mtstate.DataAvailabilityCertificate
 
 	type certDetails struct {
 		pubKeys        []blsSignatures.PublicKey

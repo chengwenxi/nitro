@@ -1,4 +1,4 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package statetransfer
@@ -8,10 +8,10 @@ import (
 )
 
 type MemoryInitDataReader struct {
-	d *ArbosInitializationInfo
+	d *MtosInitializationInfo
 }
 
-func NewMemoryInitDataReader(data *ArbosInitializationInfo) InitDataReader {
+func NewMemoryInitDataReader(data *MtosInitializationInfo) InitDataReader {
 	return &MemoryInitDataReader{
 		d: data,
 	}

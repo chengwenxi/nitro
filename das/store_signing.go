@@ -1,4 +1,4 @@
-// Copyright 2022, Offchain Labs, Inc.
+// Copyright 2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package das
@@ -12,12 +12,12 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/das/dastree"
-	"github.com/offchainlabs/nitro/util/pretty"
+	"github.com/mantlenetworkio/mantle/das/dastree"
+	"github.com/mantlenetworkio/mantle/mtstate"
+	"github.com/mantlenetworkio/mantle/util/pretty"
 )
 
-var uniquifyingPrefix = []byte("Arbitrum Nitro DAS API Store:")
+var uniquifyingPrefix = []byte("Mantle Nitro DAS API Store:")
 
 type DasSigner func([]byte) ([]byte, error) // takes 32-byte array (hash of data) and produces signature bytes (and/or error)
 
@@ -63,7 +63,7 @@ func NewStoreSigningDAS(inner DataAvailabilityServiceWriter, signer DasSigner) (
 	return &StoreSigningDAS{inner, signer, addr}, nil
 }
 
-func (s *StoreSigningDAS) Store(ctx context.Context, message []byte, timeout uint64, sig []byte) (*arbstate.DataAvailabilityCertificate, error) {
+func (s *StoreSigningDAS) Store(ctx context.Context, message []byte, timeout uint64, sig []byte) (*mtstate.DataAvailabilityCertificate, error) {
 	log.Trace("das.StoreSigningDAS.Store(...)", "message", pretty.FirstFewBytes(message), "timeout", time.Unix(int64(timeout), 0), "sig", pretty.FirstFewBytes(sig), "this", s)
 	mySig, err := applyDasSigner(s.signer, message, timeout)
 	if err != nil {

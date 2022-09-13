@@ -1,4 +1,4 @@
-// Copyright 2022, Offchain Labs, Inc.
+// Copyright 2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package nodeInterface
@@ -10,7 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/offchainlabs/nitro/solgen/go/node_interfacegen"
+	"github.com/mantlenetworkio/mantle/solgen/go/node_interfacegen"
 )
 
 type NodeInterfaceDebug struct {

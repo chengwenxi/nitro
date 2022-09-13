@@ -1,4 +1,4 @@
-// Copyright 2022, Offchain Labs, Inc.
+// Copyright 2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package das
@@ -14,9 +14,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/das/dastree"
-	"github.com/offchainlabs/nitro/util/pretty"
+	"github.com/mantlenetworkio/mantle/das/dastree"
+	"github.com/mantlenetworkio/mantle/mtstate"
+	"github.com/mantlenetworkio/mantle/util/pretty"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
@@ -117,11 +117,11 @@ func (s3s *S3StorageService) Close(ctx context.Context) error {
 	return nil
 }
 
-func (s3s *S3StorageService) ExpirationPolicy(ctx context.Context) (arbstate.ExpirationPolicy, error) {
+func (s3s *S3StorageService) ExpirationPolicy(ctx context.Context) (mtstate.ExpirationPolicy, error) {
 	if s3s.discardAfterTimeout {
-		return arbstate.DiscardAfterDataTimeout, nil
+		return mtstate.DiscardAfterDataTimeout, nil
 	} else {
-		return arbstate.KeepForever, nil
+		return mtstate.KeepForever, nil
 	}
 }
 

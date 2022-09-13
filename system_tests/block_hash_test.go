@@ -1,4 +1,4 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package arbtest
@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/offchainlabs/nitro/solgen/go/mocksgen"
+	"github.com/mantlenetworkio/mantle/solgen/go/mocksgen"
 )
 
 func TestBlockHash(t *testing.T) {

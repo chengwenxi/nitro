@@ -1,4 +1,4 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package wsbroadcastserver
@@ -19,8 +19,8 @@ import (
 
 	"github.com/ethereum/go-ethereum/log"
 
-	"github.com/offchainlabs/nitro/arbutil"
-	"github.com/offchainlabs/nitro/util/stopwaiter"
+	"github.com/mantlenetworkio/mantle/mtutil"
+	"github.com/mantlenetworkio/mantle/util/stopwaiter"
 )
 
 /* Protocol-specific client catch-up logic can be injected using this interface. */
@@ -74,7 +74,7 @@ func (cm *ClientManager) registerClient(ctx context.Context, clientConnection *C
 }
 
 // Register registers new connection as a Client.
-func (cm *ClientManager) Register(conn net.Conn, desc *netpoll.Desc, requestedSeqNum arbutil.MessageIndex) *ClientConnection {
+func (cm *ClientManager) Register(conn net.Conn, desc *netpoll.Desc, requestedSeqNum mtutil.MessageIndex) *ClientConnection {
 	createClient := ClientConnectionAction{
 		NewClientConnection(conn, desc, cm, requestedSeqNum),
 		true,

@@ -1,4 +1,4 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package das
@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/das/dastree"
+	"github.com/mantlenetworkio/mantle/das/dastree"
+	"github.com/mantlenetworkio/mantle/mtstate"
 )
 
 func TestArchivingStorageService(t *testing.T) {
@@ -60,9 +60,9 @@ func TestArchivingStorageService(t *testing.T) {
 	Require(t, err2)
 
 	// verify that an ArchivingSimpleDASReader is a DataAvailabilityReader
-	var firstSDR arbstate.DataAvailabilityReader = firstStorage
+	var firstSDR mtstate.DataAvailabilityReader = firstStorage
 	asdr, err := NewArchivingSimpleDASReader(ctx, firstSDR, archiveTo, 60*60)
 	Require(t, err)
-	var secondSDR arbstate.DataAvailabilityReader = asdr
+	var secondSDR mtstate.DataAvailabilityReader = asdr
 	_ = secondSDR
 }

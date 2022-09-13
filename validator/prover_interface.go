@@ -1,4 +1,4 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package validator
@@ -6,7 +6,7 @@ package validator
 /*
 #cgo CFLAGS: -g -Wall -I../target/include/
 #cgo LDFLAGS: ${SRCDIR}/../target/lib/libprover.a -ldl -lm
-#include "arbitrator.h"
+#include "mtitrator.h"
 #include <stdlib.h>
 
 char **PrepareStringList(intptr_t num) {

@@ -87,19 +87,19 @@ module.exports = {
       accounts: process.env["DEVNET_PRIVKEY"] ? [process.env["DEVNET_PRIVKEY"]] : [],
     },
     arbRinkeby: {
-      url: "https://rinkeby.arbitrum.io/rpc",
+      url: "https://rinkeby.mantle.io/rpc",
       accounts: process.env["DEVNET_PRIVKEY"] ? [process.env["DEVNET_PRIVKEY"]] : [],
     },
     arbGoerliRollup: {
-      url: "https://goerli-rollup.arbitrum.io/rpc",
+      url: "https://goerli-rollup.mantle.io/rpc",
       accounts: process.env["DEVNET_PRIVKEY"] ? [process.env["DEVNET_PRIVKEY"]] : [],
     },
     arb1: {
-      url: "https://arb1.arbitrum.io/rpc",
+      url: "https://arb1.mantle.io/rpc",
       accounts: process.env["MAINNET_PRIVKEY"] ? [process.env["MAINNET_PRIVKEY"]] : [],
     },
     nova: {
-      url: "https://nova.arbitrum.io/rpc",
+      url: "https://nova.mantle.io/rpc",
       accounts: process.env["MAINNET_PRIVKEY"] ? [process.env["MAINNET_PRIVKEY"]] : [],
     },
     geth: {
@@ -111,8 +111,8 @@ module.exports = {
       mainnet: process.env["ETHERSCAN_API_KEY"],
       goerli: process.env["ETHERSCAN_API_KEY"],
       rinkeby: process.env["ETHERSCAN_API_KEY"],
-      arbitrumOne: process.env["ARBISCAN_API_KEY"],
-      arbitrumTestnet: process.env["ARBISCAN_API_KEY"],
+      mantleOne: process.env["ARBISCAN_API_KEY"],
+      mantleTestnet: process.env["ARBISCAN_API_KEY"],
       nova: "0",
       arbGoerliRollup: "0",
     },
@@ -121,16 +121,16 @@ module.exports = {
         network: "nova",
         chainId: 42170,
         urls: {
-          apiURL: "https://nova-explorer.arbitrum.io/api",
-          browserURL: "https://nova-explorer.arbitrum.io/",
+          apiURL: "https://nova-explorer.mantle.io/api",
+          browserURL: "https://nova-explorer.mantle.io/",
         },
       },
       {
         network: "arbGoerliRollup",
         chainId: 421613,
         urls: {
-          apiURL: "https://goerli-rollup-explorer.arbitrum.io/api",
-          browserURL: "https://goerli-rollup-explorer.arbitrum.io/",
+          apiURL: "https://goerli-rollup-explorer.mantle.io/api",
+          browserURL: "https://goerli-rollup-explorer.mantle.io/",
         },
       },
     ],

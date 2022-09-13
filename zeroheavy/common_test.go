@@ -1,4 +1,4 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package zeroheavy
@@ -6,7 +6,7 @@ package zeroheavy
 import (
 	"testing"
 
-	"github.com/offchainlabs/nitro/util/testhelpers"
+	"github.com/mantlenetworkio/mantle/util/testhelpers"
 )
 
 func Require(t *testing.T, err error, printables ...interface{}) {

@@ -1,4 +1,4 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package validator
@@ -10,8 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/offchainlabs/nitro/arbstate"
-
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
@@ -20,7 +18,8 @@ import (
 	"github.com/pkg/errors"
 	flag "github.com/spf13/pflag"
 
-	"github.com/offchainlabs/nitro/util/stopwaiter"
+	"github.com/mantlenetworkio/mantle/mtstate"
+	"github.com/mantlenetworkio/mantle/util/stopwaiter"
 )
 
 type StakerStrategy uint8
@@ -146,7 +145,7 @@ func NewStaker(
 	callOpts bind.CallOpts,
 	config L1ValidatorConfig,
 	l2Blockchain *core.BlockChain,
-	das arbstate.DataAvailabilityReader,
+	das mtstate.DataAvailabilityReader,
 	inboxReader InboxReaderInterface,
 	inboxTracker InboxTrackerInterface,
 	txStreamer TransactionStreamerInterface,

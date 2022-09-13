@@ -1,4 +1,4 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package das
@@ -11,7 +11,7 @@ import (
 	"os"
 
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/offchainlabs/nitro/blsSignatures"
+	"github.com/mantlenetworkio/mantle/blsSignatures"
 )
 
 // Note for Decode functions

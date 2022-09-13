@@ -1,4 +1,4 @@
-module github.com/offchainlabs/nitro
+module github.com/mantlenetworkio/mantle
 
 go 1.18
 

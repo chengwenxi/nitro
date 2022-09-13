@@ -1,4 +1,4 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 // race detection makes things slow and miss timeouts
@@ -14,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/offchainlabs/nitro/arbos/l2pricing"
+	"github.com/mantlenetworkio/mantle/mtos/l2pricing"
 
 	"github.com/ethereum/go-ethereum/core/types"
 )

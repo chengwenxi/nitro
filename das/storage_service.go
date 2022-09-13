@@ -1,4 +1,4 @@
-// Copyright 2022, Offchain Labs, Inc.
+// Copyright 2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package das
@@ -11,13 +11,13 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/offchainlabs/nitro/arbstate"
+	"github.com/mantlenetworkio/mantle/mtstate"
 )
 
 var ErrNotFound = errors.New("Not found")
 
 type StorageService interface {
-	arbstate.DataAvailabilityReader
+	mtstate.DataAvailabilityReader
 	Put(ctx context.Context, data []byte, expirationTime uint64) error
 	Sync(ctx context.Context) error
 	Closer

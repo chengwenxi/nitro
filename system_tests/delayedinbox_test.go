@@ -1,4 +1,4 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package arbtest
@@ -11,8 +11,8 @@ import (
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/offchainlabs/nitro/arbos"
-	"github.com/offchainlabs/nitro/solgen/go/bridgegen"
+	"github.com/mantlenetworkio/mantle/mtos"
+	"github.com/mantlenetworkio/mantle/solgen/go/bridgegen"
 )
 
 var inboxABI abi.ABI
@@ -28,7 +28,7 @@ func init() {
 func WrapL2ForDelayed(t *testing.T, l2Tx *types.Transaction, l1info *BlockchainTestInfo, delayedSender string, gas uint64) *types.Transaction {
 	txbytes, err := l2Tx.MarshalBinary()
 	Require(t, err)
-	txwrapped := append([]byte{arbos.L2MessageKind_SignedTx}, txbytes...)
+	txwrapped := append([]byte{mtos.L2MessageKind_SignedTx}, txbytes...)
 	delayedInboxTxData, err := inboxABI.Pack("sendL2Message", txwrapped)
 	Require(t, err)
 	return l1info.PrepareTx(delayedSender, "Inbox", gas, big.NewInt(0), delayedInboxTxData)

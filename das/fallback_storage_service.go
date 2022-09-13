@@ -1,4 +1,4 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package das
@@ -10,15 +10,15 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/das/dastree"
-	"github.com/offchainlabs/nitro/util/arbmath"
-	"github.com/offchainlabs/nitro/util/pretty"
+	"github.com/mantlenetworkio/mantle/das/dastree"
+	"github.com/mantlenetworkio/mantle/mtstate"
+	"github.com/mantlenetworkio/mantle/util/mtmath"
+	"github.com/mantlenetworkio/mantle/util/pretty"
 )
 
 type FallbackStorageService struct {
 	StorageService
-	backup                     arbstate.DataAvailabilityReader
+	backup                     mtstate.DataAvailabilityReader
 	backupRetentionSeconds     uint64
 	ignoreRetentionWriteErrors bool
 	preventRecursiveGets       bool
@@ -31,7 +31,7 @@ type FallbackStorageService struct {
 // a successful GetByHash result from the backup is Put into the primary.
 func NewFallbackStorageService(
 	primary StorageService,
-	backup arbstate.DataAvailabilityReader,
+	backup mtstate.DataAvailabilityReader,
 	backupRetentionSeconds uint64, // how long to retain data that we copy in from the backup (MaxUint64 means forever)
 	ignoreRetentionWriteErrors bool, // if true, don't return error if write of retention data to primary fails
 	preventRecursiveGets bool, // if true, return NotFound on simultaneous calls to Gets that miss in primary (prevents infinite recursion)
@@ -82,7 +82,7 @@ func (f *FallbackStorageService) GetByHash(ctx context.Context, key common.Hash)
 		}
 		if dastree.ValidHash(key, data) {
 			putErr := f.StorageService.Put(
-				ctx, data, arbmath.SaturatingUAdd(uint64(time.Now().Unix()), f.backupRetentionSeconds),
+				ctx, data, mtmath.SaturatingUAdd(uint64(time.Now().Unix()), f.backupRetentionSeconds),
 			)
 			if putErr != nil && !f.ignoreRetentionWriteErrors {
 				return nil, err

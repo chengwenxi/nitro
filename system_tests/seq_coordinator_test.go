@@ -1,4 +1,4 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 //go:build redistest
@@ -20,10 +20,10 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/go-redis/redis/v8"
-	"github.com/offchainlabs/nitro/arbnode"
-	"github.com/offchainlabs/nitro/arbos"
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/arbutil"
+	"github.com/mantlenetworkio/mantle/mtnode"
+	"github.com/mantlenetworkio/mantle/mtos"
+	"github.com/mantlenetworkio/mantle/mtstate"
+	"github.com/mantlenetworkio/mantle/mtutil"
 )
 
 func initRedisForTest(t *testing.T, ctx context.Context, redisUrl string, nodeNames []string) {
@@ -36,20 +36,20 @@ func initRedisForTest(t *testing.T, ctx context.Context, redisUrl string, nodeNa
 
 	for _, name := range nodeNames {
 		priorities = priorities + name + ","
-		redisClient.Del(ctx, arbnode.LIVELINESS_KEY_PREFIX+name)
+		redisClient.Del(ctx, mtnode.LIVELINESS_KEY_PREFIX+name)
 	}
 	priorities = priorities[:len(priorities)-1] // remove last ","
-	Require(t, redisClient.Set(ctx, arbnode.PRIORITIES_KEY, priorities, time.Duration(0)).Err())
+	Require(t, redisClient.Set(ctx, mtnode.PRIORITIES_KEY, priorities, time.Duration(0)).Err())
 	for msg := 0; msg < 1000; msg++ {
-		redisClient.Del(ctx, fmt.Sprintf("%s%d", arbnode.MESSAGE_KEY_PREFIX, msg))
+		redisClient.Del(ctx, fmt.Sprintf("%s%d", mtnode.MESSAGE_KEY_PREFIX, msg))
 	}
-	redisClient.Del(ctx, arbnode.CHOSENSEQ_KEY, arbnode.MSG_COUNT_KEY)
+	redisClient.Del(ctx, mtnode.CHOSENSEQ_KEY, mtnode.MSG_COUNT_KEY)
 }
 
 func getTestRediUrl() string {
 	redisUrl := os.Getenv("TEST_REDIS")
 	if redisUrl == "" {
-		redisUrl = arbnode.TestSeqCoordinatorConfig.RedisUrl
+		redisUrl = mtnode.TestSeqCoordinatorConfig.RedisUrl
 	}
 	return redisUrl
 }
@@ -58,16 +58,16 @@ func TestSeqCoordinatorPriorities(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	nodeConfig := arbnode.ConfigDefaultL2Test()
+	nodeConfig := mtnode.ConfigDefaultL2Test()
 	nodeConfig.SeqCoordinator.Enable = true
 
-	l2Info := NewArbTestInfo(t, params.ArbitrumDevTestChainConfig().ChainID)
+	l2Info := NewArbTestInfo(t, params.MantleDevTestChainConfig().ChainID)
 
 	// stdio protocol makes sure forwarder initialization doesn't fail
 	nodeNames := []string{"stdio://A", "stdio://B", "stdio://C", "stdio://D", "stdio://E"}
 
 	type nodeInfo struct {
-		n *arbnode.Node
+		n *mtnode.Node
 		s *node.Node
 	}
 	nodes := make([]*nodeInfo, len(nodeNames))
@@ -86,9 +86,9 @@ func TestSeqCoordinatorPriorities(t *testing.T) {
 		node := nodes[nodeNum]
 		curMsgs, err := node.n.TxStreamer.GetMessageCountSync()
 		Require(t, err)
-		emptyMessage := arbstate.MessageWithMetadata{
-			Message: &arbos.L1IncomingMessage{
-				Header: &arbos.L1IncomingMessageHeader{
+		emptyMessage := mtstate.MessageWithMetadata{
+			Message: &mtos.L1IncomingMessage{
+				Header: &mtos.L1IncomingMessageHeader{
 					Kind:        0,
 					Poster:      common.Address{},
 					BlockNumber: 0,
@@ -101,11 +101,11 @@ func TestSeqCoordinatorPriorities(t *testing.T) {
 			DelayedMessagesRead: 1,
 		}
 		err = node.n.SeqCoordinator.SequencingMessage(curMsgs, &emptyMessage)
-		if errors.Is(err, arbnode.ErrRetrySequencer) {
+		if errors.Is(err, mtnode.ErrRetrySequencer) {
 			return false
 		}
 		Require(t, err)
-		Require(t, node.n.TxStreamer.AddMessages(curMsgs, false, []arbstate.MessageWithMetadata{emptyMessage}))
+		Require(t, node.n.TxStreamer.AddMessages(curMsgs, false, []mtstate.MessageWithMetadata{emptyMessage}))
 		return true
 	}
 
@@ -129,7 +129,7 @@ func TestSeqCoordinatorPriorities(t *testing.T) {
 		return succeeded
 	}
 
-	waitForMsgEverywhere := func(msgNum arbutil.MessageIndex) {
+	waitForMsgEverywhere := func(msgNum mtutil.MessageIndex) {
 		for _, currentNode := range nodes {
 			if currentNode == nil {
 				continue
@@ -156,7 +156,7 @@ func TestSeqCoordinatorPriorities(t *testing.T) {
 	}
 
 	nodeForwardTarget := func(nodeNum int) int {
-		fwTarget := nodes[nodeNum].n.TxPublisher.(*arbnode.TxPreChecker).TransactionPublisher.(*arbnode.Sequencer).ForwardTarget()
+		fwTarget := nodes[nodeNum].n.TxPublisher.(*mtnode.TxPreChecker).TransactionPublisher.(*mtnode.Sequencer).ForwardTarget()
 		if fwTarget == "" {
 			return -1
 		}
@@ -169,9 +169,9 @@ func TestSeqCoordinatorPriorities(t *testing.T) {
 		return -2
 	}
 
-	messagesPerRound := arbutil.MessageIndex(10)
+	messagesPerRound := mtutil.MessageIndex(10)
 	currentSequencer := 0
-	sequencedMesssages := arbutil.MessageIndex(1) // we start with 1 so messageCountKey will be written
+	sequencedMesssages := mtutil.MessageIndex(1) // we start with 1 so messageCountKey will be written
 
 	t.Log("Starting node 0")
 	// give node 0 room to set himself primary
@@ -208,7 +208,7 @@ func TestSeqCoordinatorPriorities(t *testing.T) {
 		}
 
 		// sequencing suceeds only on the leder
-		for i := arbutil.MessageIndex(0); i < messagesPerRound; i++ {
+		for i := mtutil.MessageIndex(0); i < messagesPerRound; i++ {
 			if sequencer := trySequencingEverywhere(); sequencer != currentSequencer {
 				Fail(t, "unexpected sequencer. expected: ", currentSequencer, " got ", sequencer)
 			}
@@ -255,7 +255,7 @@ func TestSeqCoordinatorPriorities(t *testing.T) {
 		waitForMsgEverywhere(sequencedMesssages)
 
 		// can sequence after up to date
-		for i := arbutil.MessageIndex(0); i < messagesPerRound; i++ {
+		for i := mtutil.MessageIndex(0); i < messagesPerRound; i++ {
 			sequencer := trySequencingEverywhere()
 			if sequencer != currentSequencer {
 				Fail(t, "unexpected sequencer", "expected", currentSequencer, "got", sequencer, "messages", sequencedMesssages)
@@ -277,7 +277,7 @@ func TestSeqCoordinatorMessageSync(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	nodeConfig := arbnode.ConfigDefaultL2Test()
+	nodeConfig := mtnode.ConfigDefaultL2Test()
 	nodeConfig.SeqCoordinator.Enable = true
 
 	nodeNames := []string{"stdio://A", "stdio://B"}
@@ -295,7 +295,7 @@ func TestSeqCoordinatorMessageSync(t *testing.T) {
 
 	// wait for sequencerA to become master
 	for {
-		err := redisClient.Get(ctx, arbnode.CHOSENSEQ_KEY).Err()
+		err := redisClient.Get(ctx, mtnode.CHOSENSEQ_KEY).Err()
 		if errors.Is(err, redis.Nil) {
 			time.Sleep(nodeConfig.SeqCoordinator.UpdateInterval)
 			continue
@@ -331,7 +331,7 @@ func TestSeqCoordinatorWrongKeyMessageSync(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	nodeConfig := arbnode.ConfigDefaultL2Test()
+	nodeConfig := mtnode.ConfigDefaultL2Test()
 	nodeConfig.SeqCoordinator.Enable = true
 
 	nodeNames := []string{"stdio://A", "stdio://B"}
@@ -349,7 +349,7 @@ func TestSeqCoordinatorWrongKeyMessageSync(t *testing.T) {
 
 	// wait for sequencerA to become master
 	for {
-		err := redisClient.Get(ctx, arbnode.CHOSENSEQ_KEY).Err()
+		err := redisClient.Get(ctx, mtnode.CHOSENSEQ_KEY).Err()
 		if errors.Is(err, redis.Nil) {
 			time.Sleep(nodeConfig.SeqCoordinator.UpdateInterval)
 			continue

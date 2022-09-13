@@ -1,4 +1,4 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package main
@@ -23,10 +23,10 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/node"
 	"github.com/ethereum/go-ethereum/params"
-	"github.com/offchainlabs/nitro/arbnode"
-	"github.com/offchainlabs/nitro/arbos"
-	"github.com/offchainlabs/nitro/arbos/arbosState"
-	"github.com/offchainlabs/nitro/statetransfer"
+	"github.com/mantlenetworkio/mantle/mtnode"
+	"github.com/mantlenetworkio/mantle/mtos"
+	"github.com/mantlenetworkio/mantle/mtos/mtosState"
+	"github.com/mantlenetworkio/mantle/statetransfer"
 	"github.com/pkg/errors"
 	flag "github.com/spf13/pflag"
 )
@@ -139,16 +139,16 @@ func validateBlockChain(blockChain *core.BlockChain, expectedChainId *big.Int) e
 	if err != nil {
 		return err
 	}
-	currentArbosState, err := arbosState.OpenSystemArbosState(statedb, nil, true)
+	currentMtosState, err := mtosState.OpenSystemMtosState(statedb, nil, true)
 	if err != nil {
 		return err
 	}
-	chainId, err := currentArbosState.ChainId()
+	chainId, err := currentMtosState.ChainId()
 	if err != nil {
 		return err
 	}
 	if chainId.Cmp(expectedChainId) != 0 {
-		return fmt.Errorf("attempted to launch node with chain ID %v on ArbOS state with chain ID %v", expectedChainId, chainId)
+		return fmt.Errorf("attempted to launch node with chain ID %v on MtOS state with chain ID %v", expectedChainId, chainId)
 	}
 	return nil
 }
@@ -156,13 +156,13 @@ func validateBlockChain(blockChain *core.BlockChain, expectedChainId *big.Int) e
 func openInitializeChainDb(ctx context.Context, stack *node.Node, config *NodeConfig, chainId *big.Int, cacheConfig *core.CacheConfig) (ethdb.Database, *core.BlockChain, error) {
 	if !config.Init.Force {
 		if readOnlyDb, err := stack.OpenDatabaseWithFreezer("l2chaindata", 0, 0, "", "", true); err == nil {
-			if chainConfig := arbnode.TryReadStoredChainConfig(readOnlyDb); chainConfig != nil {
+			if chainConfig := mtnode.TryReadStoredChainConfig(readOnlyDb); chainConfig != nil {
 				readOnlyDb.Close()
 				chainDb, err := stack.OpenDatabaseWithFreezer("l2chaindata", 0, 0, "", "", false)
 				if err != nil {
 					return nil, nil, err
 				}
-				l2BlockChain, err := arbnode.GetBlockChain(chainDb, cacheConfig, chainConfig, &config.Node)
+				l2BlockChain, err := mtnode.GetBlockChain(chainDb, cacheConfig, chainConfig, &config.Node)
 				if err != nil {
 					return nil, nil, err
 				}
@@ -214,7 +214,7 @@ func openInitializeChainDb(ctx context.Context, stack *node.Node, config *NodeCo
 		if initDataReader != nil {
 			return nil, nil, errors.New("multiple init methods supplied")
 		}
-		initData := statetransfer.ArbosInitializationInfo{
+		initData := statetransfer.MtosInitializationInfo{
 			NextBlockNumber: 0,
 		}
 		initDataReader = statetransfer.NewMemoryInitDataReader(&initData)
@@ -223,7 +223,7 @@ func openInitializeChainDb(ctx context.Context, stack *node.Node, config *NodeCo
 		if initDataReader != nil {
 			return nil, nil, errors.New("multiple init methods supplied")
 		}
-		initData := statetransfer.ArbosInitializationInfo{
+		initData := statetransfer.MtosInitializationInfo{
 			NextBlockNumber: config.Init.DevInitBlockNum,
 			Accounts: []statetransfer.AccountInitializationInfo{
 				{
@@ -241,15 +241,15 @@ func openInitializeChainDb(ctx context.Context, stack *node.Node, config *NodeCo
 	var l2BlockChain *core.BlockChain
 	txIndexWg := sync.WaitGroup{}
 	if initDataReader == nil {
-		chainConfig = arbnode.TryReadStoredChainConfig(chainDb)
+		chainConfig = mtnode.TryReadStoredChainConfig(chainDb)
 		if chainConfig == nil {
 			return nil, nil, errors.New("no --init.* mode supplied and chain data not in expected directory")
 		}
-		l2BlockChain, err = arbnode.GetBlockChain(chainDb, cacheConfig, chainConfig, &config.Node)
+		l2BlockChain, err = mtnode.GetBlockChain(chainDb, cacheConfig, chainConfig, &config.Node)
 		if err != nil {
 			panic(err)
 		}
-		genesisBlockNr := chainConfig.ArbitrumChainParams.GenesisBlockNum
+		genesisBlockNr := chainConfig.MantleChainParams.GenesisBlockNum
 		genesisBlock := l2BlockChain.GetBlockByNumber(genesisBlockNr)
 		if genesisBlock != nil {
 			log.Info("loaded genesis block from database", "number", genesisBlockNr, "hash", genesisBlock.Hash())
@@ -263,7 +263,7 @@ func openInitializeChainDb(ctx context.Context, stack *node.Node, config *NodeCo
 		if err != nil {
 			panic(err)
 		}
-		chainConfig, err = arbos.GetChainConfig(chainId, genesisBlockNr)
+		chainConfig, err = mtos.GetChainConfig(chainId, genesisBlockNr)
 		if err != nil {
 			panic(err)
 		}
@@ -287,7 +287,7 @@ func openInitializeChainDb(ctx context.Context, stack *node.Node, config *NodeCo
 		if config.Init.ThenQuit {
 			cacheConfig.SnapshotWait = true
 		}
-		l2BlockChain, err = arbnode.WriteOrTestBlockChain(chainDb, cacheConfig, initDataReader, chainConfig, &config.Node, config.Init.AccountsPerSync)
+		l2BlockChain, err = mtnode.WriteOrTestBlockChain(chainDb, cacheConfig, initDataReader, chainConfig, &config.Node, config.Init.AccountsPerSync)
 		if err != nil {
 			panic(err)
 		}
@@ -329,7 +329,7 @@ func testTxIndexUpdated(chainDb ethdb.Database, lastBlock uint64) bool {
 }
 
 func testUpdateTxIndex(chainDb ethdb.Database, chainConfig *params.ChainConfig, globalWg *sync.WaitGroup) {
-	lastBlock := chainConfig.ArbitrumChainParams.GenesisBlockNum
+	lastBlock := chainConfig.MantleChainParams.GenesisBlockNum
 	if lastBlock == 0 {
 		// no Tx, no need to update index
 		return

@@ -1,4 +1,4 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
+// Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 package das
@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/offchainlabs/nitro/das/dastree"
+	"github.com/mantlenetworkio/mantle/das/dastree"
 )
 
 func TestSimpleDASReaderAggregator(t *testing.T) { //nolint
