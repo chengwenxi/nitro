@@ -23,7 +23,7 @@ const BROTLI_MODE_GENERIC: u32 = 0;
 const BROTLI_RES_SUCCESS: u32 = 1;
 
 #[no_mangle]
-pub unsafe extern "C" fn go__github_com_offchainlabs_nitro_mtcompress_brotliDecompress(
+pub unsafe extern "C" fn go__github_com_mantlenetworkio_mantle_mtcompress_brotliDecompress(
     sp: GoStack,
 ) {
     //(inBuf []byte, outBuf []byte) int
@@ -52,7 +52,7 @@ pub unsafe extern "C" fn go__github_com_offchainlabs_nitro_mtcompress_brotliDeco
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn go__github_com_offchainlabs_nitro_mtcompress_brotliCompress(sp: GoStack) {
+pub unsafe extern "C" fn go__github_com_mantlenetworkio_mantle_mtcompress_brotliCompress(sp: GoStack) {
     //(inBuf []byte, outBuf []byte, level int, windowSize int) int
     let in_buf_ptr = sp.read_u64(0);
     let in_buf_len = sp.read_u64(1);
