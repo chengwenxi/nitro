@@ -2,7 +2,7 @@
 // For license information, see https://github.com/nitro/blob/master/LICENSE
 
 use crate::{
-    mtcompress, gostack::GoRuntimeState, runtime, socket, syscall, syscall::JsRuntimeState,
+    gostack::GoRuntimeState, mtcompress, runtime, socket, syscall, syscall::JsRuntimeState,
     wavmio, wavmio::Bytes32, Opts,
 };
 
