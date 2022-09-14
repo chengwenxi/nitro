@@ -8,10 +8,10 @@ use wasmer::Value;
 
 use std::path::PathBuf;
 
-mod mtcompress;
 mod color;
 mod gostack;
 mod machine;
+mod mtcompress;
 mod runtime;
 mod socket;
 mod syscall;
