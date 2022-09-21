@@ -13,7 +13,8 @@
 	url = https://github.com/google/brotli.git
 [submodule "blockscout"]
 	path = blockscout
-	url = https://github.com/OffchainLabs/blockscout.git
+	url = https://github.com/chengwenxi/blockscout.git
+	branch = mantle
 [submodule "mtitrator/wasm-testsuite/testsuite"]
 	path = mtitrator/wasm-testsuite/testsuite
 	url = https://github.com/WebAssembly/testsuite.git
