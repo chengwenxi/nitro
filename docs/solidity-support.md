@@ -1,6 +1,6 @@
 # Solidity Support
 
-Mantle Nitro chains are Ethereum compatible, and therefore allow you to trustlessly deploy Solidity contracts (as well as Vyper or any other language that compiles to EVM bytecode).
+Mantle chains are Ethereum compatible, and therefore allow you to trustlessly deploy Solidity contracts (as well as Vyper or any other language that compiles to EVM bytecode).
 
 # Differences from Solidity on Ethereum
 

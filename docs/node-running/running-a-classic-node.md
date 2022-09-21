@@ -4,14 +4,14 @@ Note: If you’re interested in accessing the Mantle network but you don’t wan
 
 ### Do You Need To Run A Classic Node?
 
-Mantle One and Mantle Rinkeby testnet have both been upgraded to Nitro, the latest Mantle tech stack; "Mantle Classic" is our term for the old, pre-Nitro tech stack.
-The Nitro node databases have the raw data of all blocks, including pre-Nitro
-blocks.  However, Nitro nodes cannot execute anything on pre-Nitro blocks.
+Mantle One and Mantle Rinkeby testnet have both been upgraded to Mantle, the latest Mantle tech stack; "Mantle Classic" is our term for the old, pre-Mantle tech stack.
+The Mantle node databases have the raw data of all blocks, including pre-Mantle
+blocks.  However, Mantle nodes cannot execute anything on pre-Mantle blocks.
 
-Mantle Nova started as a Nitro chain, so has no classic blocks.
+Mantle Nova started as a Mantle chain, so has no classic blocks.
 
 The following commands require an Mantle Classic node to execute data
-on pre-Nitro blocks.
+on pre-Mantle blocks.
 
 * `eth_call`
 * `eth_estimateGas`
@@ -22,7 +22,7 @@ on pre-Nitro blocks.
 
 ### Required Artifacts
 
-- Latest Docker Image: offchainlabs/arb-node:v1.4.5-e97c1a4
+- Latest Docker Image: mantlenetwork/arb-node:v1.4.5-e97c1a4
 
 ### Required parameters
 
@@ -39,13 +39,13 @@ on pre-Nitro blocks.
 ### Putting it all together
 
 - When running docker image, an external volume should be mounted to persist the database across restarts. The mount point should be `/home/user/.mantle/mainnet` or `/home/user/.mantle/rinkeby` depending on what chain you are connecting to.
-  - Here is an example of how to run arb-node for mainnet (only good for archive requests on pre-Nitro blocks, so probably want to enable archive as well):
+  - Here is an example of how to run arb-node for mainnet (only good for archive requests on pre-Mantle blocks, so probably want to enable archive as well):
   ```shell
-  docker run --rm -it  -v /some/local/dir/mantle-mainnet/:/home/user/.mantle/mainnet -p 0.0.0.0:8547:8547 -p 0.0.0.0:8548:8548 offchainlabs/arb-node:v1.4.5-e97c1a4 --l1.url=https://l1-node:8545 --node.chain-id=42161 --l2.disable-upstream
+  docker run --rm -it  -v /some/local/dir/mantle-mainnet/:/home/user/.mantle/mainnet -p 0.0.0.0:8547:8547 -p 0.0.0.0:8548:8548 mantlenetwork/arb-node:v1.4.5-e97c1a4 --l1.url=https://l1-node:8545 --node.chain-id=42161 --l2.disable-upstream
   ```
-  - Here is an example of how to run arb-node for rinkeby (only good for archive requests on pre-Nitro blocks, so probably want to enable archive as well):
+  - Here is an example of how to run arb-node for rinkeby (only good for archive requests on pre-Mantle blocks, so probably want to enable archive as well):
   ```shell
-  docker run --rm -it  -v /some/local/dir/mantle-rinkeby/:/home/user/.mantle/rinkeby -p 0.0.0.0:8547:8547 -p 0.0.0.0:8548:8548 offchainlabs/arb-node:v1.4.5-e97c1a4 --l1.url=https://l1-rinkeby-node:8545 --node.chain-id=421611
+  docker run --rm -it  -v /some/local/dir/mantle-rinkeby/:/home/user/.mantle/rinkeby -p 0.0.0.0:8547:8547 -p 0.0.0.0:8548:8548 mantlenetwork/arb-node:v1.4.5-e97c1a4 --l1.url=https://l1-rinkeby-node:8545 --node.chain-id=421611
   ```
 
 ### Note on permissions
@@ -83,4 +83,4 @@ on pre-Nitro blocks.
 
 ### Arb-Relay
 
-- Mantle classic does not communicate with Nitro sequencer, so classic relay is no longer used.
+- Mantle classic does not communicate with Mantle sequencer, so classic relay is no longer used.

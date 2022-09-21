@@ -1,5 +1,5 @@
 // Copyright 2021-2022, Mantlenetwork, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package main
 
@@ -131,7 +131,7 @@ func main() {
 	}
 
 	vcsRevision, vcsTime := util.GetVersion()
-	log.Info("Running Mantle nitro node", "revision", vcsRevision, "vcs.time", vcsTime)
+	log.Info("Running Mantle node", "revision", vcsRevision, "vcs.time", vcsTime)
 
 	if nodeConfig.Node.Dangerous.NoL1Listener {
 		nodeConfig.Node.L1Reader.Enable = false
@@ -644,7 +644,7 @@ func applyMantleRollupGoerliTestnetParameters(k *koanf.Koanf) error {
 
 func applyMantleRollupRinkebyTestnetParameters(k *koanf.Koanf) error {
 	return k.Load(confmap.Provider(map[string]interface{}{
-		"persistent.chain":                   "rinkeby-nitro",
+		"persistent.chain":                   "rinkeby-mantle",
 		"node.forwarding-target":             "https://rinkeby.mantle.io/rpc",
 		"node.feed.input.url":                "wss://rinkeby.mantle.io/feed",
 		"l1.rollup.bridge":                   "0x85c720444e436e1f9407e0c3895d3fe149f41168",

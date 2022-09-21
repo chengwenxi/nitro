@@ -1,7 +1,7 @@
 {
-  "name": "@mantle/nitro-contracts",
+  "name": "@mantle/mantle-contracts",
   "version": "1.0.0-beta.8",
-  "description": "Layer 2 precompiles and rollup for Mantle Nitro",
+  "description": "Layer 2 precompiles and rollup for Mantle",
   "author": "Mantlenetwork, Inc.",
   "license": "BUSL-1.1",
   "repository": {

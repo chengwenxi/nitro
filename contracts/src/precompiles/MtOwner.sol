@@ -1,12 +1,12 @@
 // Copyright 2021-2022, Mantlenetwork, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 // SPDX-License-Identifier: BUSL-1.1
 
 pragma solidity >=0.4.21 <0.9.0;
 
 /// @title Provides owners with tools for managing the rollup.
 /// @notice Calls by non-owners will always revert.
-/// Most of Mantle Classic's owner methods have been removed since they no longer make sense in Nitro:
+/// Most of Mantle Classic's owner methods have been removed since they no longer make sense in Mantle:
 /// - What were once chain parameters are now parts of MtOS's state, and those that remain are set at genesis.
 /// - MtOS upgrades happen with the rest of the system rather than being independent
 /// - Exemptions to address aliasing are no longer offered. Exemptions were intended to support backward compatibility for contracts deployed before aliasing was introduced, but no exemptions were ever requested.

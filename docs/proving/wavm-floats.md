@@ -22,7 +22,7 @@ as they are implemented exclusively using operations already known to be determi
 However, it does not ensure that the floating point operations are perfectly compliant to the WASM specification.
 Go uses floating points in its JS<->Go WASM interface,
 and floating points may be used outside core state transition code for imprecise computations,
-but the former is well exercised as used in Nitro,
+but the former is well exercised as used in Mantle,
 and the latter generally doesn't rely on details like the minimum of NaN and infinity.
 
 ## Known divergences from the WASM specification

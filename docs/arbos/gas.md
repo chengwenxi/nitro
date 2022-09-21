@@ -8,7 +8,7 @@ The L1 component is the product of the tx's estimated contribution to its batch'
 
 [The L2 component](mtos.md#l2pricingstate) consists of the traditional fees geth would pay to miners in a vanilla L1 chain, such as the computation and storage charges applying the state transition function entails. MtOS charges additional fees for executing its L2-specific [precompiles](precompiles.md), whose fees are dynamically priced according to the specific resources used while executing the call.
 
-Calling an Mantle node's `eth_estimateGas` RPC returns a value sufficient to cover both the L1 and L2 components of the fee for the current gas price. (See [2-D fees](https://medium.com/offchainlabs/understanding-mantle-2-dimensional-fees-fd1d582596c9) for more.)
+Calling an Mantle node's `eth_estimateGas` RPC returns a value sufficient to cover both the L1 and L2 components of the fee for the current gas price. (See [2-D fees](https://medium.com/mantlenetwork/understanding-mantle-2-dimensional-fees-fd1d582596c9) for more.)
 
 [drop_l1_link]: https://github.com/mantlenetworkio/mantle/blob/2ba6d1aa45abcc46c28f3d4f560691ce5a396af8/mtos/l1pricing/l1pricing.go#L232
 
@@ -22,11 +22,11 @@ Because a call to [`redeem`](precompiles.md#MtRetryableTx) donates all of the ca
 
 Gas estimation for Retryable submissions is possible via [`NodeInterface.sol`][node_interface_link] and similarly requires the auto-redeem attempt succeed.
 
-[estimation_inclusion_link]: https://github.com/OffchainLabs/go-ethereum/blob/edf6a19157606070b6a6660c8decc513e2408cb7/internal/ethapi/api.go#L955
+[estimation_inclusion_link]: https://github.com/mantlenetwork/go-ethereum/blob/edf6a19157606070b6a6660c8decc513e2408cb7/internal/ethapi/api.go#L955
 [node_interface_link]: https://github.com/mantlenetworkio/mantle/blob/master/solgen/src/node-interface/NodeInterface.sol
 
 ## NodeInterface.sol
-To avoid creating new RPC methods for client-side tooling, nitro geth's [`InterceptRPCMessage`][InterceptRPCMessage_link] hook provides an opportunity to swap out the message its handling before deriving a transaction from it. The node [uses this hook][use_hook_link] to detect messages sent to the address `0xc8`, the location of the fictional `NodeInterface` contract specified in [`NodeInterface.sol`][node_interface_link].
+To avoid creating new RPC methods for client-side tooling, mantle geth's [`InterceptRPCMessage`][InterceptRPCMessage_link] hook provides an opportunity to swap out the message its handling before deriving a transaction from it. The node [uses this hook][use_hook_link] to detect messages sent to the address `0xc8`, the location of the fictional `NodeInterface` contract specified in [`NodeInterface.sol`][node_interface_link].
 
 `NodeInterface` isn't deployed on L2 and only exists in the RPC, but it contains methods callable via `0xc8`. Doing so requires setting the `To` field to `0xc8` and supplying calldata for the method. Below is the list of methods.
 
@@ -34,6 +34,6 @@ To avoid creating new RPC methods for client-side tooling, nitro geth's [`Interc
 |:-----------------------------------------------------------------|:----------------------------------------------------|
 | [`estimateRetryableTicket`][estimateRetryableTicket_link] &nbsp; | Estimates the gas needed for a retryable submission |
 
-[InterceptRPCMessage_link]: https://github.com/OffchainLabs/go-ethereum/blob/f31341b3dfa987719b012bc976a6f4fe3b8a1221/internal/ethapi/api.go#L929
+[InterceptRPCMessage_link]: https://github.com/mantlenetwork/go-ethereum/blob/f31341b3dfa987719b012bc976a6f4fe3b8a1221/internal/ethapi/api.go#L929
 [use_hook_link]: https://github.com/mantlenetworkio/mantle/blob/57e03322926f796f75a21f8735cc64ea0a2d11c3/mtstate/node-interface.go#L17
 [estimateRetryableTicket_link]: https://github.com/mantlenetworkio/mantle/blob/8ab1d6730164e18d0ca1bd5635ca12aadf36a640/solgen/src/node_interface/NodeInterface.sol#L21

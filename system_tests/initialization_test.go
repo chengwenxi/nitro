@@ -1,7 +1,7 @@
 // Copyright 2021-2022, Mantlenetwork, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
-package arbtest
+package mttest
 
 import (
 	"context"
@@ -50,7 +50,7 @@ func TestInitContract(t *testing.T) {
 	defer cancel()
 	expectedSums := make(map[common.Address]*big.Int)
 	prand := testhelpers.NewPseudoRandomDataSource(t, 1)
-	l2info := NewArbTestInfo(t, params.MantleDevTestChainConfig().ChainID)
+	l2info := NewmttestInfo(t, params.MantleDevTestChainConfig().ChainID)
 	for i := 0; i < 50; i++ {
 		contractData, sum := InitOneContract(prand)
 		accountAddress := prand.GetAddress()

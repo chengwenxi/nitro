@@ -1,5 +1,5 @@
 // Copyright 2021-2022, Mantlenetwork, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 // SPDX-License-Identifier: BUSL-1.1
 
 pragma solidity >=0.4.21 <0.9.0;
@@ -93,7 +93,7 @@ interface MtRetryableTx {
     );
     event Canceled(bytes32 indexed ticketId);
 
-    /// @dev DEPRECATED in favour of new RedeemScheduled event after the nitro upgrade
+    /// @dev DEPRECATED in favour of new RedeemScheduled event after the mantle upgrade
     event Redeemed(bytes32 indexed userTxHash);
 
     error NoTicketWithID();

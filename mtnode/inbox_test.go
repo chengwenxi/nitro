@@ -1,5 +1,5 @@
 // Copyright 2021-2022, Mantlenetwork, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package mtnode
 
@@ -17,7 +17,7 @@ import (
 	"github.com/mantlenetworkio/mantle/mtutil"
 	"github.com/mantlenetworkio/mantle/statetransfer"
 
-	nitroutil "github.com/mantlenetworkio/mantle/util"
+	mantleutil "github.com/mantlenetworkio/mantle/util"
 	"github.com/mantlenetworkio/mantle/util/testhelpers"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -88,7 +88,7 @@ func TestTransactionStreamer(t *testing.T) {
 	var blockStates []blockTestState
 	blockStates = append(blockStates, blockTestState{
 		balances: map[common.Address]*big.Int{
-			ownerAddress: new(big.Int).Mul(maxExpectedGasCost, big.NewInt(int64(nitroutil.NormalizeL2GasForL1GasInitial(1_000_000, params.GWei)))),
+			ownerAddress: new(big.Int).Mul(maxExpectedGasCost, big.NewInt(int64(mantleutil.NormalizeL2GasForL1GasInitial(1_000_000, params.GWei)))),
 		},
 		accounts:    []common.Address{ownerAddress},
 		numMessages: 1,

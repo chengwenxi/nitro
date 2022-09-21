@@ -1,5 +1,5 @@
 // Copyright 2022, Mantlenetwork, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package validator
 
@@ -25,7 +25,7 @@ type JitMachine struct {
 	stdin   io.WriteCloser
 }
 
-func createJitMachine(config NitroMachineConfig, moduleRoot common.Hash, fatalErrChan chan error) (*JitMachine, error) {
+func createJitMachine(config MantleMachineConfig, moduleRoot common.Hash, fatalErrChan chan error) (*JitMachine, error) {
 
 	jitBinary, err := exec.LookPath("jit")
 	if err != nil {

@@ -1,10 +1,10 @@
 // Copyright 2021-2022, Mantlenetwork, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 //go:build redistest
 // +build redistest
 
-package arbtest
+package mttest
 
 import (
 	"context"
@@ -61,7 +61,7 @@ func TestSeqCoordinatorPriorities(t *testing.T) {
 	nodeConfig := mtnode.ConfigDefaultL2Test()
 	nodeConfig.SeqCoordinator.Enable = true
 
-	l2Info := NewArbTestInfo(t, params.MantleDevTestChainConfig().ChainID)
+	l2Info := NewmttestInfo(t, params.MantleDevTestChainConfig().ChainID)
 
 	// stdio protocol makes sure forwarder initialization doesn't fail
 	nodeNames := []string{"stdio://A", "stdio://B", "stdio://C", "stdio://D", "stdio://E"}

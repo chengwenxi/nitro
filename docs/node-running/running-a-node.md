@@ -5,19 +5,19 @@ Note: If you’re interested in accessing an Mantle chain, but you don’t want 
 
 ### Required Artifacts
 
-- Latest Docker Image: `offchainlabs/nitro-node:v2.0.3-9779dab`
+- Latest Docker Image: `mantlenetwork/mantle-node:v2.0.3-9779dab`
 
-- Mantle One Nitro Genesis Database Snapshot
-  - Use the parameter `--init.url="https://snapshot.mantle.io/mainnet/nitro.tar"` on first startup to initialize Nitro database
-  - If running more than one node, easiest to manually download image from https://snapshot.mantle.io/mainnet/nitro.tar and host it locally for your nodes
-  - Or use `--init.url="file:///path/to/snapshot/in/container/nitro.tar"` to use a local snapshot archive
+- Mantle One Mantle Genesis Database Snapshot
+  - Use the parameter `--init.url="https://snapshot.mantle.io/mainnet/mantle.tar"` on first startup to initialize Mantle database
+  - If running more than one node, easiest to manually download image from https://snapshot.mantle.io/mainnet/mantle.tar and host it locally for your nodes
+  - Or use `--init.url="file:///path/to/snapshot/in/container/mantle.tar"` to use a local snapshot archive
   - sha256 checksum: `a609773c6103435b8a04d32c63f42bb5fa0dc8fc38a2acee4d2ab2d05880205c`
   - size: 33.5573504 GB
 
-- Rinkeby Nitro Genesis Database Snapshot
-  - Use the parameter `--init.url="https://snapshot.mantle.io/rinkeby/nitro.tar"` on first startup to initialize Nitro database
-  - If running more than one node, easiest to manually download image from https://snapshot.mantle.io/rinkeby/nitro.tar and host it locally for your nodes
-  - Or use `--init.url="file:///path/to/snapshot/in/container/nitro.tar"` to use a local snapshot archive
+- Rinkeby Mantle Genesis Database Snapshot
+  - Use the parameter `--init.url="https://snapshot.mantle.io/rinkeby/mantle.tar"` on first startup to initialize Mantle database
+  - If running more than one node, easiest to manually download image from https://snapshot.mantle.io/rinkeby/mantle.tar and host it locally for your nodes
+  - Or use `--init.url="file:///path/to/snapshot/in/container/mantle.tar"` to use a local snapshot archive
 
 - Other chains do not have classic blocks, and do not require an initial genesis database
 
@@ -37,12 +37,12 @@ Note: If you’re interested in accessing an Mantle chain, but you don’t want 
 ### Putting it all together
 
 - When running docker image, an external volume should be mounted to persist the database across restarts. The mount point inside the docker image should be `/home/user/.mantle`.
-- Here is an example of how to run nitro-node:
+- Here is an example of how to run mantle-node:
 
   - Note that is important that `/some/local/dir/mantle` already exists, otherwise the directory might be created with `root` as owner, and the docker container won't be able to write to it.
 
   ```shell
-  docker run --rm -it  -v /some/local/dir/mantle:/home/user/.mantle -p 0.0.0.0:8547:8547 -p 0.0.0.0:8548:8548 offchainlabs/nitro-node:v2.0.3-9779dab --l1.url https://l1-node:8545 --l2.chain-id=<L2ChainId> --http.api=net,web3,eth,debug --http.corsdomain=* --http.addr=0.0.0.0 --http.vhosts=*
+  docker run --rm -it  -v /some/local/dir/mantle:/home/user/.mantle -p 0.0.0.0:8547:8547 -p 0.0.0.0:8548:8548 mantlenetwork/mantle-node:v2.0.3-9779dab --l1.url https://l1-node:8545 --l2.chain-id=<L2ChainId> --http.api=net,web3,eth,debug --http.corsdomain=* --http.addr=0.0.0.0 --http.vhosts=*
   ```
 
   - Note that if you are running L1 node on localhost, you may need to add `--network host` right after `docker run` to use docker host-based networking
@@ -62,12 +62,12 @@ Note: If you’re interested in accessing an Mantle chain, but you don’t want 
 
 ### Optional parameters
 
-- `--init.url="https://snapshot.mantle.io/mainnet/nitro.tar"`
+- `--init.url="https://snapshot.mantle.io/mainnet/mantle.tar"`
   - URL to download genesis database from. Only needed when starting Mantle One without database
-- `--init.url="https://snapshot.mantle.io/rinkeby/nitro.tar"`
+- `--init.url="https://snapshot.mantle.io/rinkeby/mantle.tar"`
   - URL to download genesis database from. Only needed when starting Rinkeby Testnet without database
 - `--node.rpc.classic-redirect=<classic node RPC>`
-  - If set, will redirect archive requests for pre-nitro blocks to the designated RPC, which should be an Mantle Classic node with archive database. Only valid for Mantle One or Rinkeby Testnet
+  - If set, will redirect archive requests for pre-mantle blocks to the designated RPC, which should be an Mantle Classic node with archive database. Only valid for Mantle One or Rinkeby Testnet
 - `--http.api`
   - APIs offered over the HTTP-RPC interface (default `net,web3,eth`)
   - Add `debug` to enable tracing
@@ -94,11 +94,11 @@ Note: If you’re interested in accessing an Mantle chain, but you don’t want 
 
 - When running more than one node, you want to run a single arb-relay per datacenter, which will reduce ingress fees and improve stability
 - The arb-relay is in the same docker image.
-- Here is an example of how to run nitro-relay for Mantle One:
+- Here is an example of how to run mantle-relay for Mantle One:
   ```shell
-  docker run --rm -it  -p 0.0.0.0:9642:9642 --entrypoint relay offchainlabs/nitro-node:v2.0.3-9779dab --node.feed.output.addr=0.0.0.0 --node.feed.input.url=wss://arb1.mantle.io/feed
+  docker run --rm -it  -p 0.0.0.0:9642:9642 --entrypoint relay mantlenetwork/mantle-node:v2.0.3-9779dab --node.feed.output.addr=0.0.0.0 --node.feed.input.url=wss://arb1.mantle.io/feed
   ```
-- Here is an example of how to run nitro-node for Mantle One with custom relay:
+- Here is an example of how to run mantle-node for Mantle One with custom relay:
   ```shell
-  docker run --rm -it  -v /some/local/dir/mantle:/home/user/.mantle -p 0.0.0.0:8547:8547 -p 0.0.0.0:8548:8548 offchainlabs/nitro-node:v2.0.3-9779dab --l1.url=https://l1-mainnet-node:8545 --l2.chain-id=42161 --http.api=net,web3,eth,debug --http.corsdomain=* --http.addr=0.0.0.0 --http.vhosts=* --node.feed.input.url=ws://local-relay-address:9642
+  docker run --rm -it  -v /some/local/dir/mantle:/home/user/.mantle -p 0.0.0.0:8547:8547 -p 0.0.0.0:8548:8548 mantlenetwork/mantle-node:v2.0.3-9779dab --l1.url=https://l1-mainnet-node:8545 --l2.chain-id=42161 --http.api=net,web3,eth,debug --http.corsdomain=* --http.addr=0.0.0.0 --http.vhosts=* --node.feed.input.url=ws://local-relay-address:9642
   ```

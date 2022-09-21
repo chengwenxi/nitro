@@ -26,4 +26,4 @@ The only delay that users experience during a dispute is of their [L2 to L1 mess
 
 ### Detailed Spec
 
-For a more detailed breakdown / specification of the assertion tree protocol, see [Inside Mantle](inside-mantle-nitro#mantle#rollup#protocol).
+For a more detailed breakdown / specification of the assertion tree protocol, see [Inside Mantle](inside-mantle-mantle#mantle#rollup#protocol).

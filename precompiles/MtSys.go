@@ -1,5 +1,5 @@
 // Copyright 2021-2022, Mantlenetwork, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package precompiles
 
@@ -57,11 +57,11 @@ func (con *MtSys) ArbChainID(c ctx, evm mech) (huge, error) {
 
 // Gets the current MtOS version
 func (con *MtSys) MtOSVersion(c ctx, evm mech) (huge, error) {
-	version := new(big.Int).SetUint64(55 + c.State.FormatVersion()) // Nitro starts at version 56
+	version := new(big.Int).SetUint64(55 + c.State.FormatVersion()) // Mantle starts at version 56
 	return version, nil
 }
 
-// Returns 0 since Nitro has no concept of storage gas
+// Returns 0 since Mantle has no concept of storage gas
 func (con *MtSys) GetStorageGasAvailable(c ctx, evm mech) (huge, error) {
 	return big.NewInt(0), nil
 }

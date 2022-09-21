@@ -1,11 +1,11 @@
 // Copyright 2021-2022, Mantlenetwork, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 // these tests seems to consume too much memory with race detection
 //go:build !race
 // +build !race
 
-package arbtest
+package mttest
 
 import (
 	"context"

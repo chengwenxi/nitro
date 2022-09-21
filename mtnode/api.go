@@ -1,5 +1,5 @@
 // Copyright 2021-2022, Mantlenetwork, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package mtnode
 
@@ -55,7 +55,7 @@ func (a *BlockValidatorDebugAPI) ValidateBlock(
 	if err != nil {
 		return result, err
 	}
-	if !a.blockchain.Config().IsMantleNitro(header.Number) {
+	if !a.blockchain.Config().IsMantleMantle(header.Number) {
 		return result, types.ErrUseFallback
 	}
 	var moduleRoot common.Hash
@@ -116,8 +116,8 @@ type PricingModelHistory struct {
 }
 
 func (api *MtDebugAPI) PricingModel(ctx context.Context, start, end rpc.BlockNumber) (PricingModelHistory, error) {
-	start, _ = api.blockchain.ClipToPostNitroGenesis(start)
-	end, _ = api.blockchain.ClipToPostNitroGenesis(end)
+	start, _ = api.blockchain.ClipToPostMantleGenesis(start)
+	end, _ = api.blockchain.ClipToPostMantleGenesis(end)
 
 	blocks := end.Int64() - start.Int64() + 1
 	if blocks > int64(api.blockRangeBound) {
@@ -206,8 +206,8 @@ func (api *MtDebugAPI) PricingModel(ctx context.Context, start, end rpc.BlockNum
 }
 
 func (api *MtDebugAPI) TimeoutQueueHistory(ctx context.Context, start, end rpc.BlockNumber) ([]uint64, error) {
-	start, _ = api.blockchain.ClipToPostNitroGenesis(start)
-	end, _ = api.blockchain.ClipToPostNitroGenesis(end)
+	start, _ = api.blockchain.ClipToPostMantleGenesis(start)
+	end, _ = api.blockchain.ClipToPostMantleGenesis(end)
 
 	blocks := end.Int64() - start.Int64() + 1
 	if blocks > int64(api.blockRangeBound) {
@@ -243,7 +243,7 @@ type TimeoutQueue struct {
 
 func (api *MtDebugAPI) TimeoutQueue(ctx context.Context, blockNum rpc.BlockNumber) (TimeoutQueue, error) {
 
-	blockNum, _ = api.blockchain.ClipToPostNitroGenesis(blockNum)
+	blockNum, _ = api.blockchain.ClipToPostMantleGenesis(blockNum)
 
 	queue := TimeoutQueue{
 		BlockNumber: uint64(blockNum),
@@ -289,7 +289,7 @@ func (api *MtDebugAPI) TimeoutQueue(ctx context.Context, blockNum rpc.BlockNumbe
 
 func stateAndHeader(blockchain *core.BlockChain, block uint64) (*mtosState.MtosState, *types.Header, error) {
 	header := blockchain.GetHeaderByNumber(block)
-	if !blockchain.Config().IsMantleNitro(header.Number) {
+	if !blockchain.Config().IsMantleMantle(header.Number) {
 		return nil, nil, types.ErrUseFallback
 	}
 	statedb, err := blockchain.StateAt(header.Root)

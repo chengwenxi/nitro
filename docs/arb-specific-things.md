@@ -39,7 +39,7 @@ Etc.
 
 Mantle chains include a number of special precompiles not present on Ethereum; see [Common Precompiles](./mtos/common-precompiles.md) / [All Precompiles](./mtos/precompiles.md).
 
-Of particular note is the [MtAddressTable](./mtos/precompiles.md#MtAddressTable), which allows contracts to map addresses to integers, saving calldata / fees for addresses expected to be reused as parameters; see [Arb Address Table tutorial](https://github.com/OffchainLabs/mantle-tutorials/tree/master/packages/address-table) for example usage.
+Of particular note is the [MtAddressTable](./mtos/precompiles.md#MtAddressTable), which allows contracts to map addresses to integers, saving calldata / fees for addresses expected to be reused as parameters; see [Arb Address Table tutorial](https://github.com/mantlenetworkio/mantle-tutorials/tree/master/packages/address-table) for example usage.
 
 ## Solidity
 

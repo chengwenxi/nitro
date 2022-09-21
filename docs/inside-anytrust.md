@@ -1,6 +1,6 @@
 # Inside AnyTrust
 
-AnyTrust is a variant of Mantle Nitro technology that lowers costs by accepting a mild trust assumption. 
+AnyTrust is a variant of Mantle technology that lowers costs by accepting a mild trust assumption. 
 
 The Mantle protocol requires that all Mantle nodes, including validators (nodes that verify correctness of the chain and are prepared to stake on correct results), have access to the data of every L2 transaction in the Mantle chain's inbox. An Mantle rollup provides data access by posting the data (in batched, compressed form) on L1 Ethereum as calldata. The Ethereum gas to pay for this is the largest component of cost in Mantle.
 
@@ -35,11 +35,11 @@ A central concept in AnyTrust is the Data Availability Certificate (hereafter, a
 
 Because of the 2-of-N trust assumption, a DACert constitutes proof that the block's data (i.e., the preimage of the hash in the DACert) will be available from at least one honest Committee member, at least until the expiration time.
 
-In ordinary (non-AnyTrust) Nitro, the Mantle sequencer posts data blocks on the L1 chain as calldata. The hashes of the data blocks are committed by the L1 Inbox contract, allowing the data to be reliably read by L2 code.
+In ordinary (non-AnyTrust) Mantle, the Mantle sequencer posts data blocks on the L1 chain as calldata. The hashes of the data blocks are committed by the L1 Inbox contract, allowing the data to be reliably read by L2 code.
 
 AnyTrust gives the sequencer two ways to post a data block on L1: it can post the full data as above, or it can post a DACert proving availability of the data. The L1 inbox contract will reject any DACert that uses an invalid Keyset; the other aspects of DACert validity are checked by L2 code.
 
-The L2 code that reads data from the inbox reads a full-data block as in ordinary Nitro. If it sees a DACert instead, it checks the validity of the DACert, with reference to the Keyset specified by the DACert (which is known to be valid because the L1 Inbox verified that). The L2 code verifies that
+The L2 code that reads data from the inbox reads a full-data block as in ordinary Mantle. If it sees a DACert instead, it checks the validity of the DACert, with reference to the Keyset specified by the DACert (which is known to be valid because the L1 Inbox verified that). The L2 code verifies that
 
 * the number of signers is at least the number required by the Keyset, and
 * the aggregated signature is valid for the claimed signers, and

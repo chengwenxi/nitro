@@ -1,10 +1,10 @@
 // Copyright 2021-2022, Mantlenetwork, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 //go:build validatorreorgtest
 // +build validatorreorgtest
 
-package arbtest
+package mttest
 
 import "testing"
 

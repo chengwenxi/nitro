@@ -1,5 +1,5 @@
 // Copyright 2021-2022, Mantlenetwork, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package validator
 
@@ -122,7 +122,7 @@ type Staker struct {
 	inactiveLastCheckedNode *nodeAndHash
 	bringActiveUntilNode    uint64
 	inboxReader             InboxReaderInterface
-	nitroMachineLoader      *NitroMachineLoader
+	mantleMachineLoader     *MantleMachineLoader
 }
 
 func stakerStrategyFromString(s string) (StakerStrategy, error) {
@@ -150,7 +150,7 @@ func NewStaker(
 	inboxTracker InboxTrackerInterface,
 	txStreamer TransactionStreamerInterface,
 	blockValidator *BlockValidator,
-	nitroMachineLoader *NitroMachineLoader,
+	mantleMachineLoader *MantleMachineLoader,
 	validatorUtilsAddress common.Address,
 ) (*Staker, error) {
 	strategy, err := stakerStrategyFromString(config.Strategy)
@@ -174,7 +174,7 @@ func NewStaker(
 		highGasBlocksBuffer: big.NewInt(config.L1PostingStrategy.HighGasDelayBlocks),
 		lastActCalledBlock:  nil,
 		inboxReader:         inboxReader,
-		nitroMachineLoader:  nitroMachineLoader,
+		mantleMachineLoader: mantleMachineLoader,
 	}, nil
 }
 
@@ -481,7 +481,7 @@ func (s *Staker) handleConflict(ctx context.Context, info *StakerInfo) error {
 			s.inboxReader,
 			s.inboxTracker,
 			s.txStreamer,
-			s.nitroMachineLoader,
+			s.mantleMachineLoader,
 			latestConfirmedCreated,
 			s.config.TargetMachineCount,
 			s.config.ConfirmationBlocks,

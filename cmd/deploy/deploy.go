@@ -1,5 +1,5 @@
 // Copyright 2021-2022, Mantlenetwork, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package main
 
@@ -95,7 +95,7 @@ func main() {
 		panic("cannot specify sequencer address if owner is not deployer")
 	}
 
-	machineConfig := validator.DefaultNitroMachineConfig
+	machineConfig := validator.DefaultMantleMachineConfig
 	machineConfig.RootPath = *wasmrootpath
 
 	headerReaderConfig := headerreader.DefaultConfig

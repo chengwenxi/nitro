@@ -8,7 +8,7 @@ Arbitrary L1 to L2 contract calls can be created via the `Inbox`'s `createRetrya
 
 For details and protocol specification, see [L1 to L2 Messages](../mtos/l1-to-l2-messaging.md).
 
-For an example of retryable tickets in action, see the [Greeter](https://github.com/OffchainLabs/mantle-tutorials/tree/master/packages/greeter) tutorial, which uses the [Mantle SDK](./sdk). 
+For an example of retryable tickets in action, see the [Greeter](https://github.com/mantlenetwork/mantle-tutorials/tree/master/packages/greeter) tutorial, which uses the [Mantle SDK](./sdk). 
 
 
 ## Mantle to Ethereum Messaging
@@ -17,4 +17,4 @@ Similarly, L2 contracts can send Arbitrary messages for execution on L1. These a
 
 For details and protocol specification, see [L2 to L1 Messages](../mtos/l2-to-l1-messaging.md).
 
-For a demo, see the [Outbox Tutorial](https://github.com/OffchainLabs/mantle-tutorials/tree/master/packages/outbox-execute). 
+For a demo, see the [Outbox Tutorial](https://github.com/mantlenetwork/mantle-tutorials/tree/master/packages/outbox-execute). 

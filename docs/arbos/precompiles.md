@@ -16,7 +16,7 @@ From the perspective of user applications, precompiles live as contracts at the 
 | [`MtOwnerPublic`](#MtOwnerPublic)            | `0x6b`         | Info about chain owners                            |
 | [`MtosTest`](#MtosTest)                      | `0x69`         | No longer used                                     |
 | [`MtRetryableTx`](#MtRetryableTx)            | `0x6e`         | Managing retryables                                |
-| [`MtStatistics`](#MtStatistics)              | `0x6f`         | Info about the pre-Nitro state                     |
+| [`MtStatistics`](#MtStatistics)              | `0x6f`         | Info about the pre-Mantle state                     |
 | [`MtSys`](#MtSys)                            | `0x64`         | System-level functionality                         |
 
 [MtAddressTable_link]: https://github.com/mantlenetworkio/mantle/blob/master/precompiles/MtAddressTable.go
@@ -171,7 +171,7 @@ Provides mechanisms useful for testing. The methods of `MtDebug` are only availa
 
 
 # [MtFunctionTable][MtFunctionTable_link]
-Provided aggregator's the ability to manage function tables, to enable one form of transaction compression. The Nitro aggregator implementation does not use these, so these methods have been stubbed and their effects disabled. They are kept for backwards compatibility.
+Provided aggregator's the ability to manage function tables, to enable one form of transaction compression. The Mantle aggregator implementation does not use these, so these methods have been stubbed and their effects disabled. They are kept for backwards compatibility.
 
 | Methods                                                  |                                            |
 |:---------------------------------------------------------|:-------------------------------------------|
@@ -189,7 +189,7 @@ Provided aggregator's the ability to manage function tables, to enable one form 
 
 
 # [MtGasInfo][MtGasInfo_link]
-Provides insight into the cost of using the chain. These methods have been adjusted to account for Nitro's heavy use of calldata compression. Of note to end-users, we no longer make a distinction between non-zero and zero-valued calldata bytes.
+Provides insight into the cost of using the chain. These methods have been adjusted to account for Mantle's heavy use of calldata compression. Of note to end-users, we no longer make a distinction between non-zero and zero-valued calldata bytes.
 
 | Methods                                                                   |                                                                                                  |
 |:--------------------------------------------------------------------------|:-------------------------------------------------------------------------------------------------|
@@ -267,7 +267,7 @@ Provides the ability to lookup basic info about accounts and contracts.
 # [MtosTest][MtosTest_link]
 Provides a method of burning arbitrary amounts of gas, which exists for historical reasons. In Classic, `MtosTest` had additional methods only the zero address could call. These have been removed since users don't use them and calls to missing methods revert.
 
-| Methods                                               |                                                     | Nitro changes |
+| Methods                                               |                                                     | Mantle changes |
 |:------------------------------------------------------|:----------------------------------------------------|---------------|
 | [![](e.png)][Ts0] [`BurnArbGas`][T0]`(amount)` &nbsp; | unproductively burns the amount of L2 ArbGas &nbsp; | Now pure      |
 
@@ -279,7 +279,7 @@ Provides a method of burning arbitrary amounts of gas, which exists for historic
 # [MtOwner][MtOwner_link]
 Provides owners with tools for managing the rollup. Calls by non-owners will always revert.
 
-Most of Mantle Classic's owner methods have been removed since they no longer make sense in Nitro:
+Most of Mantle Classic's owner methods have been removed since they no longer make sense in Mantle:
 
 - What were once chain parameters are now parts of MtOS's state, and those that remain are set at genesis. 
 - MtOS upgrades happen with the rest of the system rather than being independent
@@ -366,10 +366,10 @@ Provides non-owners with info about the current chain owners.
 
 
 # [MtRetryableTx][MtRetryableTx_link]
-Provides methods for managing retryables. The model has been adjusted for Nitro, most notably in terms of how retry transactions are scheduled. For more information on retryables, please see [the retryable documentation](mtos.md#Retryables).
+Provides methods for managing retryables. The model has been adjusted for Mantle, most notably in terms of how retry transactions are scheduled. For more information on retryables, please see [the retryable documentation](mtos.md#Retryables).
 
 
-| Methods                                                     |                                                                                    | Nitro changes          |
+| Methods                                                     |                                                                                    | Mantle changes          |
 |:------------------------------------------------------------|:-----------------------------------------------------------------------------------|:-----------------------|
 | [![](e.png)][RTs0] [`Cancel`][RT0]`(ticket)`                | Cancel the ticket and refund its callvalue to its beneficiary                      |                        |
 | [![](e.png)][RTs1] [`GetBeneficiary`][RT1]`(ticket)` &nbsp; | Gets the beneficiary of the ticket                                                 |                        |
@@ -392,7 +392,7 @@ Provides methods for managing retryables. The model has been adjusted for Nitro,
 [RTs4]: https://github.com/mantlenetworkio/mantle/blob/3f504c57fba8ddf0759b7a55b4108e0bf5a078b3/solgen/src/precompiles/MtRetryableTx.sol#L55
 [RTs5]: https://github.com/mantlenetworkio/mantle/blob/3f504c57fba8ddf0759b7a55b4108e0bf5a078b3/solgen/src/precompiles/MtRetryableTx.sol#L32
 
-| Events                                                |                                                    | Nitro Changes                       |
+| Events                                                |                                                    | Mantle Changes                       |
 |:------------------------------------------------------|:---------------------------------------------------|:------------------------------------|
 | [![](e.png)][RTes0] [`TicketCreated`][RTe0]           | Emitted when creating a retryable                  |                                     |
 | [![](e.png)][RTes1] [`LifetimeExtended`][RTe1] &nbsp; | Emitted when extending a retryable's expiry &nbsp; |                                     |
@@ -409,14 +409,14 @@ Provides methods for managing retryables. The model has been adjusted for Nitro,
 [RTes2]: https://github.com/mantlenetworkio/mantle/blob/3f504c57fba8ddf0759b7a55b4108e0bf5a078b3/solgen/src/precompiles/MtRetryableTx.sol#L74
 [RTes3]: https://github.com/mantlenetworkio/mantle/blob/3f504c57fba8ddf0759b7a55b4108e0bf5a078b3/solgen/src/precompiles/MtRetryableTx.sol#L81
 
-[old_event_link]: https://github.com/OffchainLabs/arb-os/blob/3f504c57fba8ddf0759b7a55b4108e0bf5a078b3/arb_os/arbretryable.mini#L90
+[old_event_link]: https://github.com/mantlenetwork/mt-os/blob/3f504c57fba8ddf0759b7a55b4108e0bf5a078b3/arb_os/arbretryable.mini#L90
 
 # [MtStatistics][MtStatistics_link]
-Provides statistics about the chain as of just before the Nitro upgrade. In Mantle Classic, this was how a user would get info such as the total number of accounts, but there are better ways to get that info in Nitro.
+Provides statistics about the chain as of just before the Mantle upgrade. In Mantle Classic, this was how a user would get info such as the total number of accounts, but there are better ways to get that info in Mantle.
 
 | Methods                                         |                                                                                         |
 |:------------------------------------------------|:----------------------------------------------------------------------------------------|
-| [![](e.png)][STs0] [`GetStats`][ST0]`()` &nbsp; | Returns the current block number and some statistics about the rollup's pre-Nitro state |
+| [![](e.png)][STs0] [`GetStats`][ST0]`()` &nbsp; | Returns the current block number and some statistics about the rollup's pre-Mantle state |
 
 [ST0]: https://github.com/mantlenetworkio/mantle/blob/3f504c57fba8ddf0759b7a55b4108e0bf5a078b3/precompiles/MtStatistics.go#L19
 
@@ -426,13 +426,13 @@ Provides statistics about the chain as of just before the Nitro upgrade. In Mant
 # [MtSys][MtSys_link]
 Provides system-level functionality for interacting with L1 and understanding the call stack.
 
-| Methods                                                                                  |                                                                                                              | Nitro changes     |
+| Methods                                                                                  |                                                                                                              | Mantle changes     |
 |:-----------------------------------------------------------------------------------------|:-------------------------------------------------------------------------------------------------------------|:------------------|
 | [![](e.png)][Ss0] [`ArbBlockNumber`][S0]`()`                                             | Gets the current L2 block number                                                                             |                   |
 | [![](e.png)][Ss1] [`ArbBlockHash`][S1]`(blocknum)`                                       | Gets the L2 block hash at blocknum, if blocknum is sufficiently recent                                       |                   |
 | [![](e.png)][Ss2] [`ArbChainID`][S2]`()`                                                 | Gets the chain's ChainID                                                                                     |                   |
 | [![](e.png)][Ss3] [`MtOSVersion`][S3]`()`                                               | Gets the current MtOS version                                                                               | Now view          |
-| [![](e.png)][Ss4] [`GetStorageGasAvailable`][S4]`()`                                     | Returns 0 since Nitro has no concept of storage gas                                                          | Now always 0      |
+| [![](e.png)][Ss4] [`GetStorageGasAvailable`][S4]`()`                                     | Returns 0 since Mantle has no concept of storage gas                                                          | Now always 0      |
 | [![](e.png)][Ss5] [`IsTopLevelCall`][S5]`()`                                             | Checks if the caller is top-level (i.e. if the caller was called directly by an EOA or an L1 contract)       |                   |
 | [![](e.png)][Ss6] [`MapL1SenderContractAddressToL2Alias`][S6]`(contract, unused)` &nbsp; | Gets contract's L2 alias                                                                                     | 2nd arg is unused |
 | [![](e.png)][Ss7] [`WasMyCallersAddressAliased`][S7]`()`                                 | Checks if the caller's caller was aliased                                                                    |                   |
@@ -481,11 +481,11 @@ Provides system-level functionality for interacting with L1 and understanding th
 
 | Removed Methods                                                   |                                                                   |
 |:------------------------------------------------------------------|:------------------------------------------------------------------|
-| [![](e.png)][Srs0] [`GetStorageAt`][Sr0]`(account, index)` &nbsp; | Nitro doesn't need this introspection, and users couldn't call it |
-| [![](e.png)][Srs1] [`GetTransactionCount`][Sr1]`(account)`        | Nitro doesn't need this introspection, and users couldn't call it |
+| [![](e.png)][Srs0] [`GetStorageAt`][Sr0]`(account, index)` &nbsp; | Mantle doesn't need this introspection, and users couldn't call it |
+| [![](e.png)][Srs1] [`GetTransactionCount`][Sr1]`(account)`        | Mantle doesn't need this introspection, and users couldn't call it |
 
-[Sr0]: https://github.com/OffchainLabs/arb-os/blob/89e36db597c4857a4dac3efd7cc01b13c7845cc0/arb_os/arbsys.mini#L335
-[Sr1]: https://github.com/OffchainLabs/arb-os/blob/89e36db597c4857a4dac3efd7cc01b13c7845cc0/arb_os/arbsys.mini#L315
+[Sr0]: https://github.com/mantlenetwork/mt-os/blob/89e36db597c4857a4dac3efd7cc01b13c7845cc0/arb_os/arbsys.mini#L335
+[Sr1]: https://github.com/mantlenetwork/mt-os/blob/89e36db597c4857a4dac3efd7cc01b13c7845cc0/arb_os/arbsys.mini#L315
 
-[Srs0]: https://github.com/OffchainLabs/arb-os/blob/89e36db597c4857a4dac3efd7cc01b13c7845cc0/contracts/mtos/builtin/MtSys.sol#L51
-[Srs1]: https://github.com/OffchainLabs/arb-os/blob/89e36db597c4857a4dac3efd7cc01b13c7845cc0/contracts/mtos/builtin/MtSys.sol#L42
+[Srs0]: https://github.com/mantlenetwork/mt-os/blob/89e36db597c4857a4dac3efd7cc01b13c7845cc0/contracts/mtos/builtin/MtSys.sol#L51
+[Srs1]: https://github.com/mantlenetwork/mt-os/blob/89e36db597c4857a4dac3efd7cc01b13c7845cc0/contracts/mtos/builtin/MtSys.sol#L42

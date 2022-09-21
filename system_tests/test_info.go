@@ -1,7 +1,7 @@
 // Copyright 2021-2022, Mantlenetwork, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
-package arbtest
+package mttest
 
 import (
 	"bytes"
@@ -52,7 +52,7 @@ func NewBlockChainTestInfo(t *testing.T, signer types.Signer, gasPrice *big.Int,
 	}
 }
 
-func NewArbTestInfo(t *testing.T, chainId *big.Int) *BlockchainTestInfo {
+func NewmttestInfo(t *testing.T, chainId *big.Int) *BlockchainTestInfo {
 	var transferGas uint64 = util.NormalizeL2GasForL1GasInitial(800_000, params.GWei) // include room for aggregator L1 costs
 	arbinfo := NewBlockChainTestInfo(
 		t,

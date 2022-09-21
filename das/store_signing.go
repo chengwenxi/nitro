@@ -1,5 +1,5 @@
 // Copyright 2022, Mantlenetwork, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package das
 
@@ -17,7 +17,7 @@ import (
 	"github.com/mantlenetworkio/mantle/util/pretty"
 )
 
-var uniquifyingPrefix = []byte("Mantle Nitro DAS API Store:")
+var uniquifyingPrefix = []byte("Mantle DAS API Store:")
 
 type DasSigner func([]byte) ([]byte, error) // takes 32-byte array (hash of data) and produces signature bytes (and/or error)
 

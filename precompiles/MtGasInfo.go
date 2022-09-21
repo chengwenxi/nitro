@@ -1,5 +1,5 @@
 // Copyright 2021-2022, Mantlenetwork, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package precompiles
 
@@ -44,7 +44,7 @@ func (con MtGasInfo) GetPricesInWeiWithAggregator(
 	// the cost of a simple tx without calldata
 	perL2Tx := mtmath.BigMulByUint(weiForL1Calldata, AssumedSimpleTxSize)
 
-	// nitro's compute-centric l2 gas pricing has no special compute component that rises independently
+	// mantle's compute-centric l2 gas pricing has no special compute component that rises independently
 	perArbGasBase, err := c.State.L2PricingState().MinBaseFeeWei()
 	if err != nil {
 		return nil, nil, nil, nil, nil, nil, err
@@ -77,7 +77,7 @@ func (con MtGasInfo) _preVersion4_GetPricesInWeiWithAggregator(
 	// the cost of a simple tx without calldata
 	perL2Tx := mtmath.BigMulByUint(weiForL1Calldata, AssumedSimpleTxSize)
 
-	// nitro's compute-centric l2 gas pricing has no special compute component that rises independently
+	// mantle's compute-centric l2 gas pricing has no special compute component that rises independently
 	perArbGasBase := l2GasPrice
 	perArbGasCongestion := common.Big0
 	perArbGasTotal := l2GasPrice

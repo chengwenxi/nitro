@@ -1,11 +1,11 @@
 // Copyright 2021-2022, Mantlenetwork, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 // race detection makes things slow and miss timeouts
 //go:build !race
 // +build !race
 
-package arbtest
+package mttest
 
 import (
 	"context"
@@ -128,7 +128,7 @@ func stakerTestImpl(t *testing.T, faultyStaker bool, honestStakerInactive bool) 
 	} else {
 		valConfig.Strategy = "MakeNodes"
 	}
-	nitroMachineLoader := validator.NewNitroMachineLoader(validator.DefaultNitroMachineConfig, nil)
+	mantleMachineLoader := validator.NewMantleMachineLoader(validator.DefaultMantleMachineConfig, nil)
 	stakerA, err := validator.NewStaker(
 		l2nodeA.L1Reader,
 		valWalletA,
@@ -140,7 +140,7 @@ func stakerTestImpl(t *testing.T, faultyStaker bool, honestStakerInactive bool) 
 		l2nodeA.InboxTracker,
 		l2nodeA.TxStreamer,
 		l2nodeA.BlockValidator,
-		nitroMachineLoader,
+		mantleMachineLoader,
 		l2nodeA.DeployInfo.ValidatorUtils,
 	)
 	Require(t, err)
@@ -161,7 +161,7 @@ func stakerTestImpl(t *testing.T, faultyStaker bool, honestStakerInactive bool) 
 		l2nodeB.InboxTracker,
 		l2nodeB.TxStreamer,
 		l2nodeB.BlockValidator,
-		nitroMachineLoader,
+		mantleMachineLoader,
 		l2nodeB.DeployInfo.ValidatorUtils,
 	)
 	Require(t, err)
@@ -182,7 +182,7 @@ func stakerTestImpl(t *testing.T, faultyStaker bool, honestStakerInactive bool) 
 		l2nodeA.InboxTracker,
 		l2nodeA.TxStreamer,
 		l2nodeA.BlockValidator,
-		nitroMachineLoader,
+		mantleMachineLoader,
 		l2nodeA.DeployInfo.ValidatorUtils,
 	)
 	Require(t, err)

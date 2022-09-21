@@ -1,12 +1,12 @@
 // Copyright 2021-2022, Mantlenetwork, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 // SPDX-License-Identifier: BUSL-1.1
 
 pragma solidity >=0.4.21 <0.9.0;
 
 /// @title Deprecated - Provided aggregator's the ability to manage function tables,
 //  this enables one form of transaction compression.
-/// @notice The Nitro aggregator implementation does not use these,
+/// @notice The Mantle aggregator implementation does not use these,
 //  so these methods have been stubbed and their effects disabled.
 /// They are kept for backwards compatibility.
 /// Precompiled contract that exists in every Mantle chain at 0x0000000000000000000000000000000000000068.

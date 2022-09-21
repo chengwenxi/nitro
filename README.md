@@ -8,7 +8,7 @@ The Mantle stack is built on several innovations. At its core is a new prover, w
 interactive fraud proofs over WASM code. That means the L2 Mantle engine can be written and compiled using 
 standard languages and tools, replacing the custom-designed language and compiler used in previous Mantle
 versions. In normal execution, 
-validators and nodes run the Nitro engine compiled to native code, switching to WASM if a fraud proof is needed. 
+validators and nodes run the Mantle engine compiled to native code, switching to WASM if a fraud proof is needed. 
 We compile the core of Geth, the EVM engine that practically defines the Ethereum standard, right into Mantle. 
 So the previous custom-built EVM emulator is replaced by Geth, the most popular and well-supported Ethereum client.
 
@@ -16,7 +16,7 @@ The last piece of the stack is a slimmed-down version of our MtOS component, rew
 rest of what’s needed to run an L2 chain: things like cross-chain communication, and a new and improved batching 
 and compression system to minimize L1 costs.
 
-Essentially, Nitro runs Geth at layer 2 on top of Ethereum, and can prove fraud over the core engine of Geth 
+Essentially, Mantle runs Geth at layer 2 on top of Ethereum, and can prove fraud over the core engine of Geth 
 compiled to WASM.
 
 During the devnet period, we have licensed Mantle under a 

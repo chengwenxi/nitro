@@ -1,5 +1,5 @@
 // Copyright 2021-2022, Mantlenetwork, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package statetransfer
 
@@ -43,5 +43,5 @@ type AccountInitContractInfo struct {
 
 type AccountInitAggregatorInfo struct {
 	FeeCollector common.Address
-	BaseFeeL1Gas *big.Int // This is unused in Nitro, so its value will be ignored.
+	BaseFeeL1Gas *big.Int // This is unused in Mantle, so its value will be ignored.
 }

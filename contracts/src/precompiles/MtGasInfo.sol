@@ -1,11 +1,11 @@
 // Copyright 2021-2022, Mantlenetwork, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 // SPDX-License-Identifier: BUSL-1.1
 
 pragma solidity >=0.4.21 <0.9.0;
 
 /// @title Provides insight into the cost of using the chain.
-/// @notice These methods have been adjusted to account for Nitro's heavy use of calldata compression.
+/// @notice These methods have been adjusted to account for Mantle's heavy use of calldata compression.
 /// Of note to end-users, we no longer make a distinction between non-zero and zero-valued calldata bytes.
 /// Precompiled contract that exists in every Mantle chain at 0x000000000000000000000000000000000000006c.
 interface MtGasInfo {

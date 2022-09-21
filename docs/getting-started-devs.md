@@ -11,6 +11,6 @@ To deploy contracts onto an Mantle chain, simple set the RPC endpoint (see [Publ
 
 ...it all just works!
 
-For demos of deploying with hardhat see the [Pet Shop](https://github.com/OffchainLabs/mantle-tutorials/tree/master/packages/demo-dapp-pet-shop) and [Election](https://github.com/OffchainLabs/mantle-tutorials/tree/master/packages/demo-dapp-election) dapp tutorials.
+For demos of deploying with hardhat see the [Pet Shop](https://github.com/mantlenetwork/mantle-tutorials/tree/master/packages/demo-dapp-pet-shop) and [Election](https://github.com/mantlenetwork/mantle-tutorials/tree/master/packages/demo-dapp-election) dapp tutorials.
 
 For info on new / different behavior between Mantle and Ethereum, see [Differences with Ethereum](arb-specific-things).

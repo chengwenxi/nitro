@@ -1,5 +1,5 @@
 // Copyright 2022, Mantlenetwork, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package nodeInterface
 
@@ -29,7 +29,7 @@ import (
 	"github.com/mantlenetworkio/mantle/validator"
 )
 
-// To avoid creating new RPC methods for client-side tooling, nitro Geth's InterceptRPCMessage() hook provides
+// To avoid creating new RPC methods for client-side tooling, mantle Geth's InterceptRPCMessage() hook provides
 // an opportunity to swap out the message its handling before deriving a transaction from it.
 //
 // This mechanism handles messages sent to 0xc8 and uses NodeInterface.sol to determine what to do. No contract
@@ -53,7 +53,7 @@ var l2ToL1TransactionTopic common.Hash
 var blockInGenesis = errors.New("")
 var blockAfterLatestBatch = errors.New("")
 
-func (n NodeInterface) NitroGenesisBlock(c ctx) (huge, error) {
+func (n NodeInterface) MantleGenesisBlock(c ctx) (huge, error) {
 	block := n.backend.ChainConfig().MantleChainParams.GenesisBlockNum
 	return mtmath.UintToBig(block), nil
 }

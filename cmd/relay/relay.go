@@ -1,5 +1,5 @@
 // Copyright 2021-2022, Mantlenetwork, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package main
 
@@ -56,7 +56,7 @@ func startup() error {
 	log.Root().SetHandler(glogger)
 
 	vcsRevision, vcsTime := util.GetVersion()
-	log.Info("Running Mantle nitro relay", "revision", vcsRevision, "vcs.time", vcsTime)
+	log.Info("Running Mantle relay", "revision", vcsRevision, "vcs.time", vcsTime)
 
 	serverConf := wsbroadcastserver.BroadcasterConfig{
 		Addr:          relayConfig.Node.Feed.Output.Addr,

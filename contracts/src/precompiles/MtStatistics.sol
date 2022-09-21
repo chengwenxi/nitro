@@ -1,13 +1,13 @@
 // Copyright 2021-2022, Mantlenetwork, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 // SPDX-License-Identifier: BUSL-1.1
 
 pragma solidity >=0.4.21 <0.9.0;
 
-/// @title Deprecated - Info about the rollup just prior to the Nitro upgrade
+/// @title Deprecated - Info about the rollup just prior to the Mantle upgrade
 /// @notice Precompiled contract in every Mantle chain for retryable transaction related data retrieval and interactions. Exists at 0x000000000000000000000000000000000000006f
 interface MtStatistics {
-    /// @notice Get Mantle block number and other statistics as they were right before the Nitro upgrade.
+    /// @notice Get Mantle block number and other statistics as they were right before the Mantle upgrade.
     /// @return (
     ///      Number of accounts,
     ///      Total storage allocated (includes storage that was later deallocated),

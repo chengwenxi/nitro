@@ -1,5 +1,5 @@
 // Copyright 2021-2022, Mantlenetwork, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package mtnode
 
@@ -307,7 +307,7 @@ func GenerateRollupConfig(prod bool, wasmModuleRoot common.Hash, rollupOwner com
 	}
 }
 
-func DeployOnL1(ctx context.Context, l1client mtutil.L1Interface, deployAuth *bind.TransactOpts, sequencer common.Address, authorizeValidators uint64, readerConfig headerreader.Config, machineConfig validator.NitroMachineConfig, config rollupgen.Config) (*RollupAddresses, error) {
+func DeployOnL1(ctx context.Context, l1client mtutil.L1Interface, deployAuth *bind.TransactOpts, sequencer common.Address, authorizeValidators uint64, readerConfig headerreader.Config, machineConfig validator.MantleMachineConfig, config rollupgen.Config) (*RollupAddresses, error) {
 	l1Reader := headerreader.New(l1client, readerConfig)
 	l1Reader.Start(ctx)
 	defer l1Reader.StopAndWait()
@@ -494,7 +494,7 @@ func ConfigDefaultL1NonSequencerTest() *Config {
 	config.DelayedSequencer.Enable = false
 	config.BatchPoster.Enable = false
 	config.SeqCoordinator.Enable = false
-	config.Wasm.RootPath = validator.DefaultNitroMachineConfig.RootPath
+	config.Wasm.RootPath = validator.DefaultMantleMachineConfig.RootPath
 	config.BlockValidator = validator.TestBlockValidatorConfig
 
 	return &config
@@ -631,7 +631,7 @@ func (w *WasmConfig) FindMachineDir() (string, bool) {
 		places = append(places, execPath)
 
 		// Check the default
-		places = append(places, validator.DefaultNitroMachineConfig.RootPath)
+		places = append(places, validator.DefaultMantleMachineConfig.RootPath)
 	}
 
 	for _, place := range places {
@@ -713,7 +713,7 @@ func createNodeImpl(
 	if config.Dangerous.ReorgToBlock >= 0 {
 		blockNum := uint64(config.Dangerous.ReorgToBlock)
 		if blockNum < l2Config.MantleChainParams.GenesisBlockNum {
-			return nil, fmt.Errorf("cannot reorg to block %v past nitro genesis of %v", blockNum, l2Config.MantleChainParams.GenesisBlockNum)
+			return nil, fmt.Errorf("cannot reorg to block %v past mantle genesis of %v", blockNum, l2Config.MantleChainParams.GenesisBlockNum)
 		}
 		reorgingToBlock = l2BlockChain.GetBlockByNumber(blockNum)
 		if reorgingToBlock == nil {
@@ -897,11 +897,11 @@ func createNodeImpl(
 		blockValidatorConf.JitValidator = true
 	}
 
-	nitroMachineConfig := validator.DefaultNitroMachineConfig
+	mantleMachineConfig := validator.DefaultMantleMachineConfig
 	machinesPath, foundMachines := config.Wasm.FindMachineDir()
-	nitroMachineConfig.RootPath = machinesPath
-	nitroMachineConfig.JitCranelift = blockValidatorConf.JitValidatorCranelift
-	nitroMachineLoader := validator.NewNitroMachineLoader(nitroMachineConfig, fatalErrChan)
+	mantleMachineConfig.RootPath = machinesPath
+	mantleMachineConfig.JitCranelift = blockValidatorConf.JitValidatorCranelift
+	mantleMachineLoader := validator.NewMantleMachineLoader(mantleMachineConfig, fatalErrChan)
 
 	var blockValidator *validator.BlockValidator
 	var statelessBlockValidator *validator.StatelessBlockValidator
@@ -912,7 +912,7 @@ func createNodeImpl(
 		log.Warn("Failed to find machines", "path", machinesPath)
 	} else {
 		statelessBlockValidator, err = validator.NewStatelessBlockValidator(
-			nitroMachineLoader,
+			mantleMachineLoader,
 			inboxReader,
 			inboxTracker,
 			txStreamer,
@@ -931,7 +931,7 @@ func createNodeImpl(
 				statelessBlockValidator,
 				inboxTracker,
 				txStreamer,
-				nitroMachineLoader,
+				mantleMachineLoader,
 				reorgingToBlock,
 				blockValidatorConf,
 			)
@@ -948,7 +948,7 @@ func createNodeImpl(
 		if err != nil {
 			return nil, err
 		}
-		staker, err = validator.NewStaker(l1Reader, wallet, bind.CallOpts{}, config.Validator, l2BlockChain, daReader, inboxReader, inboxTracker, txStreamer, blockValidator, nitroMachineLoader, deployInfo.ValidatorUtils)
+		staker, err = validator.NewStaker(l1Reader, wallet, bind.CallOpts{}, config.Validator, l2BlockChain, daReader, inboxReader, inboxTracker, txStreamer, blockValidator, mantleMachineLoader, deployInfo.ValidatorUtils)
 		if err != nil {
 			return nil, err
 		}

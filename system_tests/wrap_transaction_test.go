@@ -2,7 +2,7 @@
 // Copyright 2021-2022, Mantlenetwork, Inc. All rights reserved.
 //
 
-package arbtest
+package mttest
 
 import (
 	"context"

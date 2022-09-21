@@ -37,23 +37,23 @@ jobs:
           key: ${{ runner.os }}-buildx-${{ hashFiles('Dockerfile') }}
           restore-keys: ${{ runner.os }}-buildx-
 
-      - name: Build nitro-node docker
+      - name: Build mantle-node docker
         uses: docker/build-push-action@v2
         with:
-          target: nitro-node
+          target: mantle-node
           push: true
           context: .
-          tags: localhost:5000/nitro-node:latest
+          tags: localhost:5000/mantle-node:latest
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
 
-      - name: Build nitro-node-dev docker
+      - name: Build mantle-node-dev docker
         uses: docker/build-push-action@v2
         with:
-          target: nitro-node-dev
+          target: mantle-node-dev
           push: true
           context: .
-          tags: localhost:5000/nitro-node-dev:latest
+          tags: localhost:5000/mantle-node-dev:latest
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
 
@@ -62,7 +62,7 @@ jobs:
         run: |
           # Unfortunately, `docker cp` seems to always result in a "permission denied"
           # We work around this by piping a tarball through stdout
-          docker run --rm --entrypoint tar localhost:5000/nitro-node-dev:latest -cf - target/machines/latest | tar xf -
+          docker run --rm --entrypoint tar localhost:5000/mantle-node-dev:latest -cf - target/machines/latest | tar xf -
           module_root="$(cat "target/machines/latest/module-root.txt")"
           echo "::set-output name=module-root::$module_root"
           echo -e "\x1b[1;34mWAVM module root:\x1b[0m $module_root"

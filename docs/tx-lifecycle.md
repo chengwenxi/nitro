@@ -31,7 +31,7 @@ Alternatively, a client can send a message to the Sequencer by signing and publi
 Upon receiving a transaction, the Sequencer will:
 
 - Order it in its off-chain Inbox
-- Locally execute it using the Mantle Nitro VM (including collecting/allocating L1 and L2 fees, etc.)
+- Locally execute it using the Mantle VM (including collecting/allocating L1 and L2 fees, etc.)
 - "Instantly" give a transaction receipt to the client ("instant" in that it doesn't require any additional on-chain confirmations, and typically shouldn't take more than a second or two).
 
 **See**:

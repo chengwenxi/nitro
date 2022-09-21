@@ -1,5 +1,5 @@
 // Copyright 2021-2022, Mantlenetwork, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package precompiles
 
@@ -9,7 +9,7 @@ import (
 )
 
 // This precompile provided aggregator's the ability to manage function tables.
-// Aggregation works differently in Nitro, so these methods have been stubbed and their effects disabled.
+// Aggregation works differently in Mantle, so these methods have been stubbed and their effects disabled.
 // They are kept for backwards compatibility.
 type MtFunctionTable struct {
 	Address addr // 0x68

@@ -1,5 +1,5 @@
 // Copyright 2021-2022, Mantlenetwork, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 // SPDX-License-Identifier: BUSL-1.1
 
 pragma solidity >=0.4.21 <0.9.0;
@@ -35,7 +35,7 @@ interface MtSys {
     function mtOSVersion() external view returns (uint256);
 
     /**
-     * @notice Returns 0 since Nitro has no concept of storage gas
+     * @notice Returns 0 since Mantle has no concept of storage gas
      * @return uint 0
      */
     function getStorageGasAvailable() external view returns (uint256);
@@ -122,7 +122,7 @@ interface MtSys {
         bytes data
     );
 
-    /// @dev DEPRECATED in favour of the new L2ToL1Tx event above after the nitro upgrade
+    /// @dev DEPRECATED in favour of the new L2ToL1Tx event above after the mantle upgrade
     event L2ToL1Transaction(
         address caller,
         address indexed destination,

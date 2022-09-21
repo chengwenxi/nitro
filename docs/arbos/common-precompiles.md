@@ -34,7 +34,7 @@ Provides aggregators and their users methods for configuring how they participat
 
 
 # [MtGasInfo][MtGasInfo_link]
-Provides insight into the cost of using the chain. These methods have been adjusted to account for Nitro's heavy use of calldata compression. Of note to end-users, we no longer make a distinction between non-zero and zero-valued calldata bytes.
+Provides insight into the cost of using the chain. These methods have been adjusted to account for Mantle's heavy use of calldata compression. Of note to end-users, we no longer make a distinction between non-zero and zero-valued calldata bytes.
 
 | Methods                                                |                                                                   |
 | :----------------------------------------------------- | :---------------------------------------------------------------- |
@@ -54,10 +54,10 @@ Provides insight into the cost of using the chain. These methods have been adjus
 [GIs11]: https://github.com/mantlenetworkio/mantle/blob/3f504c57fba8ddf0759b7a55b4108e0bf5a078b3/solgen/src/precompiles/MtGasInfo.sol#L122
 
 # [MtRetryableTx][MtRetryableTx_link]
-Provides methods for managing retryables. The model has been adjusted for Nitro, most notably in terms of how retry transactions are scheduled. For more information on retryables, please see [the retryable documentation](mtos.md#Retryables).
+Provides methods for managing retryables. The model has been adjusted for Mantle, most notably in terms of how retry transactions are scheduled. For more information on retryables, please see [the retryable documentation](mtos.md#Retryables).
 
 
-| Methods                                                     |                                                                                    | Nitro changes          |
+| Methods                                                     |                                                                                    | Mantle changes          |
 | :---------------------------------------------------------- | :--------------------------------------------------------------------------------- | :--------------------- |
 | [![](e.png)][RTs0] [`Cancel`][RT0]`(ticket)`                | Cancel the ticket and refund its callvalue to its beneficiary                      |                        |
 | [![](e.png)][RTs1] [`GetBeneficiary`][RT1]`(ticket)` &nbsp; | Gets the beneficiary of the ticket                                                 |                        |

@@ -1,7 +1,7 @@
 {
-  "name": "nitro-testnode-scripts",
+  "name": "mantle-testnode-scripts",
   "version": "1.0.0",
-  "description": "testing environment Mantle Nitro",
+  "description": "testing environment Mantle",
   "main": "index.js",
   "author": "Mantlenetwork, Inc.",
   "license": "Apache-2.0",

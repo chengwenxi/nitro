@@ -1,5 +1,5 @@
 // Copyright 2021-2022, Mantlenetwork, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package validator
 
@@ -26,7 +26,7 @@ import (
 )
 
 type StatelessBlockValidator struct {
-	MachineLoader   *NitroMachineLoader
+	MachineLoader   *MantleMachineLoader
 	inboxReader     InboxReaderInterface
 	inboxTracker    InboxTrackerInterface
 	streamer        TransactionStreamerInterface
@@ -204,7 +204,7 @@ func newValidationEntry(
 }
 
 func NewStatelessBlockValidator(
-	machineLoader *NitroMachineLoader,
+	machineLoader *MantleMachineLoader,
 	inboxReader InboxReaderInterface,
 	inbox InboxTrackerInterface,
 	streamer TransactionStreamerInterface,

@@ -15,9 +15,9 @@
 
 - **MtOS**: Layer 2 "operating system" that trustlessly handles system-level operations; includes the ability to emulate the EVM.
 
-- **Mantle Classic**: [Old Mantle stack](https://github.com/OffchainLabs/mantle) that used custom virtual machine ("AVM"); no public Mantle chain uses the classic stack as of 8/31/2022 (they instead use Nitro).
+- **Mantle Classic**: [Old Mantle stack](https://github.com/mantlenetwork/mantle) that used custom virtual machine ("AVM"); no public Mantle chain uses the classic stack as of 8/31/2022 (they instead use Mantle).
 
-- **Nitro**: Current Mantle tech stack; runs a fork of Geth directly on L2 and uses WebAssembly as its underlying VM for fraud proofs.
+- **Mantle**: Current Mantle tech stack; runs a fork of Geth directly on L2 and uses WebAssembly as its underlying VM for fraud proofs.
 
 - **Data Availability Committee (DAC)**: Permissioned set of parties responsibly for data availability in an AnyTrust chain.
 

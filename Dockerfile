@@ -32,7 +32,7 @@ COPY contracts/package.json contracts/yarn.lock contracts/
 RUN cd contracts && yarn
 COPY contracts contracts/
 COPY Makefile .
-RUN NITRO_BUILD_IGNORE_TIMESTAMPS=1 make build-solidity
+RUN MANTLE_BUILD_IGNORE_TIMESTAMPS=1 make build-solidity
 
 FROM debian:bullseye-20211220 as wasm-base
 WORKDIR /workspace
@@ -46,7 +46,7 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --de
 COPY ./Makefile ./
 COPY mtitrator/wasm-libraries mtitrator/wasm-libraries
 COPY --from=brotli-wasm-export / target/
-RUN . ~/.cargo/env && NITRO_BUILD_IGNORE_TIMESTAMPS=1 RUSTFLAGS='-C symbol-mangling-version=v0' make build-wasm-libs
+RUN . ~/.cargo/env && MANTLE_BUILD_IGNORE_TIMESTAMPS=1 RUSTFLAGS='-C symbol-mangling-version=v0' make build-wasm-libs
 
 FROM wasm-base as wasm-bin-builder
     # pinned go version
@@ -71,7 +71,7 @@ COPY ./go-ethereum ./go-ethereum
 COPY --from=brotli-wasm-export / target/
 COPY --from=contracts-builder workspace/contracts/build/contracts/src/precompiles/ contracts/build/contracts/src/precompiles/
 COPY --from=contracts-builder workspace/.make/ .make/
-RUN PATH="$PATH:/usr/local/go/bin" NITRO_BUILD_IGNORE_TIMESTAMPS=1 make build-wasm-bin
+RUN PATH="$PATH:/usr/local/go/bin" MANTLE_BUILD_IGNORE_TIMESTAMPS=1 make build-wasm-bin
 
 FROM rust:1.61-slim-bullseye as prover-header-builder
 WORKDIR /workspace
@@ -83,7 +83,7 @@ COPY mtitrator/Cargo.* mtitrator/cbindgen.toml mtitrator/
 COPY ./Makefile ./
 COPY mtitrator/prover mtitrator/prover
 COPY mtitrator/jit mtitrator/jit
-RUN NITRO_BUILD_IGNORE_TIMESTAMPS=1 make build-prover-header
+RUN MANTLE_BUILD_IGNORE_TIMESTAMPS=1 make build-prover-header
 
 FROM scratch as prover-header-export
 COPY --from=prover-header-builder /workspace/target/ /
@@ -110,9 +110,9 @@ COPY mtitrator/prover mtitrator/prover
 COPY mtitrator/jit mtitrator/jit
 COPY --from=brotli-library-export / target/
 RUN touch -a -m mtitrator/prover/src/lib.rs
-RUN NITRO_BUILD_IGNORE_TIMESTAMPS=1 make build-prover-lib
-RUN NITRO_BUILD_IGNORE_TIMESTAMPS=1 make build-prover-bin
-RUN NITRO_BUILD_IGNORE_TIMESTAMPS=1 make build-jit
+RUN MANTLE_BUILD_IGNORE_TIMESTAMPS=1 make build-prover-lib
+RUN MANTLE_BUILD_IGNORE_TIMESTAMPS=1 make build-prover-bin
+RUN MANTLE_BUILD_IGNORE_TIMESTAMPS=1 make build-jit
 
 FROM scratch as prover-export
 COPY --from=prover-builder /workspace/target/ /
@@ -132,7 +132,7 @@ COPY ./Makefile ./
 COPY ./mtitrator ./mtitrator
 COPY ./solgen ./solgen
 COPY ./contracts ./contracts
-RUN NITRO_BUILD_IGNORE_TIMESTAMPS=1 make build-replay-env
+RUN MANTLE_BUILD_IGNORE_TIMESTAMPS=1 make build-replay-env
 
 FROM debian:bullseye-slim as machine-versions
 RUN apt-get update && apt-get install -y unzip wget curl
@@ -153,9 +153,9 @@ WORKDIR /workspace
 ARG version=""
 ARG datetime=""
 ARG modified=""
-ENV NITRO_VERSION=$version
-ENV NITRO_DATETIME=$datetime
-ENV NITRO_MODIFIED=$modified
+ENV MANTLE_VERSION=$version
+ENV MANTLE_DATETIME=$datetime
+ENV MANTLE_MODIFIED=$modified
 RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
     apt-get install -y wabt
@@ -170,12 +170,12 @@ COPY --from=prover-header-export / target/
 COPY --from=brotli-library-export / target/
 COPY --from=prover-export / target/
 RUN mkdir -p target/bin
-COPY .nitro-tag.txt /nitro-tag.txt
-RUN NITRO_BUILD_IGNORE_TIMESTAMPS=1 make build
+COPY .mantle-tag.txt /mantle-tag.txt
+RUN MANTLE_BUILD_IGNORE_TIMESTAMPS=1 make build
 
-FROM debian:bullseye-slim as nitro-node-slim
+FROM debian:bullseye-slim as mantle-node-slim
 WORKDIR /home/user
-COPY --from=node-builder /workspace/target/bin/nitro /usr/local/bin/
+COPY --from=node-builder /workspace/target/bin/mantle /usr/local/bin/
 COPY --from=node-builder /workspace/target/bin/relay /usr/local/bin/
 COPY --from=machine-versions /workspace/machines /home/user/target/machines
 USER root
@@ -187,18 +187,18 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
     /usr/sbin/update-ca-certificates && \
     useradd -s /bin/bash user && \
     mkdir -p /home/user/l1keystore && \
-    mkdir -p /home/user/.mantle/local/nitro && \
+    mkdir -p /home/user/.mantle/local/mantle && \
     chown -R user:user /home/user && \
     chmod -R 555 /home/user/target/machines && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /usr/share/doc/* && \
-    nitro --version
+    mantle --version
 
 USER user
 WORKDIR /home/user/
-ENTRYPOINT [ "/usr/local/bin/nitro" ]
+ENTRYPOINT [ "/usr/local/bin/mantle" ]
 
-FROM nitro-node-slim as nitro-node
+FROM mantle-node-slim as mantle-node
 USER root
 COPY --from=prover-export /bin/jit                        /usr/local/bin/
 COPY --from=node-builder  /workspace/target/bin/daserver  /usr/local/bin/
@@ -211,11 +211,11 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
     dnsutils && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /usr/share/doc/* && \
-    nitro --version
+    mantle --version
 
 USER user
 
-FROM nitro-node as nitro-node-dev
+FROM mantle-node as mantle-node-dev
 USER root
 # Copy in latest WASM module root
 RUN rm -f /home/user/target/machines/latest
@@ -235,9 +235,9 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
     echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /usr/share/doc/* && \
-    nitro --version
+    mantle --version
 
 USER user
 
-FROM nitro-node as nitro-node-default
-# Just to ensure nitro-node-dist is default
+FROM mantle-node as mantle-node-default
+# Just to ensure mantle-node-dist is default

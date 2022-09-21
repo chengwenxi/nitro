@@ -1,6 +1,6 @@
 # Geth
 
-Nitro makes minimal modifications to geth in hopes of not violating its assumptions. This document will explore the relationship between geth and MtOS, which consists of a series of hooks, interface implementations, and strategic re-appropriations of geth's basic types.
+Mantle makes minimal modifications to geth in hopes of not violating its assumptions. This document will explore the relationship between geth and MtOS, which consists of a series of hooks, interface implementations, and strategic re-appropriations of geth's basic types.
 
 We store MtOS's state at an address inside a geth `statedb`. In doing so, MtOS inherits the `statedb`'s statefulness and lifetime properties. For example, a transaction's direct state changes to MtOS are discarded upon a revert.
 
@@ -52,7 +52,7 @@ This fallible hook ensures the user has enough funds to pay their poster's L1 ca
 If the user attempts to purchase compute gas in excess of MtOS's per-block gas limit, the difference is [set aside][difference_set_aside_link] and [refunded later][refunded_later_link] via [`ForceRefundGas`](#ForceRefundGas) so that only the gas limit is used. Note that the limit observed may not be the same as that seen [at the start of the block][that_seen_link] if MtOS's larger gas pool falls below the [`MaxPerBlockGasLimit`][max_perblock_limit_link] while processing the block's previous txes.
 
 [difference_set_aside_link]: https://github.com/mantlenetworkio/mantle/blob/2ba6d1aa45abcc46c28f3d4f560691ce5a396af8/mtos/tx_processor.go#L272
-[refunded_later_link]: https://github.com/OffchainLabs/go-ethereum/blob/f31341b3dfa987719b012bc976a6f4fe3b8a1221/core/state_transition.go#L389
+[refunded_later_link]: https://github.com/mantlenetwork/go-ethereum/blob/f31341b3dfa987719b012bc976a6f4fe3b8a1221/core/state_transition.go#L389
 [that_seen_link]: https://github.com/mantlenetworkio/mantle/blob/2ba6d1aa45abcc46c28f3d4f560691ce5a396af8/mtos/block_processor.go#L146
 [max_perblock_limit_link]: https://github.com/mantlenetworkio/mantle/blob/2ba6d1aa45abcc46c28f3d4f560691ce5a396af8/mtos/l2pricing/pools.go#L100
 
@@ -73,9 +73,9 @@ Because poster costs come at the expense of L1 aggregators and not the network m
 ### [`EndTxHook`][EndTxHook_link]
 The [`EndTxHook`][EndTxHook_link] is called after the [`EVM`][EVM_link] has returned a transaction's result, allowing one last opportunity for MtOS to intervene before the state transition is finalized. Final gas amounts are known at this point, enabling MtOS to credit the network and poster each's share of the user's gas expenditures as well as adjust the pools. The hook returns from the [`TxProcessor`][TxProcessor_link] a final time, in effect discarding its state as the system moves on to the next transaction where the hook's contents will be set afresh.
 
-[ApplyTransaction_link]: https://github.com/OffchainLabs/go-ethereum/blob/8eac46ef5e0298e6cc171f5a46b5c1fe4923bf48/core/state_processor.go#L144
-[EVM_link]: https://github.com/OffchainLabs/go-ethereum/blob/0ba62aab54fd7d6f1570a235f4e3a877db9b2bd0/core/vm/evm.go#L101
-[DefaultTxProcessor_link]: https://github.com/OffchainLabs/go-ethereum/blob/0ba62aab54fd7d6f1570a235f4e3a877db9b2bd0/core/vm/evm_mantle.go#L39
+[ApplyTransaction_link]: https://github.com/mantlenetwork/go-ethereum/blob/8eac46ef5e0298e6cc171f5a46b5c1fe4923bf48/core/state_processor.go#L144
+[EVM_link]: https://github.com/mantlenetwork/go-ethereum/blob/0ba62aab54fd7d6f1570a235f4e3a877db9b2bd0/core/vm/evm.go#L101
+[DefaultTxProcessor_link]: https://github.com/mantlenetwork/go-ethereum/blob/0ba62aab54fd7d6f1570a235f4e3a877db9b2bd0/core/vm/evm_mantle.go#L39
 [TxProcessor_link]: https://github.com/mantlenetworkio/mantle/blob/fa36a0f138b8a7e684194f9840315d80c390f324/mtos/tx_processor.go#L33
 [StartTxHook_link]: https://github.com/mantlenetworkio/mantle/blob/fa36a0f138b8a7e684194f9840315d80c390f324/mtos/tx_processor.go#L77
 [ReadyEVMForL2_link]: https://github.com/mantlenetworkio/mantle/blob/fa36a0f138b8a7e684194f9840315d80c390f324/mtstate/geth-hook.go#L38
@@ -93,35 +93,35 @@ The [`EndTxHook`][EndTxHook_link] is called after the [`EVM`][EVM_link] has retu
 ### [`APIBackend`][APIBackend_link]
 APIBackend implements the [`ethapi.Bakend`][ethapi.Bakend_link] interface, which allows simple integration of the mantle chain to existing geth API. Most calls are answered using the Backend member.
 
-[APIBackend_link]: https://github.com/OffchainLabs/go-ethereum/blob/0ba62aab54fd7d6f1570a235f4e3a877db9b2bd0/mantle/apibackend.go#L27
-[ethapi.Bakend_link]: https://github.com/OffchainLabs/go-ethereum/blob/0ba62aab54fd7d6f1570a235f4e3a877db9b2bd0/internal/ethapi/backend.go#L42
+[APIBackend_link]: https://github.com/mantlenetwork/go-ethereum/blob/0ba62aab54fd7d6f1570a235f4e3a877db9b2bd0/mantle/apibackend.go#L27
+[ethapi.Bakend_link]: https://github.com/mantlenetwork/go-ethereum/blob/0ba62aab54fd7d6f1570a235f4e3a877db9b2bd0/internal/ethapi/backend.go#L42
 
 ### [`Backend`][Backend_link]
 This struct was created as an mantle equivalent to the [`Ethereum`][Ethereum_link] struct. It is mostly glue logic, including a pointer to the MtInterface interface.
 
-[Backend_link]: https://github.com/OffchainLabs/go-ethereum/blob/0ba62aab54fd7d6f1570a235f4e3a877db9b2bd0/mantle/backend.go#L15
-[Ethereum_link]: https://github.com/OffchainLabs/go-ethereum/blob/0ba62aab54fd7d6f1570a235f4e3a877db9b2bd0/eth/backend.go#L65
+[Backend_link]: https://github.com/mantlenetwork/go-ethereum/blob/0ba62aab54fd7d6f1570a235f4e3a877db9b2bd0/mantle/backend.go#L15
+[Ethereum_link]: https://github.com/mantlenetwork/go-ethereum/blob/0ba62aab54fd7d6f1570a235f4e3a877db9b2bd0/eth/backend.go#L65
 
 ### [`MtInterface`][MtInterface_link]
 This interface is the main interaction-point between geth-standard APIs and the mantle chain. Geth APIs mostly either check status by working on the Blockchain struct retrieved from the [`Blockchain`][Blockchain_link] call, or send transactions to mantle using the [`PublishTransactions`][PublishTransactions_link] call.
 
-[MtInterface_link]: https://github.com/OffchainLabs/go-ethereum/blob/0ba62aab54fd7d6f1570a235f4e3a877db9b2bd0/mantle/mtos_interface.go#L10
-[Blockchain_link]: https://github.com/OffchainLabs/go-ethereum/blob/0ba62aab54fd7d6f1570a235f4e3a877db9b2bd0/mantle/mtos_interface.go#L12
-[PublishTransactions_link]: https://github.com/OffchainLabs/go-ethereum/blob/0ba62aab54fd7d6f1570a235f4e3a877db9b2bd0/mantle/mtos_interface.go#L11
+[MtInterface_link]: https://github.com/mantlenetwork/go-ethereum/blob/0ba62aab54fd7d6f1570a235f4e3a877db9b2bd0/mantle/mtos_interface.go#L10
+[Blockchain_link]: https://github.com/mantlenetwork/go-ethereum/blob/0ba62aab54fd7d6f1570a235f4e3a877db9b2bd0/mantle/mtos_interface.go#L12
+[PublishTransactions_link]: https://github.com/mantlenetwork/go-ethereum/blob/0ba62aab54fd7d6f1570a235f4e3a877db9b2bd0/mantle/mtos_interface.go#L11
 
 ### [`RecordingKV`][RecordingKV_link]
 RecordingKV is a read-only key-value store, which retrieves values from an internal trie database. All values accessed by a RecordingKV are also recorded internally. This is used to record all preimages accessed during block creation, which will be needed to proove execution of this particular block.
 A [`RecordingChainContext`][RecordingChainContext_link] should also be used, to record which block headers the block execution reads (another option would be to always assume the last 256 block headers were accessed).
 The process is simplified using two functions: [`PrepareRecording`][PrepareRecording_link] creates a stateDB and chaincontext objects, running block creation process using these objects records the required preimages, and [`PreimagesFromRecording`][PreimagesFromRecording_link] function extracts the preimages recorded.
 
-[RecordingKV_link]: https://github.com/OffchainLabs/go-ethereum/blob/0ba62aab54fd7d6f1570a235f4e3a877db9b2bd0/mantle/recordingdb.go#L21
-[RecordingChainContext_link]: https://github.com/OffchainLabs/go-ethereum/blob/0ba62aab54fd7d6f1570a235f4e3a877db9b2bd0/mantle/recordingdb.go#L101
-[PrepareRecording_link]: https://github.com/OffchainLabs/go-ethereum/blob/0ba62aab54fd7d6f1570a235f4e3a877db9b2bd0/mantle/recordingdb.go#L133
-[PreimagesFromRecording_link]: https://github.com/OffchainLabs/go-ethereum/blob/0ba62aab54fd7d6f1570a235f4e3a877db9b2bd0/mantle/recordingdb.go#L148
+[RecordingKV_link]: https://github.com/mantlenetwork/go-ethereum/blob/0ba62aab54fd7d6f1570a235f4e3a877db9b2bd0/mantle/recordingdb.go#L21
+[RecordingChainContext_link]: https://github.com/mantlenetwork/go-ethereum/blob/0ba62aab54fd7d6f1570a235f4e3a877db9b2bd0/mantle/recordingdb.go#L101
+[PrepareRecording_link]: https://github.com/mantlenetwork/go-ethereum/blob/0ba62aab54fd7d6f1570a235f4e3a877db9b2bd0/mantle/recordingdb.go#L133
+[PreimagesFromRecording_link]: https://github.com/mantlenetwork/go-ethereum/blob/0ba62aab54fd7d6f1570a235f4e3a877db9b2bd0/mantle/recordingdb.go#L148
 
 ## Transaction Types
 
-Nitro geth includes a few L2-specific transaction types. Click on any to jump to their section.
+Mantle geth includes a few L2-specific transaction types. Click on any to jump to their section.
 
 | Tx Type                                           | Represents                           | Last Hook Reached &nbsp;   | Source |
 |:--------------------------------------------------|:-------------------------------------|:---------------------------|--------|
@@ -164,20 +164,20 @@ Because tracing support requires MtOS's state-changes happen inside a transactio
 #### [`ArbInternalTxUpdateL1BlockNumber`][ArbInternalTxUpdateL1BlockNumber_link]
 Updates the L1 block number. This tx [is generated][block_generated_link] whenever a message originates from an L1 block newer than any MtOS has seen thus far. They are [guaranteed to be the first][block_first_link] in their L2 block.
 
-[MantleUnsignedTx_link]: https://github.com/OffchainLabs/go-ethereum/blob/e7e8104942fd2ba676d4b8616c9fa83d88b61c9c/core/types/arb_types.go#L15
-[MantleContractTx_link]: https://github.com/OffchainLabs/go-ethereum/blob/e7e8104942fd2ba676d4b8616c9fa83d88b61c9c/core/types/arb_types.go#L76
-[MantleSubmitRetryableTx_link]: https://github.com/OffchainLabs/go-ethereum/blob/e7e8104942fd2ba676d4b8616c9fa83d88b61c9c/core/types/arb_types.go#L194
-[MantleRetryTx_link]: https://github.com/OffchainLabs/go-ethereum/blob/e7e8104942fd2ba676d4b8616c9fa83d88b61c9c/core/types/arb_types.go#L133
-[MantleDepositTx_link]: https://github.com/OffchainLabs/go-ethereum/blob/e7e8104942fd2ba676d4b8616c9fa83d88b61c9c/core/types/arb_types.go#L265
+[MantleUnsignedTx_link]: https://github.com/mantlenetwork/go-ethereum/blob/e7e8104942fd2ba676d4b8616c9fa83d88b61c9c/core/types/arb_types.go#L15
+[MantleContractTx_link]: https://github.com/mantlenetwork/go-ethereum/blob/e7e8104942fd2ba676d4b8616c9fa83d88b61c9c/core/types/arb_types.go#L76
+[MantleSubmitRetryableTx_link]: https://github.com/mantlenetwork/go-ethereum/blob/e7e8104942fd2ba676d4b8616c9fa83d88b61c9c/core/types/arb_types.go#L194
+[MantleRetryTx_link]: https://github.com/mantlenetwork/go-ethereum/blob/e7e8104942fd2ba676d4b8616c9fa83d88b61c9c/core/types/arb_types.go#L133
+[MantleDepositTx_link]: https://github.com/mantlenetwork/go-ethereum/blob/e7e8104942fd2ba676d4b8616c9fa83d88b61c9c/core/types/arb_types.go#L265
 [MantleInternalTx_link]: https://github.com/mantlenetworkio/mantle/blob/master/mtos/internal_tx.go
 
-[InternalType_link]: https://github.com/OffchainLabs/go-ethereum/blob/e7e8104942fd2ba676d4b8616c9fa83d88b61c9c/core/types/arb_types.go#L313
+[InternalType_link]: https://github.com/mantlenetwork/go-ethereum/blob/e7e8104942fd2ba676d4b8616c9fa83d88b61c9c/core/types/arb_types.go#L313
 [ArbInternalTxUpdateL1BlockNumber_link]: https://github.com/mantlenetworkio/mantle/blob/aa55a504d32f71f4ce3a6552822c0791711f8299/mtos/internal_tx.go#L24
 [block_generated_link]: https://github.com/mantlenetworkio/mantle/blob/aa55a504d32f71f4ce3a6552822c0791711f8299/mtos/block_processor.go#L150
 [block_first_link]: https://github.com/mantlenetworkio/mantle/blob/aa55a504d32f71f4ce3a6552822c0791711f8299/mtos/block_processor.go#L154
 
 ## Transaction Run Modes and Underlying Transactions
-A [geth message][geth_message_link] may be processed for various purposes. For example, a message may be used to estimate the gas of a contract call, whereas another may perform the corresponding state transition. Nitro geth denotes the intent behind a message by means of its [`TxRunMode`][TxRunMode_link], [which it sets][set_run_mode_link] before processing it. MtOS uses this info to make decisions about the tx the message ultimately constructs.
+A [geth message][geth_message_link] may be processed for various purposes. For example, a message may be used to estimate the gas of a contract call, whereas another may perform the corresponding state transition. Mantle geth denotes the intent behind a message by means of its [`TxRunMode`][TxRunMode_link], [which it sets][set_run_mode_link] before processing it. MtOS uses this info to make decisions about the tx the message ultimately constructs.
 
 A message [derived from a transaction][AsMessage_link] will carry that transaction in a field accessible via its [`UnderlyingTransaction`][underlying_link] method. While this is related to the way a given message is used, they are not one-to-one. The table below shows the various run modes and whether each could have an underlying transaction.
 
@@ -187,18 +187,18 @@ A message [derived from a transaction][AsMessage_link] will carry that transacti
 | [`MessageGasEstimationMode`][MC1] &nbsp; | gas estimation          | when created via [`NodeInterface.sol`](gas.md#NodeInterface.sol) or when scheduled |
 | [`MessageEthcallMode`][MC2]              | eth_calls               | never                                                                              |
 
-[MC0]: https://github.com/OffchainLabs/go-ethereum/blob/1e9c9b86135dafebf7ab84641a5674e4249ee849/core/types/transaction.go#L648
-[MC1]: https://github.com/OffchainLabs/go-ethereum/blob/1e9c9b86135dafebf7ab84641a5674e4249ee849/core/types/transaction.go#L649
-[MC2]: https://github.com/OffchainLabs/go-ethereum/blob/1e9c9b86135dafebf7ab84641a5674e4249ee849/core/types/transaction.go#L650
+[MC0]: https://github.com/mantlenetwork/go-ethereum/blob/1e9c9b86135dafebf7ab84641a5674e4249ee849/core/types/transaction.go#L648
+[MC1]: https://github.com/mantlenetwork/go-ethereum/blob/1e9c9b86135dafebf7ab84641a5674e4249ee849/core/types/transaction.go#L649
+[MC2]: https://github.com/mantlenetwork/go-ethereum/blob/1e9c9b86135dafebf7ab84641a5674e4249ee849/core/types/transaction.go#L650
 
-[geth_message_link]: https://github.com/OffchainLabs/go-ethereum/blob/1e9c9b86135dafebf7ab84641a5674e4249ee849/core/types/transaction.go#L628
-[TxRunMode_link]: https://github.com/OffchainLabs/go-ethereum/blob/1e9c9b86135dafebf7ab84641a5674e4249ee849/core/types/transaction.go#L695
-[set_run_mode_link]: https://github.com/OffchainLabs/go-ethereum/blob/1e9c9b86135dafebf7ab84641a5674e4249ee849/internal/ethapi/api.go#L911
-[AsMessage_link]: https://github.com/OffchainLabs/go-ethereum/blob/1e9c9b86135dafebf7ab84641a5674e4249ee849/core/types/transaction.go#L670
-[underlying_link]: https://github.com/OffchainLabs/go-ethereum/blob/1e9c9b86135dafebf7ab84641a5674e4249ee849/core/types/transaction.go#L694
+[geth_message_link]: https://github.com/mantlenetwork/go-ethereum/blob/1e9c9b86135dafebf7ab84641a5674e4249ee849/core/types/transaction.go#L628
+[TxRunMode_link]: https://github.com/mantlenetwork/go-ethereum/blob/1e9c9b86135dafebf7ab84641a5674e4249ee849/core/types/transaction.go#L695
+[set_run_mode_link]: https://github.com/mantlenetwork/go-ethereum/blob/1e9c9b86135dafebf7ab84641a5674e4249ee849/internal/ethapi/api.go#L911
+[AsMessage_link]: https://github.com/mantlenetwork/go-ethereum/blob/1e9c9b86135dafebf7ab84641a5674e4249ee849/core/types/transaction.go#L670
+[underlying_link]: https://github.com/mantlenetwork/go-ethereum/blob/1e9c9b86135dafebf7ab84641a5674e4249ee849/core/types/transaction.go#L694
 
 ## Mantle Chain Parameters
-Nitro's geth may be configured with the following [l2-specific chain parameters][chain_params_link]. These allow the rollup creator to customize their rollup at genesis.
+Mantle's geth may be configured with the following [l2-specific chain parameters][chain_params_link]. These allow the rollup creator to customize their rollup at genesis.
 
 ### `EnableMtos`
 Introduces [MtOS](mtos.md), converting what would otherwise be a vanilla L1 chain into an L2 Mantle rollup.
@@ -209,7 +209,7 @@ Allows access to debug precompiles. Not enabled for Mantle One. When false, call
 ### `DataAvailabilityCommittee`
 Currently does nothing besides indicate that the rollup will access a data availability service for preimage resolution in the future. This is not enabled for Mantle One, which is a strict state-function of its L1 inbox messages.
 
-[chain_params_link]: https://github.com/OffchainLabs/go-ethereum/blob/0ba62aab54fd7d6f1570a235f4e3a877db9b2bd0/params/config_mantle.go#L25
+[chain_params_link]: https://github.com/mantlenetwork/go-ethereum/blob/0ba62aab54fd7d6f1570a235f4e3a877db9b2bd0/params/config_mantle.go#L25
 
 
 ## Miscellaneous Geth Changes
@@ -240,15 +240,15 @@ The WASM mantle executable does not support file oprations. We created [`fileuti
 Mantle introduces a new [`signer`](../../go-ethereum/core/types/mantle_signer.go), and multiple new [`transaction types`](../../go-ethereum/core/types/transaction.go).
 
 ### ReorgToOldBlock
-Geth natively only allows reorgs to a fork of the currently-known network. In nitro, reorgs can sometimes be detected before computing the forked block. We added the [`ReorgToOldBlock`](../../go-ethereum/core/blockchain_mantle.go) function to support reorging to a block that's an ancestor of current head.
+Geth natively only allows reorgs to a fork of the currently-known network. In mantle, reorgs can sometimes be detected before computing the forked block. We added the [`ReorgToOldBlock`](../../go-ethereum/core/blockchain_mantle.go) function to support reorging to a block that's an ancestor of current head.
 
 ### Genesis block creation
-Genesis block in nitro is not necessarily block #0. Nitro supports importing blocks that take place before genesis. We split out [`WriteHeadBlock`][WriteHeadBlock_link] from gensis.Commit and use it to commit non-zero genesis blocks.
+Genesis block in mantle is not necessarily block #0. Mantle supports importing blocks that take place before genesis. We split out [`WriteHeadBlock`][WriteHeadBlock_link] from gensis.Commit and use it to commit non-zero genesis blocks.
 
-[pad_estimates_link]: https://github.com/OffchainLabs/go-ethereum/blob/0ba62aab54fd7d6f1570a235f4e3a877db9b2bd0/accounts/abi/bind/base.go#L352
-[conservation_link]: https://github.com/OffchainLabs/go-ethereum/blob/0ba62aab54fd7d6f1570a235f4e3a877db9b2bd0/core/state/statedb.go#L42
+[pad_estimates_link]: https://github.com/mantlenetwork/go-ethereum/blob/0ba62aab54fd7d6f1570a235f4e3a877db9b2bd0/accounts/abi/bind/base.go#L352
+[conservation_link]: https://github.com/mantlenetwork/go-ethereum/blob/0ba62aab54fd7d6f1570a235f4e3a877db9b2bd0/core/state/statedb.go#L42
 [alert_link]: https://github.com/mantlenetworkio/mantle/blob/fa36a0f138b8a7e684194f9840315d80c390f324/mtos/block_processor.go#L290
 [proof_link]: https://github.com/mantlenetworkio/mantle/blob/fa36a0f138b8a7e684194f9840315d80c390f324/system_tests/outbox_test.go#L26
 [merkle_link]: https://github.com/mantlenetworkio/mantle/blob/fa36a0f138b8a7e684194f9840315d80c390f324/mtos/merkleAccumulator/merkleAccumulator.go#L14
-[UnderlyingTransaction_link]: https://github.com/OffchainLabs/go-ethereum/blob/0ba62aab54fd7d6f1570a235f4e3a877db9b2bd0/core/state_transition.go#L68
-[WriteHeadBlock_link]: https://github.com/OffchainLabs/go-ethereum/blob/bf2301d747acb2071fdb64dc82fe7fc122581f0c/core/genesis.go#L332
+[UnderlyingTransaction_link]: https://github.com/mantlenetwork/go-ethereum/blob/0ba62aab54fd7d6f1570a235f4e3a877db9b2bd0/core/state_transition.go#L68
+[WriteHeadBlock_link]: https://github.com/mantlenetwork/go-ethereum/blob/bf2301d747acb2071fdb64dc82fe7fc122581f0c/core/genesis.go#L332

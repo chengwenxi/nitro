@@ -53,12 +53,12 @@ and can only be proven if the preimage isn't too long. Violations of this assump
 undetectable by the OSP checker.
 
 The current length limit is 117,964 bytes for the reasons mentioned above.
-Here's a list of which preimages may be requested by Nitro, and why they're known to all parties,
+Here's a list of which preimages may be requested by Mantle, and why they're known to all parties,
 and not too large:
 
 ### Block headers
 
-Nitro may request up to the last 256 L2 block headers.
+Mantle may request up to the last 256 L2 block headers.
 The last block header is required to determine the current state,
 and blocks before it are required to implement the `BLOCKHASH` evm instruction.
 
@@ -66,7 +66,7 @@ This is safe as previous block headers are a fixed size, and are known to all no
 
 ### State trie access
 
-To resolve state, Nitro traverses the state trie by resolving preimages.
+To resolve state, Mantle traverses the state trie by resolving preimages.
 
 This is safe as validators retain archive state of unconfirmed blocks,
 each trie branch is of a fixed size,

@@ -73,7 +73,7 @@ For any given gateway pairing, we require that calls be initiated through the `G
 
 By default, any ERC20 token on L1 that isn't registered to a Gateway can be permissionlessly bridged to the Standard ERC20 Gateway.
 
-You can use the [bridge UI](https://bridge.mantle.io/) or [this script](https://github.com/OffchainLabs/mantle-sdk/blob/master/scripts/deployStandard.ts) to a bridge a token to L2.
+You can use the [bridge UI](https://bridge.mantlenetwork.io/) or [this script](https://github.com/mantlenetworkio/mantle-sdk/blob/master/scripts/deployStandard.ts) to a bridge a token to L2.
 
 #### Example: Standard Arb-ERC20 Deposit/Withdraw
 
@@ -117,12 +117,12 @@ Follow the following steps to get your token set up to use the Generic Custom Ga
 
 **0. Have an L1 token**
 
-- Your token on L1 should conform to the [ICustomToken](https://github.com/OffchainLabs/token-bridge-contracts/blob/main/contracts/tokenbridge/ethereum/ICustomToken.sol) interface; (see [TestCustomTokenL1](https://github.com/OffchainLabs/mantle/blob/master/packages/arb-bridge-peripherals/contracts/tokenbridge/test/TestCustomTokenL1.sol) for an example implementation). Crucially, it must have an `isMantleEnabled` method in its interface.
+- Your token on L1 should conform to the [ICustomToken](https://github.com/mantlenetwork/token-bridge-contracts/blob/main/contracts/tokenbridge/ethereum/ICustomToken.sol) interface; (see [TestCustomTokenL1](https://github.com/mantlenetwork/mantle/blob/master/packages/arb-bridge-peripherals/contracts/tokenbridge/test/TestCustomTokenL1.sol) for an example implementation). Crucially, it must have an `isMantleEnabled` method in its interface.
 
 **1. Deploy your token on Mantle**
 
-- Your token should conform to the minimum [IArbToken](https://github.com/OffchainLabs/token-bridge-contracts/blob/main/contracts/tokenbridge/mantle/IArbToken.sol)
-  interface; i.e., it should have `bridgeMint` and `bridgeBurn` methods only callable by the L2CustomGateway contract, and the address of its corresponding Ethereum token accessible via `l1Address`. For an example implementation, see [TestArbCustomToken](https://github.com/OffchainLabs/token-bridge-contracts/blob/main/contracts/tokenbridge/test/TestArbCustomToken.sol).
+- Your token should conform to the minimum [IArbToken](https://github.com/mantlenetwork/token-bridge-contracts/blob/main/contracts/tokenbridge/mantle/IArbToken.sol)
+  interface; i.e., it should have `bridgeMint` and `bridgeBurn` methods only callable by the L2CustomGateway contract, and the address of its corresponding Ethereum token accessible via `l1Address`. For an example implementation, see [TestArbCustomToken](https://github.com/mantlenetwork/token-bridge-contracts/blob/main/contracts/tokenbridge/test/TestArbCustomToken.sol).
 
 **2. Register Your Token on L1 to Your Token on L2 via the L1CustomGateway Contract**
 Have your L1 token's contract make an external call to `L1CustomGateway.registerTokenToL2`. This registration can alternatively be performed as an admin registration.
@@ -143,7 +143,7 @@ No matter the complexity of a particular token's bridging needs, a gateway can i
 
 ### Demos
 
-See [token-deposit](https://github.com/OffchainLabs/mantle-tutorials/tree/master/packages/token-deposit) and [token-withdraw](https://github.com/OffchainLabs/mantle-tutorials/tree/master/packages/token-withdraw) for demos of interacting with the bridge architecture via the [Mantle SDK](https://github.com/OffchainLabs/mantle-sdk).
+See [token-deposit](https://github.com/mantlenetwork/mantle-tutorials/tree/master/packages/token-deposit) and [token-withdraw](https://github.com/mantlenetwork/mantle-tutorials/tree/master/packages/token-withdraw) for demos of interacting with the bridge architecture via the [Mantle SDK](https://github.com/mantlenetwork/mantle-sdk).
 
 #### A Word of Caution on Bridges (aka, "I've Got a Bridge To Sell You")
 

@@ -1,7 +1,7 @@
 // Copyright 2021-2022, Mantlenetwork, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
-package arbtest
+package mttest
 
 import (
 	"bytes"
@@ -260,7 +260,7 @@ func DeployOnTestL1(
 		l1info.GetAddress("Sequencer"),
 		0,
 		headerreader.TestConfig,
-		validator.DefaultNitroMachineConfig,
+		validator.DefaultMantleMachineConfig,
 		config,
 	)
 	Require(t, err)
@@ -274,7 +274,7 @@ func createL2BlockChain(
 	t *testing.T, l2info *BlockchainTestInfo, dataDir string, chainConfig *params.ChainConfig,
 ) (*BlockchainTestInfo, *node.Node, ethdb.Database, ethdb.Database, *core.BlockChain) {
 	if l2info == nil {
-		l2info = NewArbTestInfo(t, chainConfig.ChainID)
+		l2info = NewmttestInfo(t, chainConfig.ChainID)
 	}
 	stack, err := mtnode.CreateDefaultStackForTest(dataDir)
 	Require(t, err)

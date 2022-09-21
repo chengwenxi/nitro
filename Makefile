@@ -1,11 +1,11 @@
 # Copyright 2021-2022, Mantlenetwork, Inc.
-# For license information, see https://github.com/nitro/blob/master/LICENSE
+# For license information, see https://github.com/mantle/blob/master/LICENSE
 
 # Docker builds mess up file timestamps. Then again, in docker builds we never
 # have to update an existing file. So - for docker, convert all dependencies
 # to order-only dependencies (timestamps ignored).
 # WARNING: when using this trick, you cannot use the $< automatic variable
-ifeq ($(origin NITRO_BUILD_IGNORE_TIMESTAMPS),undefined)
+ifeq ($(origin MANTLE_BUILD_IGNORE_TIMESTAMPS),undefined)
  DEP_PREDICATE:=
  ORDER_ONLY_PREDICATE:=|
 else
@@ -14,16 +14,16 @@ else
 endif
 
 
-ifneq ($(origin NITRO_VERSION),undefined)
- GOLANG_LDFLAGS += -X github.com/mantlenetworkio/mantle/cmd/util.version=$(NITRO_VERSION)
+ifneq ($(origin MANTLE_VERSION),undefined)
+ GOLANG_LDFLAGS += -X github.com/mantlenetworkio/mantle/cmd/util.version=$(MANTLE_VERSION)
 endif
 
-ifneq ($(origin NITRO_DATETIME),undefined)
- GOLANG_LDFLAGS += -X github.com/mantlenetworkio/mantle/cmd/util.datetime=$(NITRO_DATETIME)
+ifneq ($(origin MANTLE_DATETIME),undefined)
+ GOLANG_LDFLAGS += -X github.com/mantlenetworkio/mantle/cmd/util.datetime=$(MANTLE_DATETIME)
 endif
 
-ifneq ($(origin NITRO_MODIFIED),undefined)
- GOLANG_LDFLAGS += -X github.com/mantlenetworkio/mantle/cmd/util.modified=$(NITRO_MODIFIED)
+ifneq ($(origin MANTLE_MODIFIED),undefined)
+ GOLANG_LDFLAGS += -X github.com/mantlenetworkio/mantle/cmd/util.modified=$(MANTLE_MODIFIED)
 endif
 
 ifneq ($(origin GOLANG_LDFLAGS),undefined)
@@ -79,7 +79,7 @@ push: lint test-go .make/fmt
 all: build build-replay-env test-gen-proofs
 	@touch .make/all
 
-build: $(patsubst %,$(output_root)/bin/%, nitro deploy relay daserver datool seq-coordinator-invalidate)
+build: $(patsubst %,$(output_root)/bin/%, mantle deploy relay daserver datool seq-coordinator-invalidate)
 	@printf $(done)
 
 build-node-deps: $(go_source) build-prover-header build-prover-lib build-jit .make/solgen .make/cbrotli-lib
@@ -149,14 +149,14 @@ clean:
 	@rm -f .make/*
 
 docker:
-	docker build -t nitro-node-slim --target nitro-node-slim .
-	docker build -t nitro-node --target nitro-node .
-	docker build -t nitro-node-dev --target nitro-node-dev .
+	docker build -t mantle-node-slim --target mantle-node-slim .
+	docker build -t mantle-node --target mantle-node .
+	docker build -t mantle-node-dev --target mantle-node-dev .
 
 # regular build rules
 
-$(output_root)/bin/nitro: $(DEP_PREDICATE) build-node-deps
-	go build $(GOLANG_PARAMS) -o $@ "$(CURDIR)/cmd/nitro"
+$(output_root)/bin/mantle: $(DEP_PREDICATE) build-node-deps
+	go build $(GOLANG_PARAMS) -o $@ "$(CURDIR)/cmd/mantle"
 
 $(output_root)/bin/deploy: $(DEP_PREDICATE) build-node-deps
 	go build $(GOLANG_PARAMS) -o $@ "$(CURDIR)/cmd/deploy"
