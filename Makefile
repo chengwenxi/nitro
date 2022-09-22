@@ -121,7 +121,7 @@ test-go-challenge: test-go-deps
 	@printf $(done)
 
 test-go-redis: test-go-deps
-	go test -p 1 -run TestSeqCoordinator -tags redistest ./system_tests/... ./mtnode/...
+	go test -p 1 -run TestRedis -tags redistest ./system_tests/... ./mtnode/...
 	@printf $(done)
 
 test-gen-proofs: \

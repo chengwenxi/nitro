@@ -16,22 +16,19 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/log"
+	"github.com/ethereum/go-ethereum/params"
+
+	"github.com/mantlenetworkio/mantle/blsSignatures"
 	"github.com/mantlenetworkio/mantle/cmd/genericconf"
+	"github.com/mantlenetworkio/mantle/das"
+	"github.com/mantlenetworkio/mantle/mtnode"
 	"github.com/mantlenetworkio/mantle/mtutil"
 	"github.com/mantlenetworkio/mantle/solgen/go/bridgegen"
 	"github.com/mantlenetworkio/mantle/util/headerreader"
-
-	"github.com/ethereum/go-ethereum/ethclient"
-
-	"github.com/mantlenetworkio/mantle/blsSignatures"
-
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/params"
-	"github.com/mantlenetworkio/mantle/mtnode"
-
-	"github.com/mantlenetworkio/mantle/das"
+	"github.com/mantlenetworkio/mantle/util/signature"
 )
 
 func startLocalDASServer(
@@ -233,7 +230,7 @@ func TestDASComplexConfigAndRestMirror(t *testing.T) {
 	chainConfig := params.MantleDevTestDASChainConfig()
 	l1info, l1client, _, l1stack := createTestL1BlockChain(t, nil)
 	defer requireClose(t, l1stack)
-	l1Reader := headerreader.New(l1client, headerreader.TestConfig)
+	l1Reader := headerreader.New(l1client, func() *headerreader.Config { return &headerreader.TestConfig })
 	l1Reader.Start(ctx)
 	defer l1Reader.StopAndWait()
 	feedErrChan := make(chan error, 10)
@@ -300,9 +297,7 @@ func TestDASComplexConfigAndRestMirror(t *testing.T) {
 	l1NodeConfigA.DataAvailability.RestfulClientAggregatorConfig.Urls = []string{"http://" + restLis.Addr().String()}
 	l1NodeConfigA.DataAvailability.L1NodeURL = "none"
 
-	var daSigner das.DasSigner = func(data []byte) ([]byte, error) {
-		return crypto.Sign(data, l1info.Accounts["Sequencer"].PrivateKey)
-	}
+	dataSigner := signature.DataSignerFromPrivateKey(l1info.Accounts["Sequencer"].PrivateKey)
 
 	Require(t, err)
 
@@ -312,7 +307,7 @@ func TestDASComplexConfigAndRestMirror(t *testing.T) {
 
 	sequencerTxOpts := l1info.GetDefaultTransactOpts("Sequencer", ctx)
 	sequencerTxOptsPtr := &sequencerTxOpts
-	nodeA, err := mtnode.CreateNode(ctx, l2stackA, l2chainDb, l2mtDb, l1NodeConfigA, l2blockchain, l1client, addresses, sequencerTxOptsPtr, daSigner, feedErrChan)
+	nodeA, err := mtnode.CreateNode(ctx, l2stackA, l2chainDb, l2mtDb, l1NodeConfigA, l2blockchain, l1client, addresses, sequencerTxOptsPtr, dataSigner, feedErrChan)
 	Require(t, err)
 	Require(t, l2stackA.Start())
 	l2clientA := ClientForStack(t, l2stackA)

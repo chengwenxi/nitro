@@ -260,7 +260,7 @@ func (state *MtosState) UpgradeMtosVersion(upgradeTo uint64, firstTime bool) {
 
 		switch state.mtosVersion {
 		case 1:
-			ensure(state.l1PricingState.SetLastSurplus(common.Big0))
+			ensure(state.l1PricingState.SetLastSurplus(common.Big0, 1))
 		case 2:
 			ensure(state.l1PricingState.SetPerBatchGasCost(0))
 			ensure(state.l1PricingState.SetAmortizedCostCapBips(math.MaxUint64))
@@ -269,6 +269,8 @@ func (state *MtosState) UpgradeMtosVersion(upgradeTo uint64, firstTime bool) {
 		case 4:
 			// no state changes needed
 		case 5:
+			// no state changes needed
+		case 6:
 			// no state changes needed
 		default:
 			panic("Unable to perform requested MtOS upgrade")

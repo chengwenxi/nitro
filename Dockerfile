@@ -29,7 +29,7 @@ RUN apt-get update && \
     apt-get install -y git python3 make g++
 WORKDIR /workspace
 COPY contracts/package.json contracts/yarn.lock contracts/
-RUN cd contracts && yarn
+RUN cd contracts && yarn install --ignore-optional
 COPY contracts contracts/
 COPY Makefile .
 RUN MANTLE_BUILD_IGNORE_TIMESTAMPS=1 make build-solidity
@@ -55,6 +55,7 @@ COPY ./Makefile ./go.mod ./go.sum ./
 COPY ./mtcompress ./mtcompress
 COPY ./mtos ./mtos
 COPY ./mtstate ./mtstate
+COPY ./mtutil ./mtutil
 COPY ./blsSignatures ./blsSignatures
 COPY ./cmd/replay ./cmd/replay
 COPY ./das/dastree ./das/dastree

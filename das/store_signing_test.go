@@ -4,24 +4,22 @@
 package das
 
 import (
-	"crypto/ecdsa"
 	"testing"
 	"time"
 
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/mantlenetworkio/mantle/util/signature"
 )
 
 func TestStoreSigning(t *testing.T) {
 	privateKey, err := crypto.GenerateKey()
 	Require(t, err)
-
-	publicKey := privateKey.Public()
-	addr := crypto.PubkeyToAddress(*publicKey.(*ecdsa.PublicKey))
+	addr := crypto.PubkeyToAddress(privateKey.PublicKey)
 
 	weirdMessage := []byte("The quick brown fox jumped over the lazy dog.")
 	timeout := uint64(time.Now().Unix())
 
-	signer := DasSignerFromPrivateKey(privateKey)
+	signer := signature.DataSignerFromPrivateKey(privateKey)
 	sig, err := applyDasSigner(signer, weirdMessage, timeout)
 	Require(t, err)
 

@@ -7,22 +7,25 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
-	"errors"
 	"io"
 	"math/big"
 
+	"github.com/pkg/errors"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/mantlenetworkio/mantle/das/dastree"
-	"github.com/mantlenetworkio/mantle/mtos"
-	"github.com/mantlenetworkio/mantle/zeroheavy"
-
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/rlp"
 
+	"github.com/mantlenetworkio/mantle/das/dastree"
 	"github.com/mantlenetworkio/mantle/mtcompress"
+	"github.com/mantlenetworkio/mantle/mtos"
 	"github.com/mantlenetworkio/mantle/mtos/l1pricing"
+	"github.com/mantlenetworkio/mantle/mtutil"
+	"github.com/mantlenetworkio/mantle/zeroheavy"
 )
+
+var uniquifyingPrefix = []byte("Mantle Feed:")
 
 type InboxBackend interface {
 	PeekSequencerInbox() ([]byte, error)
@@ -39,6 +42,29 @@ type InboxBackend interface {
 type MessageWithMetadata struct {
 	Message             *mtos.L1IncomingMessage `json:"message"`
 	DelayedMessagesRead uint64                  `json:"delayedMessagesRead"`
+}
+
+var EmptyTestMessageWithMetadata = MessageWithMetadata{
+	Message: &mtos.EmptyTestIncomingMessage,
+}
+
+// Message signature is only verified if requestId defined
+var TestMessageWithMetadataAndRequestId = MessageWithMetadata{
+	Message: &mtos.TestIncomingMessageWithRequestId,
+}
+
+func (m *MessageWithMetadata) Hash(sequenceNumber mtutil.MessageIndex, chainId uint64) (common.Hash, error) {
+	serializedExtraData := make([]byte, 24)
+	binary.BigEndian.PutUint64(serializedExtraData[:8], uint64(sequenceNumber))
+	binary.BigEndian.PutUint64(serializedExtraData[8:16], chainId)
+	binary.BigEndian.PutUint64(serializedExtraData[16:], m.DelayedMessagesRead)
+
+	serializedMessage, err := rlp.EncodeToBytes(m.Message)
+	if err != nil {
+		return common.Hash{}, errors.Wrapf(err, "unable to serialize message %v", sequenceNumber)
+	}
+
+	return crypto.Keccak256Hash(uniquifyingPrefix, serializedExtraData, serializedMessage), nil
 }
 
 type InboxMultiplexer interface {
@@ -263,7 +289,7 @@ func NewInboxMultiplexer(backend InboxBackend, delayedMessagesRead uint64, dasRe
 	}
 }
 
-var InvalidL1Message *mtos.L1IncomingMessage = &mtos.L1IncomingMessage{
+var InvalidL1Message = &mtos.L1IncomingMessage{
 	Header: &mtos.L1IncomingMessageHeader{
 		Kind: mtos.L1MessageType_Invalid,
 	},

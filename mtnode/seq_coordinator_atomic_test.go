@@ -10,15 +10,15 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
-	"os"
 	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
 
-	"github.com/go-redis/redis/v8"
 	"github.com/mantlenetworkio/mantle/mtstate"
 	"github.com/mantlenetworkio/mantle/mtutil"
+	"github.com/mantlenetworkio/mantle/util/redisutil"
+	"github.com/mantlenetworkio/mantle/util/simple_hmac"
 )
 
 const messagesPerRound = 20
@@ -53,7 +53,7 @@ func coordinatorTestThread(ctx context.Context, coord *SeqCoordinator, data *Coo
 			}
 			asIndex := mtutil.MessageIndex(messageCount)
 			holdingLockout := atomicTimeRead(&coord.lockoutUntil)
-			err := coord.chosenOneUpdate(ctx, asIndex, asIndex+1, &mtstate.MessageWithMetadata{})
+			err := coord.chosenOneUpdate(ctx, asIndex, asIndex+1, &mtstate.EmptyTestMessageWithMetadata)
 			if err == nil {
 				sequenced[messageCount] = true
 				atomic.StoreUint64(&data.messageCount, messageCount+1)
@@ -72,7 +72,7 @@ func coordinatorTestThread(ctx context.Context, coord *SeqCoordinator, data *Coo
 			timeLaunching := time.Now()
 			// didn't sequence.. should we have succeeded?
 			if timeLaunching.Before(holdingLockout) {
-				execError = fmt.Errorf("failed while holding lock %s err %w", coord.config.MyUrl, err)
+				execError = fmt.Errorf("failed while holding lock %s err %w", coord.config.MyUrl(), err)
 				break
 			}
 		}
@@ -82,9 +82,9 @@ func coordinatorTestThread(ctx context.Context, coord *SeqCoordinator, data *Coo
 				continue
 			}
 			if data.sequencer[i] != "" {
-				execError = fmt.Errorf("two sequencers for same msg: submsg %d, success for %s, %s", i, data.sequencer[i], coord.config.MyUrl)
+				execError = fmt.Errorf("two sequencers for same msg: submsg %d, success for %s, %s", i, data.sequencer[i], coord.config.MyUrl())
 			}
-			data.sequencer[i] = coord.config.MyUrl
+			data.sequencer[i] = coord.config.MyUrl()
 		}
 		if execError != nil {
 			data.err = execError
@@ -94,7 +94,7 @@ func coordinatorTestThread(ctx context.Context, coord *SeqCoordinator, data *Coo
 	}
 }
 
-func TestSeqCoordinatorAtomic(t *testing.T) {
+func TestRedisSeqCoordinatorAtomic(t *testing.T) {
 	NumOfThreads := 10
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -102,27 +102,30 @@ func TestSeqCoordinatorAtomic(t *testing.T) {
 	coordConfig := TestSeqCoordinatorConfig
 	coordConfig.LockoutDuration = time.Millisecond * 100
 	coordConfig.LockoutSpare = time.Millisecond * 10
-	coordConfig.Dangerous.DisableSignatureVerification = true
+	coordConfig.Signing.Dangerous.DisableSignatureVerification = true
+	coordConfig.Signing.SigningKey = ""
 	testData := CoordinatorTestData{
 		testStartRound: -1,
 		sequencer:      make([]string, messagesPerRound),
 	}
-
-	redisUrl := os.Getenv("TEST_REDIS")
-	if redisUrl == "" {
-		redisUrl = coordConfig.RedisUrl
-	}
-	redisOptions, err := redis.ParseURL(redisUrl)
+	nullSigner, err := simple_hmac.NewSimpleHmac(&coordConfig.Signing)
 	Require(t, err)
 
-	redisClient := redis.NewClient(redisOptions)
+	redisClient, err := redisutil.RedisClientFromURL(redisutil.GetTestRedisURL(t))
+	Require(t, err)
+	if redisClient == nil {
+		t.Fatal("redisClient is nil")
+	}
 
 	for i := 0; i < NumOfThreads; i++ {
 		config := coordConfig
-		config.MyUrl = fmt.Sprint(i)
+		config.MyUrlImpl = fmt.Sprint(i)
+		redisCoordinator, err := NewRedisCoordinator(config.RedisUrl)
+		Require(t, err)
 		coordinator := &SeqCoordinator{
-			client: redis.NewClient(redisOptions),
-			config: config,
+			RedisCoordinator: *redisCoordinator,
+			config:           config,
+			signer:           nullSigner,
 		}
 		go coordinatorTestThread(ctx, coordinator, &testData)
 	}
@@ -140,7 +143,7 @@ func TestSeqCoordinatorAtomic(t *testing.T) {
 		seqList := ""
 		for i := 0; i < messagesPerRound; i++ {
 			if testData.sequencer[i] == "" {
-				Fail(t, "no sequencer succeded", "round", round, "message", i)
+				Fail(t, "no sequencer succeeded", "round", round, "message", i)
 			}
 			seqList = seqList + testData.sequencer[i] + ","
 		}

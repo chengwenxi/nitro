@@ -13,11 +13,11 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/mantle"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/mantlenetworkio/mantle/mtos/mtosState"
 	"github.com/mantlenetworkio/mantle/mtos/retryables"
+	"github.com/mantlenetworkio/mantle/util/mtmath"
 	"github.com/mantlenetworkio/mantle/validator"
 	"github.com/pkg/errors"
 )
@@ -90,7 +90,9 @@ type MtDebugAPI struct {
 }
 
 type PricingModelHistory struct {
-	First            uint64     `json:"first"`
+	Start            uint64     `json:"start"`
+	End              uint64     `json:"end"`
+	Step             uint64     `json:"step"`
 	Timestamp        []uint64   `json:"timestamp"`
 	BaseFee          []*big.Int `json:"baseFee"`
 	GasBacklog       []uint64   `json:"gasBacklog"`
@@ -115,21 +117,35 @@ type PricingModelHistory struct {
 	L1PayRewardTo          string     `json:"l1PayRewardTo"`
 }
 
-func (api *MtDebugAPI) PricingModel(ctx context.Context, start, end rpc.BlockNumber) (PricingModelHistory, error) {
+func (api *MtDebugAPI) evenlySpaceBlocks(start, end rpc.BlockNumber) (uint64, uint64, uint64, uint64, error) {
 	start, _ = api.blockchain.ClipToPostMantleGenesis(start)
 	end, _ = api.blockchain.ClipToPostMantleGenesis(end)
 
 	blocks := end.Int64() - start.Int64() + 1
-	if blocks > int64(api.blockRangeBound) {
-		log.Warn("Sanitizing pricing model # of blocks", "requested", blocks, "truncated", api.blockRangeBound)
-		blocks = int64(api.blockRangeBound)
+	bound := int64(api.blockRangeBound)
+	step := int64(1)
+	if blocks > bound {
+		step = int64(float64(blocks)/float64(bound) + 0.5)
+		blocks = mtmath.MinInt(bound, blocks/step)
 	}
 	if blocks <= 0 {
-		return PricingModelHistory{}, fmt.Errorf("invalid block range: %v to %v", start.Int64(), end.Int64())
+		return 0, 0, 0, 0, fmt.Errorf("invalid block range: %v to %v", start.Int64(), end.Int64())
+	}
+
+	first := uint64(end.Int64() - step*(blocks-1)) // minus 1 to include the fact that we start from the last
+	return first, uint64(step), uint64(end), uint64(blocks), nil
+}
+
+func (api *MtDebugAPI) PricingModel(ctx context.Context, start, end rpc.BlockNumber) (PricingModelHistory, error) {
+	first, step, last, blocks, err := api.evenlySpaceBlocks(start, end)
+	if err != nil {
+		return PricingModelHistory{}, err
 	}
 
 	history := PricingModelHistory{
-		First:                uint64(start),
+		Start:                first,
+		End:                  last,
+		Step:                 step,
 		Timestamp:            make([]uint64, blocks),
 		BaseFee:              make([]*big.Int, blocks),
 		GasBacklog:           make([]uint64, blocks),
@@ -143,7 +159,7 @@ func (api *MtDebugAPI) PricingModel(ctx context.Context, start, end rpc.BlockNum
 	}
 
 	for i := uint64(0); i < uint64(blocks); i++ {
-		state, header, err := stateAndHeader(api.blockchain, i+uint64(start))
+		state, header, err := stateAndHeader(api.blockchain, first+i*step)
 		if err != nil {
 			return history, err
 		}
@@ -201,27 +217,31 @@ func (api *MtDebugAPI) PricingModel(ctx context.Context, start, end rpc.BlockNum
 			history.L1PayRewardTo = l1PayRewardsTo.Hex()
 		}
 	}
-
 	return history, nil
 }
 
-func (api *MtDebugAPI) TimeoutQueueHistory(ctx context.Context, start, end rpc.BlockNumber) ([]uint64, error) {
-	start, _ = api.blockchain.ClipToPostMantleGenesis(start)
-	end, _ = api.blockchain.ClipToPostMantleGenesis(end)
+type TimeoutQueueHistory struct {
+	Start uint64   `json:"start"`
+	End   uint64   `json:"end"`
+	Step  uint64   `json:"step"`
+	Count []uint64 `json:"count"`
+}
 
-	blocks := end.Int64() - start.Int64() + 1
-	if blocks > int64(api.blockRangeBound) {
-		log.Warn("Sanitizing timeout history # of blocks", "requested", blocks, "truncated", api.blockRangeBound)
-		blocks = int64(api.blockRangeBound)
-	}
-	if blocks <= 0 {
-		return []uint64{}, fmt.Errorf("invalid block range: %v to %v", start.Int64(), end.Int64())
+func (api *MtDebugAPI) TimeoutQueueHistory(ctx context.Context, start, end rpc.BlockNumber) (TimeoutQueueHistory, error) {
+	first, step, last, blocks, err := api.evenlySpaceBlocks(start, end)
+	if err != nil {
+		return TimeoutQueueHistory{}, err
 	}
 
-	history := make([]uint64, blocks)
+	history := TimeoutQueueHistory{
+		Start: first,
+		End:   last,
+		Step:  step,
+		Count: make([]uint64, blocks),
+	}
 
 	for i := uint64(0); i < uint64(blocks); i++ {
-		state, _, err := stateAndHeader(api.blockchain, i+uint64(start))
+		state, _, err := stateAndHeader(api.blockchain, first+i*step)
 		if err != nil {
 			return history, err
 		}
@@ -229,9 +249,8 @@ func (api *MtDebugAPI) TimeoutQueueHistory(ctx context.Context, start, end rpc.B
 		if err != nil {
 			return history, err
 		}
-		history[i] = size
+		history.Count[i] = size
 	}
-
 	return history, nil
 }
 

@@ -5,29 +5,22 @@ package das
 
 import (
 	"context"
-	"crypto/ecdsa"
 	"encoding/binary"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
+
 	"github.com/mantlenetworkio/mantle/das/dastree"
 	"github.com/mantlenetworkio/mantle/mtstate"
 	"github.com/mantlenetworkio/mantle/util/pretty"
+	"github.com/mantlenetworkio/mantle/util/signature"
 )
 
 var uniquifyingPrefix = []byte("Mantle DAS API Store:")
 
-type DasSigner func([]byte) ([]byte, error) // takes 32-byte array (hash of data) and produces signature bytes (and/or error)
-
-func DasSignerFromPrivateKey(privateKey *ecdsa.PrivateKey) DasSigner {
-	return func(data []byte) ([]byte, error) {
-		return crypto.Sign(data, privateKey)
-	}
-}
-
-func applyDasSigner(signer DasSigner, data []byte, timeout uint64) ([]byte, error) {
+func applyDasSigner(signer signature.DataSignerFunc, data []byte, timeout uint64) ([]byte, error) {
 	return signer(dasStoreHash(data, timeout))
 }
 
@@ -47,11 +40,11 @@ func dasStoreHash(data []byte, timeout uint64) []byte {
 
 type StoreSigningDAS struct {
 	DataAvailabilityServiceWriter
-	signer DasSigner
+	signer signature.DataSignerFunc
 	addr   common.Address
 }
 
-func NewStoreSigningDAS(inner DataAvailabilityServiceWriter, signer DasSigner) (DataAvailabilityServiceWriter, error) {
+func NewStoreSigningDAS(inner DataAvailabilityServiceWriter, signer signature.DataSignerFunc) (DataAvailabilityServiceWriter, error) {
 	sig, err := applyDasSigner(signer, []byte{}, 0)
 	if err != nil {
 		return nil, err

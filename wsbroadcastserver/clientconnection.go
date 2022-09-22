@@ -16,6 +16,7 @@ import (
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
 	"github.com/mailru/easygo/netpoll"
+
 	"github.com/mantlenetworkio/mantle/mtutil"
 	"github.com/mantlenetworkio/mantle/util/stopwaiter"
 )
@@ -44,12 +45,12 @@ func NewClientConnection(conn net.Conn, desc *netpoll.Desc, clientManager *Clien
 		clientManager:   clientManager,
 		requestedSeqNum: requestedSeqNum,
 		lastHeardUnix:   time.Now().Unix(),
-		out:             make(chan []byte, clientManager.settings.MaxSendQueue),
+		out:             make(chan []byte, clientManager.config().MaxSendQueue),
 	}
 }
 
 func (cc *ClientConnection) Start(parentCtx context.Context) {
-	cc.StopWaiter.Start(parentCtx)
+	cc.StopWaiter.Start(parentCtx, cc)
 	cc.LaunchThread(func(ctx context.Context) {
 		defer close(cc.out)
 		for {
