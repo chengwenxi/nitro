@@ -195,8 +195,8 @@ Provides insight into the cost of using the chain. These methods have been adjus
 |:--------------------------------------------------------------------------|:-------------------------------------------------------------------------------------------------|
 | [![](e.png)][GIs0] [`GetPricesInWeiWithAggregator`][GI0]`(aggregator)`    | Get prices in wei when using the provided aggregator                                             |
 | [![](e.png)][GIs1] [`GetPricesInWei`][GI1]`()`                            | Get prices in wei when using the caller's preferred aggregator                                   |
-| [![](e.png)][GIs2] [`GetPricesInArbGasWithAggregator`][GI2]`(aggregator)` | Get prices in ArbGas when using the provided aggregator                                          |
-| [![](e.png)][GIs3] [`GetPricesInArbGas`][GI3]`()`                         | Get prices in ArbGas when using the caller's preferred aggregator                                |
+| [![](e.png)][GIs2] [`GetPricesInMtGasWithAggregator`][GI2]`(aggregator)` | Get prices in MtGas when using the provided aggregator                                          |
+| [![](e.png)][GIs3] [`GetPricesInMtGas`][GI3]`()`                         | Get prices in MtGas when using the caller's preferred aggregator                                |
 | [![](e.png)][GIs4] [`GetGasAccountingParams`][GI4]`()`                    | Get the chain speed limit, pool size, and tx gas limit                                           |
 | [![](e.png)][GIs5] [`GetMinimumGasPrice`][GI5]`()`                        | Get the minimum gas price needed for a transaction to succeed                                    |
 | [![](e.png)][GIs6] [`GetGasPoolSeconds`][GI6]`()`                         | Get the number of seconds worth of the speed limit the gas pool contains                         |
@@ -269,7 +269,7 @@ Provides a method of burning arbitrary amounts of gas, which exists for historic
 
 | Methods                                               |                                                     | Mantle changes |
 |:------------------------------------------------------|:----------------------------------------------------|---------------|
-| [![](e.png)][Ts0] [`BurnArbGas`][T0]`(amount)` &nbsp; | unproductively burns the amount of L2 ArbGas &nbsp; | Now pure      |
+| [![](e.png)][Ts0] [`BurnMtGas`][T0]`(amount)` &nbsp; | unproductively burns the amount of L2 MtGas &nbsp; | Now pure      |
 
 [T0]: https://github.com/mantlenetworkio/mantle/blob/3f504c57fba8ddf0759b7a55b4108e0bf5a078b3/precompiles/MtosTest.go#L17
 
@@ -428,9 +428,9 @@ Provides system-level functionality for interacting with L1 and understanding th
 
 | Methods                                                                                  |                                                                                                              | Mantle changes     |
 |:-----------------------------------------------------------------------------------------|:-------------------------------------------------------------------------------------------------------------|:------------------|
-| [![](e.png)][Ss0] [`ArbBlockNumber`][S0]`()`                                             | Gets the current L2 block number                                                                             |                   |
-| [![](e.png)][Ss1] [`ArbBlockHash`][S1]`(blocknum)`                                       | Gets the L2 block hash at blocknum, if blocknum is sufficiently recent                                       |                   |
-| [![](e.png)][Ss2] [`ArbChainID`][S2]`()`                                                 | Gets the chain's ChainID                                                                                     |                   |
+| [![](e.png)][Ss0] [`MtBlockNumber`][S0]`()`                                             | Gets the current L2 block number                                                                             |                   |
+| [![](e.png)][Ss1] [`MtBlockHash`][S1]`(blocknum)`                                       | Gets the L2 block hash at blocknum, if blocknum is sufficiently recent                                       |                   |
+| [![](e.png)][Ss2] [`MtChainID`][S2]`()`                                                 | Gets the chain's ChainID                                                                                     |                   |
 | [![](e.png)][Ss3] [`MtOSVersion`][S3]`()`                                               | Gets the current MtOS version                                                                               | Now view          |
 | [![](e.png)][Ss4] [`GetStorageGasAvailable`][S4]`()`                                     | Returns 0 since Mantle has no concept of storage gas                                                          | Now always 0      |
 | [![](e.png)][Ss5] [`IsTopLevelCall`][S5]`()`                                             | Checks if the caller is top-level (i.e. if the caller was called directly by an EOA or an L1 contract)       |                   |

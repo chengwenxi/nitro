@@ -60,15 +60,15 @@ func TestEstimate(t *testing.T) {
 	gasPrice := big.NewInt(params.GWei / 10)
 
 	// set the gas price
-	arbOwner, err := precompilesgen.NewMtOwner(common.HexToAddress("0x70"), client)
+	mtOwner, err := precompilesgen.NewMtOwner(common.HexToAddress("0x70"), client)
 	Require(t, err, "could not deploy MtOwner contract")
-	tx, err := arbOwner.SetMinimumL2BaseFee(&auth, gasPrice)
+	tx, err := mtOwner.SetMinimumL2BaseFee(&auth, gasPrice)
 	Require(t, err, "could not set L2 gas price")
 	_, err = EnsureTxSucceeded(ctx, client, tx)
 	Require(t, err)
 
-	// connect to arbGasInfo precompile
-	arbGasInfo, err := precompilesgen.NewMtGasInfo(common.HexToAddress("0x6c"), client)
+	// connect to mtGasInfo precompile
+	mtGasInfo, err := precompilesgen.NewMtGasInfo(common.HexToAddress("0x6c"), client)
 	Require(t, err, "could not deploy contract")
 
 	// wait for price to come to equilibrium
@@ -80,7 +80,7 @@ func TestEstimate(t *testing.T) {
 		TransferBalance(t, "Owner", "Owner", common.Big0, l2info, client, ctx)
 
 		// check if the price has equilibrated
-		_, _, _, _, _, setPrice, err := arbGasInfo.GetPricesInWei(&bind.CallOpts{})
+		_, _, _, _, _, setPrice, err := mtGasInfo.GetPricesInWei(&bind.CallOpts{})
 		Require(t, err, "could not get L2 gas price")
 		if gasPrice.Cmp(setPrice) == 0 {
 			equilibrated = true

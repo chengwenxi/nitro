@@ -22,7 +22,7 @@ on pre-Mantle blocks.
 
 ### Required Artifacts
 
-- Latest Docker Image: mantlenetwork/arb-node:v1.4.5-e97c1a4
+- Latest Docker Image: mantlenetwork/mt-node:v1.4.5-e97c1a4
 
 ### Required parameters
 
@@ -39,13 +39,13 @@ on pre-Mantle blocks.
 ### Putting it all together
 
 - When running docker image, an external volume should be mounted to persist the database across restarts. The mount point should be `/home/user/.mantle/mainnet` or `/home/user/.mantle/rinkeby` depending on what chain you are connecting to.
-  - Here is an example of how to run arb-node for mainnet (only good for archive requests on pre-Mantle blocks, so probably want to enable archive as well):
+  - Here is an example of how to run mt-node for mainnet (only good for archive requests on pre-Mantle blocks, so probably want to enable archive as well):
   ```shell
-  docker run --rm -it  -v /some/local/dir/mantle-mainnet/:/home/user/.mantle/mainnet -p 0.0.0.0:8547:8547 -p 0.0.0.0:8548:8548 mantlenetwork/arb-node:v1.4.5-e97c1a4 --l1.url=https://l1-node:8545 --node.chain-id=42161 --l2.disable-upstream
+  docker run --rm -it  -v /some/local/dir/mantle-mainnet/:/home/user/.mantle/mainnet -p 0.0.0.0:8547:8547 -p 0.0.0.0:8548:8548 mantlenetwork/mt-node:v1.4.5-e97c1a4 --l1.url=https://l1-node:8545 --node.chain-id=42161 --l2.disable-upstream
   ```
-  - Here is an example of how to run arb-node for rinkeby (only good for archive requests on pre-Mantle blocks, so probably want to enable archive as well):
+  - Here is an example of how to run mt-node for rinkeby (only good for archive requests on pre-Mantle blocks, so probably want to enable archive as well):
   ```shell
-  docker run --rm -it  -v /some/local/dir/mantle-rinkeby/:/home/user/.mantle/rinkeby -p 0.0.0.0:8547:8547 -p 0.0.0.0:8548:8548 mantlenetwork/arb-node:v1.4.5-e97c1a4 --l1.url=https://l1-rinkeby-node:8545 --node.chain-id=421611
+  docker run --rm -it  -v /some/local/dir/mantle-rinkeby/:/home/user/.mantle/rinkeby -p 0.0.0.0:8547:8547 -p 0.0.0.0:8548:8548 mantlenetwork/mt-node:v1.4.5-e97c1a4 --l1.url=https://l1-rinkeby-node:8545 --node.chain-id=421611
   ```
 
 ### Note on permissions
@@ -81,6 +81,6 @@ on pre-Mantle blocks.
     - Only `trace` type is supported. `vmTrace` and `stateDiff` types are not supported
     - The self-destruct opcode is not included in the trace. To get the list of self-destructed contracts, you can provide the `deletedContracts` parameter to the method
 
-### Arb-Relay
+### Mt-Relay
 
 - Mantle classic does not communicate with Mantle sequencer, so classic relay is no longer used.

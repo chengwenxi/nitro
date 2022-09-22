@@ -30,17 +30,17 @@ func TestOutboxProofs(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	arbSysAbi, err := precompilesgen.MtSysMetaData.GetAbi()
+	mtSysAbi, err := precompilesgen.MtSysMetaData.GetAbi()
 	Require(t, err, "failed to get abi")
-	withdrawTopic := arbSysAbi.Events["L2ToL1Tx"].ID
-	merkleTopic := arbSysAbi.Events["SendMerkleUpdate"].ID
+	withdrawTopic := mtSysAbi.Events["L2ToL1Tx"].ID
+	merkleTopic := mtSysAbi.Events["SendMerkleUpdate"].ID
 
 	l2info, _, client, l2stack := CreateTestL2(t, ctx)
 	defer requireClose(t, l2stack)
 
 	auth := l2info.GetDefaultTransactOpts("Owner", ctx)
 
-	arbSys, err := precompilesgen.NewMtSys(types.MtSysAddress, client)
+	mtSys, err := precompilesgen.NewMtSys(types.MtSysAddress, client)
 	Require(t, err)
 	nodeInterface, err := node_interfacegen.NewNodeInterface(types.NodeInterfaceAddress, client)
 	Require(t, err)
@@ -66,14 +66,14 @@ func TestOutboxProofs(t *testing.T) {
 	for i := int64(0); i < txnCount; i++ {
 		auth.Value = big.NewInt(i * 1000000000)
 		auth.Nonce = big.NewInt(i + 1)
-		tx, err := arbSys.WithdrawEth(&auth, common.Address{})
+		tx, err := mtSys.WithdrawEth(&auth, common.Address{})
 		Require(t, err, "MtSys failed")
 		txns = append(txns, tx.Hash())
 
 		time.Sleep(4 * time.Millisecond) // Geth takes a few ms for the receipt to show up
 		_, err = client.TransactionReceipt(ctx, tx.Hash())
 		if err == nil {
-			merkleState, err := arbSys.SendMerkleTreeState(&bind.CallOpts{})
+			merkleState, err := mtSys.SendMerkleTreeState(&bind.CallOpts{})
 			Require(t, err, "could not get merkle root")
 
 			root := proofRoot{
@@ -99,7 +99,7 @@ func TestOutboxProofs(t *testing.T) {
 		for _, log := range receipt.Logs {
 
 			if log.Topics[0] == withdrawTopic {
-				parsedLog, err := arbSys.ParseL2ToL1Tx(*log)
+				parsedLog, err := mtSys.ParseL2ToL1Tx(*log)
 				Require(t, err, "Failed to parse log")
 
 				provables = append(provables, proofPair{

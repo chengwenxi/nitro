@@ -335,7 +335,7 @@ const getDoubleLogicUUPSTarget = async (slot: "user" | "admin", provider: provid
                 _IMPLEMENTATION_PRIMARY_SLOT : _IMPLEMENTATION_SECONDARY_SLOT)).substring(26).toLowerCase()}`
 }
 
-describe("ArbRollup", () => {
+describe("MtRollup", () => {
   it("should deploy contracts", async function () {
     accounts = await initializeAccounts();
 

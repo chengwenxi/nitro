@@ -12,7 +12,7 @@ interface MtRetryableTx {
     /**
      * @notice Schedule an attempt to redeem a redeemable tx, donating all of the call's gas to the redeem.
      * Revert if ticketId does not exist.
-     * @param ticketId unique identifier of retryable message: keccak256(keccak256(ArbchainId, inbox-sequence-number), uint(0) )
+     * @param ticketId unique identifier of retryable message: keccak256(keccak256(MtchainId, inbox-sequence-number), uint(0) )
      * @return txId that the redeem attempt will have
      */
     function redeem(bytes32 ticketId) external returns (bytes32);

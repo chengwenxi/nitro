@@ -12,7 +12,7 @@ use wasmparser::{FuncType, Type};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Hash, Serialize, Deserialize)]
 #[repr(u8)]
-pub enum ArbValueType {
+pub enum MtValueType {
     I32,
     I64,
     F32,
@@ -22,16 +22,16 @@ pub enum ArbValueType {
     InternalRef,
 }
 
-impl ArbValueType {
+impl MtValueType {
     pub fn serialize(self) -> u8 {
         self as u8
     }
 }
 
-impl TryFrom<Type> for ArbValueType {
+impl TryFrom<Type> for MtValueType {
     type Error = eyre::Error;
 
-    fn try_from(ty: Type) -> Result<ArbValueType> {
+    fn try_from(ty: Type) -> Result<MtValueType> {
         use Type::*;
         Ok(match ty {
             I32 => Self::I32,
@@ -45,11 +45,11 @@ impl TryFrom<Type> for ArbValueType {
     }
 }
 
-impl From<FloatType> for ArbValueType {
-    fn from(ty: FloatType) -> ArbValueType {
+impl From<FloatType> for MtValueType {
+    fn from(ty: FloatType) -> MtValueType {
         match ty {
-            FloatType::F32 => ArbValueType::F32,
-            FloatType::F64 => ArbValueType::F64,
+            FloatType::F32 => MtValueType::F32,
+            FloatType::F64 => MtValueType::F64,
         }
     }
 }
@@ -60,11 +60,11 @@ pub enum IntegerValType {
     I64,
 }
 
-impl From<IntegerValType> for ArbValueType {
-    fn from(ty: IntegerValType) -> ArbValueType {
+impl From<IntegerValType> for MtValueType {
+    fn from(ty: IntegerValType) -> MtValueType {
         match ty {
-            IntegerValType::I32 => ArbValueType::I32,
-            IntegerValType::I64 => ArbValueType::I64,
+            IntegerValType::I32 => MtValueType::I32,
+            IntegerValType::I64 => MtValueType::I64,
         }
     }
 }
@@ -98,15 +98,15 @@ pub enum Value {
 }
 
 impl Value {
-    pub fn ty(self) -> ArbValueType {
+    pub fn ty(self) -> MtValueType {
         match self {
-            Value::I32(_) => ArbValueType::I32,
-            Value::I64(_) => ArbValueType::I64,
-            Value::F32(_) => ArbValueType::F32,
-            Value::F64(_) => ArbValueType::F64,
-            Value::RefNull => ArbValueType::RefNull,
-            Value::FuncRef(_) => ArbValueType::FuncRef,
-            Value::InternalRef(_) => ArbValueType::InternalRef,
+            Value::I32(_) => MtValueType::I32,
+            Value::I64(_) => MtValueType::I64,
+            Value::F32(_) => MtValueType::F32,
+            Value::F64(_) => MtValueType::F64,
+            Value::RefNull => MtValueType::RefNull,
+            Value::FuncRef(_) => MtValueType::FuncRef,
+            Value::InternalRef(_) => MtValueType::InternalRef,
         }
     }
 
@@ -173,13 +173,13 @@ impl Value {
         h.finalize().into()
     }
 
-    pub fn default_of_type(ty: ArbValueType) -> Value {
+    pub fn default_of_type(ty: MtValueType) -> Value {
         match ty {
-            ArbValueType::I32 => Value::I32(0),
-            ArbValueType::I64 => Value::I64(0),
-            ArbValueType::F32 => Value::F32(0.),
-            ArbValueType::F64 => Value::F64(0.),
-            ArbValueType::RefNull | ArbValueType::FuncRef | ArbValueType::InternalRef => {
+            MtValueType::I32 => Value::I32(0),
+            MtValueType::I64 => Value::I64(0),
+            MtValueType::F32 => Value::F32(0.),
+            MtValueType::F64 => Value::F64(0.),
+            MtValueType::RefNull | MtValueType::FuncRef | MtValueType::InternalRef => {
                 Value::RefNull
             }
         }
@@ -242,12 +242,12 @@ impl Eq for Value {}
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct FunctionType {
-    pub inputs: Vec<ArbValueType>,
-    pub outputs: Vec<ArbValueType>,
+    pub inputs: Vec<MtValueType>,
+    pub outputs: Vec<MtValueType>,
 }
 
 impl FunctionType {
-    pub fn new(inputs: Vec<ArbValueType>, outputs: Vec<ArbValueType>) -> FunctionType {
+    pub fn new(inputs: Vec<MtValueType>, outputs: Vec<MtValueType>) -> FunctionType {
         FunctionType { inputs, outputs }
     }
 
@@ -274,10 +274,10 @@ impl TryFrom<FuncType> for FunctionType {
         let mut outputs = vec![];
 
         for input in func.params.iter() {
-            inputs.push(ArbValueType::try_from(*input)?)
+            inputs.push(MtValueType::try_from(*input)?)
         }
         for output in func.returns.iter() {
-            outputs.push(ArbValueType::try_from(*output)?)
+            outputs.push(MtValueType::try_from(*output)?)
         }
 
         Ok(Self { inputs, outputs })

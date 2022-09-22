@@ -15,9 +15,9 @@ interface MtGasInfo {
     ///            per L2 tx,
     ///            per L1 calldata unit, (a byte, non-zero or otherwise, is 16 units)
     ///            per storage allocation,
-    ///            per ArbGas base,
-    ///            per ArbGas congestion,
-    ///            per ArbGas total
+    ///            per MtGas base,
+    ///            per MtGas congestion,
+    ///            per MtGas total
     ///        )
     function getPricesInWeiWithAggregator(address aggregator)
         external
@@ -37,9 +37,9 @@ interface MtGasInfo {
     ///            per L2 tx,
     ///            per L1 calldata unit, (a byte, non-zero or otherwise, is 16 units)
     ///            per storage allocation,
-    ///            per ArbGas base,
-    ///            per ArbGas congestion,
-    ///            per ArbGas total
+    ///            per MtGas base,
+    ///            per MtGas congestion,
+    ///            per MtGas total
     ///        )
     function getPricesInWei()
         external
@@ -53,9 +53,9 @@ interface MtGasInfo {
             uint256
         );
 
-    /// @notice Get prices in ArbGas for the supplied aggregator
+    /// @notice Get prices in MtGas for the supplied aggregator
     /// @return (per L2 tx, per L1 calldata unit, per storage allocation)
-    function getPricesInArbGasWithAggregator(address aggregator)
+    function getPricesInMtGasWithAggregator(address aggregator)
         external
         view
         returns (
@@ -64,9 +64,9 @@ interface MtGasInfo {
             uint256
         );
 
-    /// @notice Get prices in ArbGas. Assumes the callers preferred validator, or the default if caller doesn't have a preferred one.
+    /// @notice Get prices in MtGas. Assumes the callers preferred validator, or the default if caller doesn't have a preferred one.
     /// @return (per L2 tx, per L1 calldata unit, per storage allocation)
-    function getPricesInArbGas()
+    function getPricesInMtGas()
         external
         view
         returns (

@@ -104,7 +104,7 @@ func TestMtOwner(t *testing.T) {
 	}
 }
 
-func TestArbInfraFeeAccount(t *testing.T) {
+func TestMtInfraFeeAccount(t *testing.T) {
 	version0 := uint64(0)
 	evm := newMockEVMForTestingWithVersion(&version0)
 	caller := common.BytesToAddress(crypto.Keccak256([]byte{})[:20])

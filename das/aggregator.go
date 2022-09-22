@@ -213,7 +213,7 @@ func (a *Aggregator) Store(ctx context.Context, message []byte, timeout uint64, 
 	for _, d := range a.services {
 		go func(ctx context.Context, d ServiceDetails) {
 			storeCtx, cancel := context.WithTimeout(ctx, a.requestTimeout)
-			const metricBase string = "arb/das/rpc/aggregator/store"
+			const metricBase string = "mt/das/rpc/aggregator/store"
 			var metricWithServiceName string = metricBase + "/" + d.metricName
 			defer cancel()
 			incFailureMetric := func() {

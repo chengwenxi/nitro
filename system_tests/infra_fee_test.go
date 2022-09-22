@@ -34,14 +34,14 @@ func TestInfraFee(t *testing.T) {
 	ownerTxOpts.Context = ctx
 	ownerCallOpts := l2info.GetDefaultCallOpts("Owner", ctx)
 
-	arbowner, err := precompilesgen.NewMtOwner(common.HexToAddress("70"), client)
+	mtowner, err := precompilesgen.NewMtOwner(common.HexToAddress("70"), client)
 	Require(t, err)
-	arbownerPublic, err := precompilesgen.NewMtOwnerPublic(common.HexToAddress("6b"), client)
+	mtownerPublic, err := precompilesgen.NewMtOwnerPublic(common.HexToAddress("6b"), client)
 	Require(t, err)
-	networkFeeAddr, err := arbownerPublic.GetNetworkFeeAccount(ownerCallOpts)
+	networkFeeAddr, err := mtownerPublic.GetNetworkFeeAccount(ownerCallOpts)
 	Require(t, err)
 	infraFeeAddr := common.BytesToAddress(crypto.Keccak256([]byte{3, 2, 6}))
-	tx, err := arbowner.SetInfraFeeAccount(&ownerTxOpts, infraFeeAddr)
+	tx, err := mtowner.SetInfraFeeAccount(&ownerTxOpts, infraFeeAddr)
 	Require(t, err)
 	_, err = EnsureTxSucceeded(ctx, client, tx)
 	Require(t, err)

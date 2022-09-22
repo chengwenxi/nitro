@@ -31,27 +31,27 @@ type MtSys struct {
 var InvalidBlockNum = errors.New("Invalid block number")
 
 // Gets the current L2 block number
-func (con *MtSys) ArbBlockNumber(c ctx, evm mech) (huge, error) {
+func (con *MtSys) MtBlockNumber(c ctx, evm mech) (huge, error) {
 	return evm.Context.BlockNumber, nil
 }
 
 // Gets the L2 block hash, if sufficiently recent
-func (con *MtSys) ArbBlockHash(c ctx, evm mech, arbBlockNumber *big.Int) (bytes32, error) {
-	if !arbBlockNumber.IsUint64() {
+func (con *MtSys) MtBlockHash(c ctx, evm mech, mtBlockNumber *big.Int) (bytes32, error) {
+	if !mtBlockNumber.IsUint64() {
 		return bytes32{}, InvalidBlockNum
 	}
-	requestedBlockNum := arbBlockNumber.Uint64()
+	requestedBlockNum := mtBlockNumber.Uint64()
 
 	currentNumber := evm.Context.BlockNumber.Uint64()
 	if requestedBlockNum >= currentNumber || requestedBlockNum+256 < currentNumber {
-		return common.Hash{}, errors.New("invalid block number for ArbBlockHAsh")
+		return common.Hash{}, errors.New("invalid block number for MtBlockHAsh")
 	}
 
 	return evm.Context.GetHash(requestedBlockNum), nil
 }
 
 // Gets the rollup's unique chain identifier
-func (con *MtSys) ArbChainID(c ctx, evm mech) (huge, error) {
+func (con *MtSys) MtChainID(c ctx, evm mech) (huge, error) {
 	return evm.ChainConfig().ChainID, nil
 }
 

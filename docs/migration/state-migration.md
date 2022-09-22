@@ -17,16 +17,16 @@ Make sure the classic node has read the entire rollup state.
 
 These are block-headers, transactions and receipts executed in the classic node. Mantle node uses the history to be able to answer simple requests, like eth_getTransactionReceipt, from the classic history. The last block in the chain is the only one that affects the genesis block: timestamp is copied from the last block, and parentHash is taken from the last block's blockHash.
 
-- RPC call `arb_exportHistory` with parameter `"latest"` will initiate history export. It will return immediately.
-- `arb_exportHistoryStatus` will return the latest block exported, or an error if export failed.
+- RPC call `mt_exportHistory` with parameter `"latest"` will initiate history export. It will return immediately.
+- `mt_exportHistoryStatus` will return the latest block exported, or an error if export failed.
 - Data will be stored in dir `mantleexport/mantle/l2chaindata/ancient`. 
 
 ### Exporting Outbox Messages
 
 This data does not impact consensus and is optional. It allows a mantle node to provide the information required when redeeming a withdrawal made on the classic rollup.
 
-- RPC call `arb_exportOutbox` with parameter `"0xffffffffffffffff"` will initiate block export. It will return immediately.
-- `arb_exportOutboxStatus` will return the latest outbox batch exported, or an error is export failed.
+- RPC call `mt_exportOutbox` with parameter `"0xffffffffffffffff"` will initiate block export. It will return immediately.
+- `mt_exportOutboxStatus` will return the latest outbox batch exported, or an error is export failed.
 - Data will be stored in dir `mantleexport/mantle/classic-msg`.
 
 
@@ -34,7 +34,7 @@ This data does not impact consensus and is optional. It allows a mantle node to 
 
 Rollup state is exported as a series of json files. State read from these json files will be added to mantle's genesis block.
 
-- RPC call `arb_exportState` with parameter `"latest"` will initiate stet export. Unless disconnected - this will only return after state export is done.
+- RPC call `mt_exportState` with parameter `"latest"` will initiate stet export. Unless disconnected - this will only return after state export is done.
 - Data will be created in dir `mantleexport/state/<block_number>/`.
 
 

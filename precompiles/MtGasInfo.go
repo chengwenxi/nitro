@@ -18,7 +18,7 @@ type MtGasInfo struct {
 	Address addr // 0x6c
 }
 
-var storageArbGas = big.NewInt(int64(storage.StorageWriteCost))
+var storageMtGas = big.NewInt(int64(storage.StorageWriteCost))
 
 const AssumedSimpleTxSize = 140
 
@@ -45,19 +45,19 @@ func (con MtGasInfo) GetPricesInWeiWithAggregator(
 	perL2Tx := mtmath.BigMulByUint(weiForL1Calldata, AssumedSimpleTxSize)
 
 	// mantle's compute-centric l2 gas pricing has no special compute component that rises independently
-	perArbGasBase, err := c.State.L2PricingState().MinBaseFeeWei()
+	perMtGasBase, err := c.State.L2PricingState().MinBaseFeeWei()
 	if err != nil {
 		return nil, nil, nil, nil, nil, nil, err
 	}
-	if mtmath.BigLessThan(l2GasPrice, perArbGasBase) {
-		perArbGasBase = l2GasPrice
+	if mtmath.BigLessThan(l2GasPrice, perMtGasBase) {
+		perMtGasBase = l2GasPrice
 	}
-	perArbGasCongestion := mtmath.BigSub(l2GasPrice, perArbGasBase)
-	perArbGasTotal := l2GasPrice
+	perMtGasCongestion := mtmath.BigSub(l2GasPrice, perMtGasBase)
+	perMtGasTotal := l2GasPrice
 
-	weiForL2Storage := mtmath.BigMul(l2GasPrice, storageArbGas)
+	weiForL2Storage := mtmath.BigMul(l2GasPrice, storageMtGas)
 
-	return perL2Tx, weiForL1Calldata, weiForL2Storage, perArbGasBase, perArbGasCongestion, perArbGasTotal, nil
+	return perL2Tx, weiForL1Calldata, weiForL2Storage, perMtGasBase, perMtGasCongestion, perMtGasTotal, nil
 }
 
 func (con MtGasInfo) _preVersion4_GetPricesInWeiWithAggregator(
@@ -78,13 +78,13 @@ func (con MtGasInfo) _preVersion4_GetPricesInWeiWithAggregator(
 	perL2Tx := mtmath.BigMulByUint(weiForL1Calldata, AssumedSimpleTxSize)
 
 	// mantle's compute-centric l2 gas pricing has no special compute component that rises independently
-	perArbGasBase := l2GasPrice
-	perArbGasCongestion := common.Big0
-	perArbGasTotal := l2GasPrice
+	perMtGasBase := l2GasPrice
+	perMtGasCongestion := common.Big0
+	perMtGasTotal := l2GasPrice
 
-	weiForL2Storage := mtmath.BigMul(l2GasPrice, storageArbGas)
+	weiForL2Storage := mtmath.BigMul(l2GasPrice, storageMtGas)
 
-	return perL2Tx, weiForL1Calldata, weiForL2Storage, perArbGasBase, perArbGasCongestion, perArbGasTotal, nil
+	return perL2Tx, weiForL1Calldata, weiForL2Storage, perMtGasBase, perMtGasCongestion, perMtGasTotal, nil
 }
 
 // Get prices in wei when using the caller's preferred aggregator
@@ -92,10 +92,10 @@ func (con MtGasInfo) GetPricesInWei(c ctx, evm mech) (huge, huge, huge, huge, hu
 	return con.GetPricesInWeiWithAggregator(c, evm, addr{})
 }
 
-// Get prices in ArbGas when using the provided aggregator
-func (con MtGasInfo) GetPricesInArbGasWithAggregator(c ctx, evm mech, aggregator addr) (huge, huge, huge, error) {
+// Get prices in MtGas when using the provided aggregator
+func (con MtGasInfo) GetPricesInMtGasWithAggregator(c ctx, evm mech, aggregator addr) (huge, huge, huge, error) {
 	if c.State.FormatVersion() < 4 {
-		return con._preVersion4_GetPricesInArbGasWithAggregator(c, evm, aggregator)
+		return con._preVersion4_GetPricesInMtGasWithAggregator(c, evm, aggregator)
 	}
 	l1GasPrice, err := c.State.L1PricingState().PricePerUnit()
 	if err != nil {
@@ -113,10 +113,10 @@ func (con MtGasInfo) GetPricesInArbGasWithAggregator(c ctx, evm mech, aggregator
 		gasPerL2Tx = mtmath.BigDiv(weiPerL2Tx, l2GasPrice)
 	}
 
-	return gasPerL2Tx, gasForL1Calldata, storageArbGas, nil
+	return gasPerL2Tx, gasForL1Calldata, storageMtGas, nil
 }
 
-func (con MtGasInfo) _preVersion4_GetPricesInArbGasWithAggregator(c ctx, evm mech, aggregator addr) (huge, huge, huge, error) {
+func (con MtGasInfo) _preVersion4_GetPricesInMtGasWithAggregator(c ctx, evm mech, aggregator addr) (huge, huge, huge, error) {
 	l1GasPrice, err := c.State.L1PricingState().PricePerUnit()
 	if err != nil {
 		return nil, nil, nil, err
@@ -131,12 +131,12 @@ func (con MtGasInfo) _preVersion4_GetPricesInArbGasWithAggregator(c ctx, evm mec
 	}
 
 	perL2Tx := big.NewInt(AssumedSimpleTxSize)
-	return perL2Tx, gasForL1Calldata, storageArbGas, nil
+	return perL2Tx, gasForL1Calldata, storageMtGas, nil
 }
 
-// Get prices in ArbGas when using the caller's preferred aggregator
-func (con MtGasInfo) GetPricesInArbGas(c ctx, evm mech) (huge, huge, huge, error) {
-	return con.GetPricesInArbGasWithAggregator(c, evm, addr{})
+// Get prices in MtGas when using the caller's preferred aggregator
+func (con MtGasInfo) GetPricesInMtGas(c ctx, evm mech) (huge, huge, huge, error) {
+	return con.GetPricesInMtGasWithAggregator(c, evm, addr{})
 }
 
 // Get the rollup's speed limit, pool size, and tx gas limit

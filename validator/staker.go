@@ -216,12 +216,12 @@ func (s *Staker) Start(ctxIn context.Context) {
 		if err != nil {
 			log.Warn("error updating latest wasm module root", "err", err)
 		}
-		arbTx, err := s.Act(ctx)
-		if err == nil && arbTx != nil {
-			_, err = s.l1Reader.WaitForTxApproval(ctx, arbTx)
+		mtTx, err := s.Act(ctx)
+		if err == nil && mtTx != nil {
+			_, err = s.l1Reader.WaitForTxApproval(ctx, mtTx)
 			err = errors.Wrap(err, "error waiting for tx receipt")
 			if err == nil {
-				log.Info("successfully executed staker transaction", "hash", arbTx.Hash())
+				log.Info("successfully executed staker transaction", "hash", mtTx.Hash())
 			}
 		}
 		if err == nil {
@@ -367,9 +367,9 @@ func (s *Staker) Act(ctx context.Context) (*types.Transaction, error) {
 		(effectiveStrategy >= StakeLatestStrategy && rawInfo == nil && requiredStakeElevated)
 	resolvingNode := false
 	if shouldResolveNodes {
-		arbTx, err := s.resolveTimedOutChallenges(ctx)
-		if err != nil || arbTx != nil {
-			return arbTx, err
+		mtTx, err := s.resolveTimedOutChallenges(ctx)
+		if err != nil || mtTx != nil {
+			return mtTx, err
 		}
 		resolvingNode, err = s.resolveNextNode(ctx, rawInfo, &latestConfirmedNode)
 		if err != nil {

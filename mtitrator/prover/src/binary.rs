@@ -1,7 +1,7 @@
 // Copyright 2021-2022, Mantlenetwork, Inc.
 // For license information, see https://github.com/mantle/blob/master/LICENSE
 
-use crate::value::{ArbValueType, FunctionType, IntegerValType, Value as LirValue};
+use crate::value::{FunctionType, IntegerValType, MtValueType, Value as LirValue};
 use eyre::{bail, ensure, Result};
 use fnv::FnvHashMap as HashMap;
 use nom::{
@@ -73,7 +73,7 @@ impl FloatInstruction {
             FloatInstruction::UnOp(t, _) => FunctionType::new(vec![t.into()], vec![t.into()]),
             FloatInstruction::BinOp(t, _) => FunctionType::new(vec![t.into(); 2], vec![t.into()]),
             FloatInstruction::RelOp(t, _) => {
-                FunctionType::new(vec![t.into(); 2], vec![ArbValueType::I32])
+                FunctionType::new(vec![t.into(); 2], vec![MtValueType::I32])
             }
             FloatInstruction::TruncIntOp(i, f, ..) => {
                 FunctionType::new(vec![f.into()], vec![i.into()])
@@ -82,10 +82,10 @@ impl FloatInstruction {
                 FunctionType::new(vec![i.into()], vec![f.into()])
             }
             FloatInstruction::F32DemoteF64 => {
-                FunctionType::new(vec![ArbValueType::F64], vec![ArbValueType::F32])
+                FunctionType::new(vec![MtValueType::F64], vec![MtValueType::F32])
             }
             FloatInstruction::F64PromoteF32 => {
-                FunctionType::new(vec![ArbValueType::F32], vec![ArbValueType::F64])
+                FunctionType::new(vec![MtValueType::F32], vec![MtValueType::F64])
             }
         }
     }
@@ -221,7 +221,7 @@ pub struct Code<'a> {
 #[derive(Clone, Debug)]
 pub struct Local {
     pub index: u32,
-    pub value: ArbValueType,
+    pub value: MtValueType,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]

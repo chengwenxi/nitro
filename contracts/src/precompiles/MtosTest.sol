@@ -9,6 +9,6 @@ pragma solidity >=0.4.21 <0.9.0;
 /// These have been removed since users don't use them and calls to missing methods revert.
 /// Precompiled contract that exists in every Mantle chain at 0x0000000000000000000000000000000000000069.
 interface MtosTest {
-    /// @notice Unproductively burns the amount of L2 ArbGas
-    function burnArbGas(uint256 gasAmount) external pure;
+    /// @notice Unproductively burns the amount of L2 MtGas
+    function burnMtGas(uint256 gasAmount) external pure;
 }

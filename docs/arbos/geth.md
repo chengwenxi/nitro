@@ -125,19 +125,19 @@ Mantle geth includes a few L2-specific transaction types. Click on any to jump t
 
 | Tx Type                                           | Represents                           | Last Hook Reached &nbsp;   | Source |
 |:--------------------------------------------------|:-------------------------------------|:---------------------------|--------|
-| [`MantleUnsignedTx`][ArbTxUnsigned]             | An L1 to L2 message                  | [`EndTxHook`][HE]          | Bridge |
-| [`MantleContractTx`][ArbTxContract]             | A nonce-less L1 to L2 message &nbsp; | [`EndTxHook`][HE]          | Bridge |
-| [`MantleDepositTx`][ArbTxDeposit]               | A user deposit                       | [`StartTxHook`][HS]        | Bridge |
-| [`MantleSubmitRetryableTx`][ArbTxSubmit] &nbsp; | Creating a retryable                 | [`StartTxHook`][HS] &nbsp; | Bridge |
-| [`MantleRetryTx`][ArbTxRetry]                   | A retryable redeem attempt           | [`EndTxHook`][HE]          | L2     |
-| [`MantleInternalTx`][ArbTxInternal]             | MtOS state update                   | [`StartTxHook`][HS]        | MtOS  |
+| [`MantleUnsignedTx`][MtTxUnsigned]             | An L1 to L2 message                  | [`EndTxHook`][HE]          | Bridge |
+| [`MantleContractTx`][MtTxContract]             | A nonce-less L1 to L2 message &nbsp; | [`EndTxHook`][HE]          | Bridge |
+| [`MantleDepositTx`][MtTxDeposit]               | A user deposit                       | [`StartTxHook`][HS]        | Bridge |
+| [`MantleSubmitRetryableTx`][MtTxSubmit] &nbsp; | Creating a retryable                 | [`StartTxHook`][HS] &nbsp; | Bridge |
+| [`MantleRetryTx`][MtTxRetry]                   | A retryable redeem attempt           | [`EndTxHook`][HE]          | L2     |
+| [`MantleInternalTx`][MtTxInternal]             | MtOS state update                   | [`StartTxHook`][HS]        | MtOS  |
 
-[ArbTxUnsigned]: #MantleUnsignedTx
-[ArbTxContract]: #MantleContractTx
-[ArbTxSubmit]: #MantleSubmitRetryableTx
-[ArbTxRetry]: #MantleRetryTx
-[ArbTxDeposit]: #MantleDepositTx
-[ArbTxInternal]: #MantleInternalTx
+[MtTxUnsigned]: #MantleUnsignedTx
+[MtTxContract]: #MantleContractTx
+[MtTxSubmit]: #MantleSubmitRetryableTx
+[MtTxRetry]: #MantleRetryTx
+[MtTxDeposit]: #MantleDepositTx
+[MtTxInternal]: #MantleInternalTx
 [HS]: #StartTxHook
 [HE]: #EndTxHook
 
@@ -161,18 +161,18 @@ These are scheduled by calls to the [`redeem`](precompiles.md#MtRetryableTx) pre
 ### [`MantleInternalTx`][MantleInternalTx_link]
 Because tracing support requires MtOS's state-changes happen inside a transaction, MtOS may create a tx of this type to update its state in-between user-generated transactions. Such a tx has a [`Type`][InternalType_link] field signifying the state it will update, though currently this is just future-proofing as there's only one value it may have. Below are the internal tx types.
 
-#### [`ArbInternalTxUpdateL1BlockNumber`][ArbInternalTxUpdateL1BlockNumber_link]
+#### [`MtInternalTxUpdateL1BlockNumber`][MtInternalTxUpdateL1BlockNumber_link]
 Updates the L1 block number. This tx [is generated][block_generated_link] whenever a message originates from an L1 block newer than any MtOS has seen thus far. They are [guaranteed to be the first][block_first_link] in their L2 block.
 
-[MantleUnsignedTx_link]: https://github.com/mantlenetwork/go-ethereum/blob/e7e8104942fd2ba676d4b8616c9fa83d88b61c9c/core/types/arb_types.go#L15
-[MantleContractTx_link]: https://github.com/mantlenetwork/go-ethereum/blob/e7e8104942fd2ba676d4b8616c9fa83d88b61c9c/core/types/arb_types.go#L76
-[MantleSubmitRetryableTx_link]: https://github.com/mantlenetwork/go-ethereum/blob/e7e8104942fd2ba676d4b8616c9fa83d88b61c9c/core/types/arb_types.go#L194
-[MantleRetryTx_link]: https://github.com/mantlenetwork/go-ethereum/blob/e7e8104942fd2ba676d4b8616c9fa83d88b61c9c/core/types/arb_types.go#L133
-[MantleDepositTx_link]: https://github.com/mantlenetwork/go-ethereum/blob/e7e8104942fd2ba676d4b8616c9fa83d88b61c9c/core/types/arb_types.go#L265
+[MantleUnsignedTx_link]: https://github.com/mantlenetwork/go-ethereum/blob/e7e8104942fd2ba676d4b8616c9fa83d88b61c9c/core/types/mt_types.go#L15
+[MantleContractTx_link]: https://github.com/mantlenetwork/go-ethereum/blob/e7e8104942fd2ba676d4b8616c9fa83d88b61c9c/core/types/mt_types.go#L76
+[MantleSubmitRetryableTx_link]: https://github.com/mantlenetwork/go-ethereum/blob/e7e8104942fd2ba676d4b8616c9fa83d88b61c9c/core/types/mt_types.go#L194
+[MantleRetryTx_link]: https://github.com/mantlenetwork/go-ethereum/blob/e7e8104942fd2ba676d4b8616c9fa83d88b61c9c/core/types/mt_types.go#L133
+[MantleDepositTx_link]: https://github.com/mantlenetwork/go-ethereum/blob/e7e8104942fd2ba676d4b8616c9fa83d88b61c9c/core/types/mt_types.go#L265
 [MantleInternalTx_link]: https://github.com/mantlenetworkio/mantle/blob/master/mtos/internal_tx.go
 
-[InternalType_link]: https://github.com/mantlenetwork/go-ethereum/blob/e7e8104942fd2ba676d4b8616c9fa83d88b61c9c/core/types/arb_types.go#L313
-[ArbInternalTxUpdateL1BlockNumber_link]: https://github.com/mantlenetworkio/mantle/blob/aa55a504d32f71f4ce3a6552822c0791711f8299/mtos/internal_tx.go#L24
+[InternalType_link]: https://github.com/mantlenetwork/go-ethereum/blob/e7e8104942fd2ba676d4b8616c9fa83d88b61c9c/core/types/mt_types.go#L313
+[MtInternalTxUpdateL1BlockNumber_link]: https://github.com/mantlenetworkio/mantle/blob/aa55a504d32f71f4ce3a6552822c0791711f8299/mtos/internal_tx.go#L24
 [block_generated_link]: https://github.com/mantlenetworkio/mantle/blob/aa55a504d32f71f4ce3a6552822c0791711f8299/mtos/block_processor.go#L150
 [block_first_link]: https://github.com/mantlenetworkio/mantle/blob/aa55a504d32f71f4ce3a6552822c0791711f8299/mtos/block_processor.go#L154
 

@@ -12,8 +12,8 @@ type MtosTest struct {
 	Address addr // 0x69
 }
 
-// Unproductively burns the amount of L2 ArbGas
-func (con MtosTest) BurnArbGas(c ctx, gasAmount huge) error {
+// Unproductively burns the amount of L2 MtGas
+func (con MtosTest) BurnMtGas(c ctx, gasAmount huge) error {
 	if !gasAmount.IsUint64() {
 		return errors.New("Not a uint64")
 	}

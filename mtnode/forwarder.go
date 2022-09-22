@@ -121,7 +121,7 @@ func (f *TxForwarder) CheckHealth(inctx context.Context) error {
 		}
 		ctx, cancelFunc := context.WithTimeout(context.Background(), timeout)
 		defer cancelFunc()
-		f.healthErr = f.rpcClient.CallContext(ctx, nil, "arb_checkPublisherHealth")
+		f.healthErr = f.rpcClient.CallContext(ctx, nil, "mt_checkPublisherHealth")
 		f.healthChecked = time.Now()
 	}
 	return f.healthErr

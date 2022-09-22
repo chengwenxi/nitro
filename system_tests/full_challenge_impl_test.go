@@ -243,16 +243,16 @@ func RunChallengeTest(t *testing.T, asserterIsCorrect bool) {
 	_, err = EnsureTxSucceeded(ctx, l1Backend, tx)
 	Require(t, err)
 
-	asserterL2Info, asserterL2Stack, asserterL2ChainDb, asserterL2ArbDb, asserterL2Blockchain := createL2BlockChain(t, nil, "", chainConfig)
+	asserterL2Info, asserterL2Stack, asserterL2ChainDb, asserterL2MtDb, asserterL2Blockchain := createL2BlockChain(t, nil, "", chainConfig)
 	rollupAddresses.SequencerInbox = asserterSeqInboxAddr
-	asserterL2, err := mtnode.CreateNode(ctx, asserterL2Stack, asserterL2ChainDb, asserterL2ArbDb, conf, asserterL2Blockchain, l1Backend, rollupAddresses, nil, nil, fatalErrChan)
+	asserterL2, err := mtnode.CreateNode(ctx, asserterL2Stack, asserterL2ChainDb, asserterL2MtDb, conf, asserterL2Blockchain, l1Backend, rollupAddresses, nil, nil, fatalErrChan)
 	Require(t, err)
 	err = asserterL2Stack.Start()
 	Require(t, err)
 
-	challengerL2Info, challengerL2Stack, challengerL2ChainDb, challengerL2ArbDb, challengerL2Blockchain := createL2BlockChain(t, nil, "", chainConfig)
+	challengerL2Info, challengerL2Stack, challengerL2ChainDb, challengerL2MtDb, challengerL2Blockchain := createL2BlockChain(t, nil, "", chainConfig)
 	rollupAddresses.SequencerInbox = challengerSeqInboxAddr
-	challengerL2, err := mtnode.CreateNode(ctx, challengerL2Stack, challengerL2ChainDb, challengerL2ArbDb, conf, challengerL2Blockchain, l1Backend, rollupAddresses, nil, nil, fatalErrChan)
+	challengerL2, err := mtnode.CreateNode(ctx, challengerL2Stack, challengerL2ChainDb, challengerL2MtDb, conf, challengerL2Blockchain, l1Backend, rollupAddresses, nil, nil, fatalErrChan)
 	Require(t, err)
 	err = challengerL2Stack.Start()
 	Require(t, err)

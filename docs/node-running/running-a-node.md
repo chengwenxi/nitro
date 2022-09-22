@@ -90,13 +90,13 @@ Note: If you’re interested in accessing an Mantle chain, but you don’t want 
 - `--node.rpc.tx-fee-cap`
   - Defaults to `1`, cap on transaction fee (in ether) that can be sent via the RPC APIs (0 = no cap)
 
-### Arb-Relay
+### Mt-Relay
 
-- When running more than one node, you want to run a single arb-relay per datacenter, which will reduce ingress fees and improve stability
-- The arb-relay is in the same docker image.
+- When running more than one node, you want to run a single mt-relay per datacenter, which will reduce ingress fees and improve stability
+- The mt-relay is in the same docker image.
 - Here is an example of how to run mantle-relay for Mantle One:
   ```shell
-  docker run --rm -it  -p 0.0.0.0:9642:9642 --entrypoint relay mantlenetwork/mantle-node:v2.0.3-9779dab --node.feed.output.addr=0.0.0.0 --node.feed.input.url=wss://arb1.mantle.io/feed
+  docker run --rm -it  -p 0.0.0.0:9642:9642 --entrypoint relay mantlenetwork/mantle-node:v2.0.3-9779dab --node.feed.output.addr=0.0.0.0 --node.feed.input.url=wss://mt1.mantle.io/feed
   ```
 - Here is an example of how to run mantle-node for Mantle One with custom relay:
   ```shell

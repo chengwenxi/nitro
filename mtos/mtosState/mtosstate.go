@@ -155,7 +155,7 @@ var (
 // Returns a list of precompiles that only appear in Mantle chains (i.e. MtOS precompiles) at the genesis block
 func getMantleOnlyPrecompiles(chainConfig *params.ChainConfig) []common.Address {
 	rules := chainConfig.Rules(big.NewInt(0), false)
-	arbPrecompiles := vm.ActivePrecompiles(rules)
+	mtPrecompiles := vm.ActivePrecompiles(rules)
 	rules.IsMantle = false
 	ethPrecompiles := vm.ActivePrecompiles(rules)
 
@@ -164,13 +164,13 @@ func getMantleOnlyPrecompiles(chainConfig *params.ChainConfig) []common.Address 
 		ethPrecompilesSet[addr] = true
 	}
 
-	var arbOnlyPrecompiles []common.Address
-	for _, addr := range arbPrecompiles {
+	var mtOnlyPrecompiles []common.Address
+	for _, addr := range mtPrecompiles {
 		if !ethPrecompilesSet[addr] {
-			arbOnlyPrecompiles = append(arbOnlyPrecompiles, addr)
+			mtOnlyPrecompiles = append(mtOnlyPrecompiles, addr)
 		}
 	}
-	return arbOnlyPrecompiles
+	return mtOnlyPrecompiles
 }
 
 // During early development we sometimes change the storage format of version 1, for convenience. But as soon as we

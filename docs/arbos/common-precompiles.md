@@ -39,7 +39,7 @@ Provides insight into the cost of using the chain. These methods have been adjus
 | Methods                                                |                                                                   |
 | :----------------------------------------------------- | :---------------------------------------------------------------- |
 | [![](e.png)][GIs1] [`GetPricesInWei`][GI1]`()`         | Get prices in wei when using the caller's preferred aggregator    |
-| [![](e.png)][GIs3] [`GetPricesInArbGas`][GI3]`()`      | Get prices in ArbGas when using the caller's preferred aggregator |
+| [![](e.png)][GIs3] [`GetPricesInMtGas`][GI3]`()`      | Get prices in MtGas when using the caller's preferred aggregator |
 | [![](e.png)][GIs4] [`GetGasAccountingParams`][GI4]`()` | Get the chain speed limit, pool size, and tx gas limit            |
 | [![](e.png)][GIs11] [`GetL1BaseFeeEstimate`][GI11]`()` | Get MtOS's estimate of the L1 basefee in wei                     |
 
@@ -83,8 +83,8 @@ Provides system-level functionality for interacting with L1 and understanding th
 
 | Methods                                                            |                                                             |
 | :----------------------------------------------------------------- | :---------------------------------------------------------- |
-| [![](e.png)][Ss0] [`ArbBlockNumber`][S0]`()`                       | Gets the current L2 block number                            |
-| [![](e.png)][Ss1] [`ArbBlockHash`][S1]`()`                         | Gets the L2 block hash, if the block is sufficiently recent |
+| [![](e.png)][Ss0] [`MtBlockNumber`][S0]`()`                       | Gets the current L2 block number                            |
+| [![](e.png)][Ss1] [`MtBlockHash`][S1]`()`                         | Gets the L2 block hash, if the block is sufficiently recent |
 | [![](e.png)][Ss5] [`IsTopLevelCall`][S5]`()`                       | Checks if the call is top-level                             |
 | [![](e.png)][Ss9] [`SendTxToL1`][S9]`(destination, calldataForL1)` | Sends a transaction to L1, adding it to the outbox          |
 | [![](e.png)][Ss11] [`WithdrawEth`][S11]`(destination)`             | Send paid eth to the destination on L1                      |

@@ -86,16 +86,16 @@ module.exports = {
       url: "https://rinkeby.infura.io/v3/" + process.env["INFURA_KEY"],
       accounts: process.env["DEVNET_PRIVKEY"] ? [process.env["DEVNET_PRIVKEY"]] : [],
     },
-    arbRinkeby: {
+    mtRinkeby: {
       url: "https://rinkeby.mantle.io/rpc",
       accounts: process.env["DEVNET_PRIVKEY"] ? [process.env["DEVNET_PRIVKEY"]] : [],
     },
-    arbGoerliRollup: {
+    mtGoerliRollup: {
       url: "https://goerli-rollup.mantle.io/rpc",
       accounts: process.env["DEVNET_PRIVKEY"] ? [process.env["DEVNET_PRIVKEY"]] : [],
     },
-    arb1: {
-      url: "https://arb1.mantle.io/rpc",
+    mt1: {
+      url: "https://mt1.mantle.io/rpc",
       accounts: process.env["MAINNET_PRIVKEY"] ? [process.env["MAINNET_PRIVKEY"]] : [],
     },
     nova: {
@@ -111,10 +111,10 @@ module.exports = {
       mainnet: process.env["ETHERSCAN_API_KEY"],
       goerli: process.env["ETHERSCAN_API_KEY"],
       rinkeby: process.env["ETHERSCAN_API_KEY"],
-      mantleOne: process.env["ARBISCAN_API_KEY"],
-      mantleTestnet: process.env["ARBISCAN_API_KEY"],
+      mantleOne: process.env["MTISCAN_API_KEY"],
+      mantleTestnet: process.env["MTISCAN_API_KEY"],
       nova: "0",
-      arbGoerliRollup: "0",
+      mtGoerliRollup: "0",
     },
     customChains: [
       {
@@ -126,7 +126,7 @@ module.exports = {
         },
       },
       {
-        network: "arbGoerliRollup",
+        network: "mtGoerliRollup",
         chainId: 421613,
         urls: {
           apiURL: "https://goerli-rollup-explorer.mantle.io/api",

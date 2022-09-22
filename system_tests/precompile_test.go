@@ -20,9 +20,9 @@ func TestPurePrecompileMethodCalls(t *testing.T) {
 	_, _, client, l2stack := CreateTestL2(t, ctx)
 	defer requireClose(t, l2stack)
 
-	arbSys, err := precompilesgen.NewMtSys(common.HexToAddress("0x64"), client)
+	mtSys, err := precompilesgen.NewMtSys(common.HexToAddress("0x64"), client)
 	Require(t, err, "could not deploy MtSys contract")
-	chainId, err := arbSys.ArbChainID(&bind.CallOpts{})
+	chainId, err := mtSys.MtChainID(&bind.CallOpts{})
 	Require(t, err, "failed to get the ChainID")
 	if chainId.Uint64() != params.MantleDevTestChainConfig().ChainID.Uint64() {
 		Fail(t, "Wrong ChainID", chainId.Uint64())
@@ -36,9 +36,9 @@ func TestCustomSolidityErrors(t *testing.T) {
 	_, _, client, l2stack := CreateTestL2(t, ctx)
 	defer requireClose(t, l2stack)
 
-	arbDebug, err := precompilesgen.NewMtDebug(common.HexToAddress("0xff"), client)
+	mtDebug, err := precompilesgen.NewMtDebug(common.HexToAddress("0xff"), client)
 	Require(t, err, "could not deploy MtDebug contract")
-	customError := arbDebug.CustomRevert(&bind.CallOpts{}, 1024)
+	customError := mtDebug.CustomRevert(&bind.CallOpts{}, 1024)
 	if customError == nil {
 		Fail(t, "should have errored")
 	}

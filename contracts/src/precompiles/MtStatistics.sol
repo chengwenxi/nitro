@@ -11,7 +11,7 @@ interface MtStatistics {
     /// @return (
     ///      Number of accounts,
     ///      Total storage allocated (includes storage that was later deallocated),
-    ///      Total ArbGas used,
+    ///      Total MtGas used,
     ///      Number of transaction receipt issued,
     ///      Number of contracts created,
     ///    )

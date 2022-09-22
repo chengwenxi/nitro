@@ -40,14 +40,14 @@ func TestSequencerFeePaid(t *testing.T) {
 	callOpts := l2info.GetDefaultCallOpts("Owner", ctx)
 
 	// get the network fee account
-	arbOwnerPublic, err := precompilesgen.NewMtOwnerPublic(common.HexToAddress("0x6b"), l2client)
+	mtOwnerPublic, err := precompilesgen.NewMtOwnerPublic(common.HexToAddress("0x6b"), l2client)
 	Require(t, err, "could not deploy MtOwner contract")
-	arbGasInfo, err := precompilesgen.NewMtGasInfo(common.HexToAddress("0x6c"), l2client)
+	mtGasInfo, err := precompilesgen.NewMtGasInfo(common.HexToAddress("0x6c"), l2client)
 	Require(t, err, "could not deploy MtOwner contract")
-	networkFeeAccount, err := arbOwnerPublic.GetNetworkFeeAccount(callOpts)
+	networkFeeAccount, err := mtOwnerPublic.GetNetworkFeeAccount(callOpts)
 	Require(t, err, "could not get the network fee account")
 
-	l1Estimate, err := arbGasInfo.GetL1BaseFeeEstimate(callOpts)
+	l1Estimate, err := mtGasInfo.GetL1BaseFeeEstimate(callOpts)
 	Require(t, err)
 	networkBefore := GetBalance(t, ctx, l2client, networkFeeAccount)
 
@@ -98,24 +98,24 @@ func testSequencerPriceAdjustsFrom(t *testing.T, initialEstimate uint64) {
 	ownerAuth := l2info.GetDefaultTransactOpts("Owner", ctx)
 
 	// make ownerAuth a chain owner
-	arbdebug, err := precompilesgen.NewMtDebug(common.HexToAddress("0xff"), l2client)
+	mtdebug, err := precompilesgen.NewMtDebug(common.HexToAddress("0xff"), l2client)
 	Require(t, err)
-	tx, err := arbdebug.BecomeChainOwner(&ownerAuth)
+	tx, err := mtdebug.BecomeChainOwner(&ownerAuth)
 	Require(t, err)
 	_, err = EnsureTxSucceeded(ctx, l2client, tx)
 
 	// use ownerAuth to set the L1 price per unit
 	Require(t, err)
-	arbOwner, err := precompilesgen.NewMtOwner(common.HexToAddress("0x70"), l2client)
+	mtOwner, err := precompilesgen.NewMtOwner(common.HexToAddress("0x70"), l2client)
 	Require(t, err)
-	tx, err = arbOwner.SetL1PricePerUnit(&ownerAuth, mtmath.UintToBig(initialEstimate))
+	tx, err = mtOwner.SetL1PricePerUnit(&ownerAuth, mtmath.UintToBig(initialEstimate))
 	Require(t, err)
 	_, err = WaitForTx(ctx, l2client, tx.Hash(), time.Second*5)
 	Require(t, err)
 
-	arbGasInfo, err := precompilesgen.NewMtGasInfo(common.HexToAddress("0x6c"), l2client)
+	mtGasInfo, err := precompilesgen.NewMtGasInfo(common.HexToAddress("0x6c"), l2client)
 	Require(t, err)
-	lastEstimate, err := arbGasInfo.GetL1BaseFeeEstimate(&bind.CallOpts{Context: ctx})
+	lastEstimate, err := mtGasInfo.GetL1BaseFeeEstimate(&bind.CallOpts{Context: ctx})
 	Require(t, err)
 	lastBatchCount, err := node.InboxTracker.GetBatchCount()
 	Require(t, err)
@@ -143,9 +143,9 @@ func testSequencerPriceAdjustsFrom(t *testing.T, initialEstimate uint64) {
 			Require(t, err)
 
 			callOpts := &bind.CallOpts{Context: ctx, BlockNumber: receipt.BlockNumber}
-			actualL1FeePerUnit, err := arbGasInfo.GetL1BaseFeeEstimate(callOpts)
+			actualL1FeePerUnit, err := mtGasInfo.GetL1BaseFeeEstimate(callOpts)
 			Require(t, err)
-			surplus, err := arbGasInfo.GetL1PricingSurplus(callOpts)
+			surplus, err := mtGasInfo.GetL1PricingSurplus(callOpts)
 			Require(t, err)
 
 			colors.PrintGrey("MtOS updated its L1 estimate")
@@ -214,9 +214,9 @@ func testSequencerPriceAdjustsFrom(t *testing.T, initialEstimate uint64) {
 		Fail(t, "reward recipient didn't get paid")
 	}
 
-	arbAggregator, err := precompilesgen.NewMtAggregator(common.HexToAddress("0x6d"), l2client)
+	mtAggregator, err := precompilesgen.NewMtAggregator(common.HexToAddress("0x6d"), l2client)
 	Require(t, err)
-	batchPosterAddresses, err := arbAggregator.GetBatchPosters(&bind.CallOpts{Context: ctx})
+	batchPosterAddresses, err := mtAggregator.GetBatchPosters(&bind.CallOpts{Context: ctx})
 	Require(t, err)
 	numReimbursed := 0
 	for _, bpAddr := range batchPosterAddresses {

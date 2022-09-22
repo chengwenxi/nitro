@@ -21,7 +21,7 @@ async function sendTestMessages() {
 }
 
 describe("OneStepProof", function () {
-  const arbProofsRoot = "./test/prover/proofs/";
+  const mtProofsRoot = "./test/prover/proofs/";
   const specProofsRoot = "./test/prover/spec-proofs/";
 
   before(async function () {
@@ -32,9 +32,9 @@ describe("OneStepProof", function () {
   })
 
   const proofs = [];
-  for (let file of fs.readdirSync(arbProofsRoot)) {
+  for (let file of fs.readdirSync(mtProofsRoot)) {
     if (!file.endsWith(".json")) continue;
-    proofs.push([arbProofsRoot + file, file]);
+    proofs.push([mtProofsRoot + file, file]);
   }
   if (fs.existsSync(specProofsRoot)) {
     for (let file of fs.readdirSync(specProofsRoot)) {

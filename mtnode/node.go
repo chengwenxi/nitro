@@ -695,7 +695,7 @@ func createNodeImpl(
 	ctx context.Context,
 	stack *node.Node,
 	chainDb ethdb.Database,
-	arbDb ethdb.Database,
+	mtDb ethdb.Database,
 	configFetcher ConfigFetcher,
 	l2BlockChain *core.BlockChain,
 	l1client mtutil.L1Interface,
@@ -746,7 +746,7 @@ func createNodeImpl(
 		l1Reader = headerreader.New(l1client, config.L1Reader)
 	}
 
-	txStreamer, err := NewTransactionStreamer(arbDb, l2BlockChain, broadcastServer)
+	txStreamer, err := NewTransactionStreamer(mtDb, l2BlockChain, broadcastServer)
 	if err != nil {
 		return nil, err
 	}
@@ -881,7 +881,7 @@ func createNodeImpl(
 		return nil, errors.New("a data availability service is required for this chain, but it was not configured")
 	}
 
-	inboxTracker, err := NewInboxTracker(arbDb, txStreamer, daReader)
+	inboxTracker, err := NewInboxTracker(mtDb, txStreamer, daReader)
 	if err != nil {
 		return nil, err
 	}
@@ -917,7 +917,7 @@ func createNodeImpl(
 			inboxTracker,
 			txStreamer,
 			l2BlockChain,
-			rawdb.NewTable(arbDb, blockValidatorPrefix),
+			rawdb.NewTable(mtDb, blockValidatorPrefix),
 			daReader,
 			blockValidatorConf,
 			fatalErrChan,
@@ -1223,7 +1223,7 @@ func CreateNode(
 	ctx context.Context,
 	stack *node.Node,
 	chainDb ethdb.Database,
-	arbDb ethdb.Database,
+	mtDb ethdb.Database,
 	configFetcher ConfigFetcher,
 	l2BlockChain *core.BlockChain,
 	l1client mtutil.L1Interface,
@@ -1232,14 +1232,14 @@ func CreateNode(
 	daSigner das.DasSigner,
 	fatalErrChan chan error,
 ) (*Node, error) {
-	currentNode, err := createNodeImpl(ctx, stack, chainDb, arbDb, configFetcher, l2BlockChain, l1client, deployInfo, txOpts, daSigner, fatalErrChan)
+	currentNode, err := createNodeImpl(ctx, stack, chainDb, mtDb, configFetcher, l2BlockChain, l1client, deployInfo, txOpts, daSigner, fatalErrChan)
 	if err != nil {
 		return nil, err
 	}
 	var apis []rpc.API
 	if currentNode.BlockValidator != nil {
 		apis = append(apis, rpc.API{
-			Namespace: "arb",
+			Namespace: "mt",
 			Version:   "1.0",
 			Service:   &BlockValidatorAPI{val: currentNode.BlockValidator},
 			Public:    false,
@@ -1247,7 +1247,7 @@ func CreateNode(
 	}
 	if currentNode.StatelessBlockValidator != nil {
 		apis = append(apis, rpc.API{
-			Namespace: "arbvalidator",
+			Namespace: "mtvalidator",
 			Version:   "1.0",
 			Service: &BlockValidatorDebugAPI{
 				val:        currentNode.StatelessBlockValidator,
@@ -1258,14 +1258,14 @@ func CreateNode(
 	}
 
 	apis = append(apis, rpc.API{
-		Namespace: "arb",
+		Namespace: "mt",
 		Version:   "1.0",
-		Service:   &ArbAPI{currentNode.TxPublisher},
+		Service:   &MtAPI{currentNode.TxPublisher},
 		Public:    false,
 	})
 	config := configFetcher.Get()
 	apis = append(apis, rpc.API{
-		Namespace: "arbdebug",
+		Namespace: "mtdebug",
 		Version:   "1.0",
 		Service: &MtDebugAPI{
 			blockchain:        l2BlockChain,

@@ -75,11 +75,11 @@ func (a *BlockValidatorDebugAPI) ValidateBlock(
 	return result, err
 }
 
-type ArbAPI struct {
+type MtAPI struct {
 	txPublisher TransactionPublisher
 }
 
-func (a *ArbAPI) CheckPublisherHealth(ctx context.Context) error {
+func (a *MtAPI) CheckPublisherHealth(ctx context.Context) error {
 	return a.txPublisher.CheckHealth(ctx)
 }
 

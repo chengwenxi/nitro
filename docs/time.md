@@ -41,7 +41,7 @@ const txnReceipt = await mantleProvider.getTransactionReceipt('0x...')
 The Mantle block number can also be retrieved within an Mantle contract via [MtSys](./mtos/precompiles.md#MtSys):
 
 ```sol
- MtSys(100).arbBlockNumber() // returns Mantle block number
+ MtSys(100).mtBlockNumber() // returns Mantle block number
 ```
 
 ## Example

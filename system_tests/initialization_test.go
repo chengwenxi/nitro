@@ -60,7 +60,7 @@ func TestInitContract(t *testing.T) {
 			Nonce:        1,
 			ContractInfo: contractData,
 		}
-		l2info.ArbInitData.Accounts = append(l2info.ArbInitData.Accounts, accountInfo)
+		l2info.MtInitData.Accounts = append(l2info.MtInitData.Accounts, accountInfo)
 		expectedSums[accountAddress] = sum
 	}
 	_, _, client, stack := CreateTestL2WithConfig(t, ctx, l2info, mtnode.ConfigDefaultL2Test(), true)

@@ -280,14 +280,14 @@ func createL2BlockChain(
 	Require(t, err)
 	chainDb, err := stack.OpenDatabase("chaindb", 0, 0, "", false)
 	Require(t, err)
-	arbDb, err := stack.OpenDatabase("arbdb", 0, 0, "", false)
+	mtDb, err := stack.OpenDatabase("mtdb", 0, 0, "", false)
 	Require(t, err)
 
-	initReader := statetransfer.NewMemoryInitDataReader(&l2info.ArbInitData)
+	initReader := statetransfer.NewMemoryInitDataReader(&l2info.MtInitData)
 	blockchain, err := mtnode.WriteOrTestBlockChain(chainDb, nil, initReader, chainConfig, mtnode.ConfigDefaultL2Test(), 0)
 	Require(t, err)
 
-	return l2info, stack, chainDb, arbDb, blockchain
+	return l2info, stack, chainDb, mtDb, blockchain
 }
 
 func ClientForStack(t *testing.T, backend *node.Node) *ethclient.Client {
@@ -322,9 +322,9 @@ func createTestNodeOnL1WithConfig(
 	fatalErrChan := make(chan error, 10)
 	l1info, l1client, l1backend, l1stack = createTestL1BlockChain(t, nil)
 	var l2chainDb ethdb.Database
-	var l2arbDb ethdb.Database
+	var l2mtDb ethdb.Database
 	var l2blockchain *core.BlockChain
-	l2info, l2stack, l2chainDb, l2arbDb, l2blockchain = createL2BlockChain(t, nil, "", chainConfig)
+	l2info, l2stack, l2chainDb, l2mtDb, l2blockchain = createL2BlockChain(t, nil, "", chainConfig)
 	addresses := DeployOnTestL1(t, ctx, l1info, l1client, chainConfig.ChainID)
 	var sequencerTxOptsPtr *bind.TransactOpts
 	if isSequencer {
@@ -340,7 +340,7 @@ func createTestNodeOnL1WithConfig(
 
 	var err error
 	currentNode, err = mtnode.CreateNode(
-		ctx, l2stack, l2chainDb, l2arbDb, nodeConfig, l2blockchain, l1client,
+		ctx, l2stack, l2chainDb, l2mtDb, nodeConfig, l2blockchain, l1client,
 		addresses, sequencerTxOptsPtr, nil, fatalErrChan,
 	)
 	Require(t, err)
@@ -364,8 +364,8 @@ func CreateTestL2WithConfig(
 	t *testing.T, ctx context.Context, l2Info *BlockchainTestInfo, nodeConfig *mtnode.Config, takeOwnership bool,
 ) (*BlockchainTestInfo, *mtnode.Node, *ethclient.Client, *node.Node) {
 	feedErrChan := make(chan error, 10)
-	l2info, stack, chainDb, arbDb, blockchain := createL2BlockChain(t, l2Info, "", params.MantleDevTestChainConfig())
-	currentNode, err := mtnode.CreateNode(ctx, stack, chainDb, arbDb, nodeConfig, blockchain, nil, nil, nil, nil, feedErrChan)
+	l2info, stack, chainDb, mtDb, blockchain := createL2BlockChain(t, l2Info, "", params.MantleDevTestChainConfig())
+	currentNode, err := mtnode.CreateNode(ctx, stack, chainDb, mtDb, nodeConfig, blockchain, nil, nil, nil, nil, feedErrChan)
 	Require(t, err)
 
 	// Give the node an init message
@@ -379,10 +379,10 @@ func CreateTestL2WithConfig(
 		debugAuth := l2info.GetDefaultTransactOpts("Owner", ctx)
 
 		// make auth a chain owner
-		arbdebug, err := precompilesgen.NewMtDebug(common.HexToAddress("0xff"), client)
+		mtdebug, err := precompilesgen.NewMtDebug(common.HexToAddress("0xff"), client)
 		Require(t, err, "failed to deploy MtDebug")
 
-		tx, err := arbdebug.BecomeChainOwner(&debugAuth)
+		tx, err := mtdebug.BecomeChainOwner(&debugAuth)
 		Require(t, err, "failed to deploy MtDebug")
 
 		_, err = EnsureTxSucceeded(ctx, client, tx)
@@ -457,14 +457,14 @@ func Create2ndNodeWithConfig(
 
 	l2chainDb, err := l2stack.OpenDatabase("chaindb", 0, 0, "", false)
 	Require(t, err)
-	l2arbDb, err := l2stack.OpenDatabase("arbdb", 0, 0, "", false)
+	l2mtDb, err := l2stack.OpenDatabase("mtdb", 0, 0, "", false)
 	Require(t, err)
 	initReader := statetransfer.NewMemoryInitDataReader(l2InitData)
 
 	l2blockchain, err := mtnode.WriteOrTestBlockChain(l2chainDb, nil, initReader, first.MtInterface.BlockChain().Config(), mtnode.ConfigDefaultL2Test(), 0)
 	Require(t, err)
 
-	currentNode, err := mtnode.CreateNode(ctx, l2stack, l2chainDb, l2arbDb, nodeConfig, l2blockchain, l1client, first.DeployInfo, nil, nil, feedErrChan)
+	currentNode, err := mtnode.CreateNode(ctx, l2stack, l2chainDb, l2mtDb, nodeConfig, l2blockchain, l1client, first.DeployInfo, nil, nil, feedErrChan)
 	Require(t, err)
 
 	err = l2stack.Start()

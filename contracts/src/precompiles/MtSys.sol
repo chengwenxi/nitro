@@ -14,19 +14,19 @@ interface MtSys {
      * @notice Get Mantle block number (distinct from L1 block number; Mantle genesis block has block number 0)
      * @return block number as int
      */
-    function arbBlockNumber() external view returns (uint256);
+    function mtBlockNumber() external view returns (uint256);
 
     /**
-     * @notice Get Mantle block hash (reverts unless currentBlockNum-256 <= arbBlockNum < currentBlockNum)
+     * @notice Get Mantle block hash (reverts unless currentBlockNum-256 <= mtBlockNum < currentBlockNum)
      * @return block hash
      */
-    function arbBlockHash(uint256 arbBlockNum) external view returns (bytes32);
+    function mtBlockHash(uint256 mtBlockNum) external view returns (bytes32);
 
     /**
      * @notice Gets the rollup's unique chain identifier
      * @return Chain identifier as int
      */
-    function arbChainID() external view returns (uint256);
+    function mtChainID() external view returns (uint256);
 
     /**
      * @notice Get internal version number identifying an MtOS build
@@ -115,7 +115,7 @@ interface MtSys {
         address indexed destination,
         uint256 indexed hash,
         uint256 indexed position,
-        uint256 arbBlockNum,
+        uint256 mtBlockNum,
         uint256 ethBlockNum,
         uint256 timestamp,
         uint256 callvalue,
@@ -129,7 +129,7 @@ interface MtSys {
         uint256 indexed uniqueId,
         uint256 indexed batchNumber,
         uint256 indexInBatch,
-        uint256 arbBlockNum,
+        uint256 mtBlockNum,
         uint256 ethBlockNum,
         uint256 timestamp,
         uint256 callvalue,

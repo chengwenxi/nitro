@@ -126,7 +126,7 @@ func TestDASRekey(t *testing.T) {
 		authorizeDASKeyset(t, ctx, pubkeyA, l1info, l1client)
 
 		// Setup L2 chain
-		_, l2stackA, l2chainDb, l2arbDb, l2blockchain := createL2BlockChain(t, l2info, nodeDir, chainConfig)
+		_, l2stackA, l2chainDb, l2mtDb, l2blockchain := createL2BlockChain(t, l2info, nodeDir, chainConfig)
 		l2info.GenerateAccount("User2")
 
 		// Setup DAS config
@@ -138,7 +138,7 @@ func TestDASRekey(t *testing.T) {
 		l1NodeConfigA.DataAvailability.RestfulClientAggregatorConfig.Urls = []string{restServerUrlA}
 		l1NodeConfigA.DataAvailability.L1NodeURL = "none"
 
-		nodeA, err := mtnode.CreateNode(ctx, l2stackA, l2chainDb, l2arbDb, l1NodeConfigA, l2blockchain, l1client, addresses, sequencerTxOptsPtr, nil, feedErrChan)
+		nodeA, err := mtnode.CreateNode(ctx, l2stackA, l2chainDb, l2mtDb, l1NodeConfigA, l2blockchain, l1client, addresses, sequencerTxOptsPtr, nil, feedErrChan)
 		Require(t, err)
 		Require(t, l2stackA.Start())
 		l2clientA := ClientForStack(t, l2stackA)
@@ -151,7 +151,7 @@ func TestDASRekey(t *testing.T) {
 
 		l1NodeConfigB.DataAvailability.L1NodeURL = "none"
 
-		l2clientB, _, l2stackB := Create2ndNodeWithConfig(t, ctx, nodeA, l1stack, &l2info.ArbInitData, l1NodeConfigB)
+		l2clientB, _, l2stackB := Create2ndNodeWithConfig(t, ctx, nodeA, l1stack, &l2info.MtInitData, l1NodeConfigB)
 		checkBatchPosting(t, ctx, l1client, l2clientA, l1info, l2info, big.NewInt(1e12), l2clientB)
 		requireClose(t, l2stackA)
 		requireClose(t, l2stackB)
@@ -174,18 +174,18 @@ func TestDASRekey(t *testing.T) {
 	l2chainDb, err := l2stackA.OpenDatabase("chaindb", 0, 0, "", false)
 	Require(t, err)
 
-	l2arbDb, err := l2stackA.OpenDatabase("arbdb", 0, 0, "", false)
+	l2mtDb, err := l2stackA.OpenDatabase("mtdb", 0, 0, "", false)
 	Require(t, err)
 
 	l2blockchain, err := mtnode.GetBlockChain(l2chainDb, nil, chainConfig, mtnode.ConfigDefaultL2Test())
 	Require(t, err)
 	l1NodeConfigA.DataAvailability.AggregatorConfig = aggConfigForBackend(t, backendConfigB)
-	nodeA, err := mtnode.CreateNode(ctx, l2stackA, l2chainDb, l2arbDb, l1NodeConfigA, l2blockchain, l1client, addresses, sequencerTxOptsPtr, nil, feedErrChan)
+	nodeA, err := mtnode.CreateNode(ctx, l2stackA, l2chainDb, l2mtDb, l1NodeConfigA, l2blockchain, l1client, addresses, sequencerTxOptsPtr, nil, feedErrChan)
 	Require(t, err)
 	Require(t, l2stackA.Start())
 	l2clientA := ClientForStack(t, l2stackA)
 
-	l2clientB, _, l2stackB := Create2ndNodeWithConfig(t, ctx, nodeA, l1stack, &l2info.ArbInitData, l1NodeConfigB)
+	l2clientB, _, l2stackB := Create2ndNodeWithConfig(t, ctx, nodeA, l1stack, &l2info.MtInitData, l1NodeConfigB)
 	checkBatchPosting(t, ctx, l1client, l2clientA, l1info, l2info, big.NewInt(2e12), l2clientB)
 
 	Require(t, l2stackA.Close())
@@ -307,12 +307,12 @@ func TestDASComplexConfigAndRestMirror(t *testing.T) {
 	Require(t, err)
 
 	// Setup L2 chain
-	l2info, l2stackA, l2chainDb, l2arbDb, l2blockchain := createL2BlockChain(t, nil, "", chainConfig)
+	l2info, l2stackA, l2chainDb, l2mtDb, l2blockchain := createL2BlockChain(t, nil, "", chainConfig)
 	l2info.GenerateAccount("User2")
 
 	sequencerTxOpts := l1info.GetDefaultTransactOpts("Sequencer", ctx)
 	sequencerTxOptsPtr := &sequencerTxOpts
-	nodeA, err := mtnode.CreateNode(ctx, l2stackA, l2chainDb, l2arbDb, l1NodeConfigA, l2blockchain, l1client, addresses, sequencerTxOptsPtr, daSigner, feedErrChan)
+	nodeA, err := mtnode.CreateNode(ctx, l2stackA, l2chainDb, l2mtDb, l1NodeConfigA, l2blockchain, l1client, addresses, sequencerTxOptsPtr, daSigner, feedErrChan)
 	Require(t, err)
 	Require(t, l2stackA.Start())
 	l2clientA := ClientForStack(t, l2stackA)
@@ -336,7 +336,7 @@ func TestDASComplexConfigAndRestMirror(t *testing.T) {
 	l1NodeConfigB.DataAvailability.RestfulClientAggregatorConfig.Enable = true
 	l1NodeConfigB.DataAvailability.RestfulClientAggregatorConfig.Urls = []string{"http://" + restLis.Addr().String()}
 	l1NodeConfigB.DataAvailability.L1NodeURL = "none"
-	l2clientB, _, l2stackB := Create2ndNodeWithConfig(t, ctx, nodeA, l1stack, &l2info.ArbInitData, l1NodeConfigB)
+	l2clientB, _, l2stackB := Create2ndNodeWithConfig(t, ctx, nodeA, l1stack, &l2info.MtInitData, l1NodeConfigB)
 
 	checkBatchPosting(t, ctx, l1client, l2clientA, l1info, l2info, big.NewInt(1e12), l2clientB)
 

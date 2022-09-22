@@ -4,7 +4,7 @@
 use crate::{
     binary::FloatInstruction,
     utils::Bytes32,
-    value::{ArbValueType, FunctionType, IntegerValType},
+    value::{FunctionType, IntegerValType, MtValueType},
 };
 use digest::Digest;
 use eyre::{bail, ensure, Result};
@@ -86,7 +86,7 @@ pub enum Opcode {
 
     MemoryLoad {
         /// The type we are loading into.
-        ty: ArbValueType,
+        ty: MtValueType,
         /// How many bytes in memory we are loading from.
         bytes: u8,
         /// When bytes matches the type's size, this is irrelevant and should be false.
@@ -94,7 +94,7 @@ pub enum Opcode {
     },
     MemoryStore {
         /// The type we are storing from.
-        ty: ArbValueType,
+        ty: MtValueType,
         /// How many bytes in memory we are storing into.
         bytes: u8,
     },
@@ -115,7 +115,7 @@ pub enum Opcode {
     I64ExtendI32(bool),
 
     /// Parameterized by destination type, then source type
-    Reinterpret(ArbValueType, ArbValueType),
+    Reinterpret(MtValueType, MtValueType),
 
     /// Parameterized by the number of source bits
     I32ExtendS(u8),
@@ -173,35 +173,35 @@ impl Opcode {
             Opcode::GlobalGet => 0x23,
             Opcode::GlobalSet => 0x24,
             Opcode::MemoryLoad { ty, bytes, signed } => match (ty, bytes, signed) {
-                (ArbValueType::I32, 4, false) => 0x28,
-                (ArbValueType::I64, 8, false) => 0x29,
-                (ArbValueType::F32, 4, false) => 0x2A,
-                (ArbValueType::F64, 8, false) => 0x2B,
-                (ArbValueType::I32, 1, true) => 0x2C,
-                (ArbValueType::I32, 1, false) => 0x2D,
-                (ArbValueType::I32, 2, true) => 0x2E,
-                (ArbValueType::I32, 2, false) => 0x2F,
-                (ArbValueType::I64, 1, true) => 0x30,
-                (ArbValueType::I64, 1, false) => 0x31,
-                (ArbValueType::I64, 2, true) => 0x32,
-                (ArbValueType::I64, 2, false) => 0x33,
-                (ArbValueType::I64, 4, true) => 0x34,
-                (ArbValueType::I64, 4, false) => 0x35,
+                (MtValueType::I32, 4, false) => 0x28,
+                (MtValueType::I64, 8, false) => 0x29,
+                (MtValueType::F32, 4, false) => 0x2A,
+                (MtValueType::F64, 8, false) => 0x2B,
+                (MtValueType::I32, 1, true) => 0x2C,
+                (MtValueType::I32, 1, false) => 0x2D,
+                (MtValueType::I32, 2, true) => 0x2E,
+                (MtValueType::I32, 2, false) => 0x2F,
+                (MtValueType::I64, 1, true) => 0x30,
+                (MtValueType::I64, 1, false) => 0x31,
+                (MtValueType::I64, 2, true) => 0x32,
+                (MtValueType::I64, 2, false) => 0x33,
+                (MtValueType::I64, 4, true) => 0x34,
+                (MtValueType::I64, 4, false) => 0x35,
                 _ => panic!(
                     "Unsupported memory load of type {:?} from {} bytes with signed {}",
                     ty, bytes, signed,
                 ),
             },
             Opcode::MemoryStore { ty, bytes } => match (ty, bytes) {
-                (ArbValueType::I32, 4) => 0x36,
-                (ArbValueType::I64, 8) => 0x37,
-                (ArbValueType::F32, 4) => 0x38,
-                (ArbValueType::F64, 8) => 0x39,
-                (ArbValueType::I32, 1) => 0x3A,
-                (ArbValueType::I32, 2) => 0x3B,
-                (ArbValueType::I64, 1) => 0x3C,
-                (ArbValueType::I64, 2) => 0x3D,
-                (ArbValueType::I64, 4) => 0x3E,
+                (MtValueType::I32, 4) => 0x36,
+                (MtValueType::I64, 8) => 0x37,
+                (MtValueType::F32, 4) => 0x38,
+                (MtValueType::F64, 8) => 0x39,
+                (MtValueType::I32, 1) => 0x3A,
+                (MtValueType::I32, 2) => 0x3B,
+                (MtValueType::I64, 1) => 0x3C,
+                (MtValueType::I64, 2) => 0x3D,
+                (MtValueType::I64, 4) => 0x3E,
                 _ => panic!(
                     "Unsupported memory store of type {:?} to {} bytes",
                     ty, bytes,
@@ -233,10 +233,10 @@ impl Opcode {
                 false => 0xad,
             },
             Opcode::Reinterpret(dest, source) => match (dest, source) {
-                (ArbValueType::I32, ArbValueType::F32) => 0xBC,
-                (ArbValueType::I64, ArbValueType::F64) => 0xBD,
-                (ArbValueType::F32, ArbValueType::I32) => 0xBE,
-                (ArbValueType::F64, ArbValueType::I64) => 0xBF,
+                (MtValueType::I32, MtValueType::F32) => 0xBC,
+                (MtValueType::I64, MtValueType::F64) => 0xBD,
+                (MtValueType::F32, MtValueType::I32) => 0xBE,
+                (MtValueType::F64, MtValueType::I64) => 0xBF,
                 _ => panic!("Unsupported reinterpret to {:?} from {:?}", dest, source),
             },
             Opcode::I32ExtendS(x) => match x {
@@ -495,7 +495,7 @@ pub fn wasm_to_wavm<'a>(
         ($type:ident, $memory:expr, $bytes:expr, $signed:ident) => {{
             ensure!($memory.memory == 0, "multi-memory proposal not supported");
             let op = Opcode::MemoryLoad {
-                ty: ArbValueType::$type,
+                ty: MtValueType::$type,
                 bytes: $bytes,
                 signed: $signed,
             };
@@ -506,7 +506,7 @@ pub fn wasm_to_wavm<'a>(
         ($type:ident, $memory:expr, $bytes:expr) => {{
             ensure!($memory.memory == 0, "multi-memory proposal not supported");
             let op = Opcode::MemoryStore {
-                ty: ArbValueType::$type,
+                ty: MtValueType::$type,
                 bytes: $bytes,
             };
             out.push(Instruction::with_data(op, $memory.offset));
@@ -535,7 +535,7 @@ pub fn wasm_to_wavm<'a>(
     }
     macro_rules! reinterpret {
         ($dest:ident, $source:ident) => {{
-            let op = Opcode::Reinterpret(ArbValueType::$dest, ArbValueType::$source);
+            let op = Opcode::Reinterpret(MtValueType::$dest, MtValueType::$source);
             out.push(Instruction::simple(op));
         }};
     }
@@ -563,9 +563,9 @@ pub fn wasm_to_wavm<'a>(
             // Reinterpret float args into ints
             for &arg in sig.inputs.iter().rev() {
                 match arg {
-                    ArbValueType::I32 | ArbValueType::I64 => {}
-                    ArbValueType::F32 => reinterpret!(I32, F32),
-                    ArbValueType::F64 => reinterpret!(I64, F64),
+                    MtValueType::I32 | MtValueType::I64 => {}
+                    MtValueType::F32 => reinterpret!(I32, F32),
+                    MtValueType::F64 => reinterpret!(I64, F64),
                     _ => bail!("Floating point operation {:?} has bad args", &func),
                 }
                 opcode!(MoveFromStackToInternal)
@@ -578,10 +578,10 @@ pub fn wasm_to_wavm<'a>(
             // Reinterpret returned ints that should be floats into floats
             let outputs = sig.outputs;
             match outputs.as_slice() {
-                &[ArbValueType::I32] => {}
-                &[ArbValueType::I64] => {}
-                &[ArbValueType::F32] => reinterpret!(F32, I32),
-                &[ArbValueType::F64] => reinterpret!(F64, I64),
+                &[MtValueType::I32] => {}
+                &[MtValueType::I64] => {}
+                &[MtValueType::F32] => reinterpret!(F32, I32),
+                &[MtValueType::F64] => reinterpret!(F64, I64),
                 _ => panic!("Floating point op {:?} should have 1 output but has {}", func, outputs.len()),
             }
 

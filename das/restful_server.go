@@ -23,16 +23,16 @@ import (
 )
 
 var (
-	restGetByHashRequestGauge       = metrics.NewRegisteredGauge("arb/das/rest/getbyhash/requests", nil)
-	restGetByHashSuccessGauge       = metrics.NewRegisteredGauge("arb/das/rest/getbyhash/success", nil)
-	restGetByHashFailureGauge       = metrics.NewRegisteredGauge("arb/das/rest/getbyhash/failure", nil)
-	restGetByHashReturnedBytesGauge = metrics.NewRegisteredGauge("arb/das/rest/getbyhash/bytes", nil)
+	restGetByHashRequestGauge       = metrics.NewRegisteredGauge("mt/das/rest/getbyhash/requests", nil)
+	restGetByHashSuccessGauge       = metrics.NewRegisteredGauge("mt/das/rest/getbyhash/success", nil)
+	restGetByHashFailureGauge       = metrics.NewRegisteredGauge("mt/das/rest/getbyhash/failure", nil)
+	restGetByHashReturnedBytesGauge = metrics.NewRegisteredGauge("mt/das/rest/getbyhash/bytes", nil)
 
 	// This histogram is set with the default parameters of go-ethereum/metrics/Timer.
 	// If requests are infrequent, then the reservoir size parameter can be adjusted
 	// downwards to make a smaller window of samples that are included. The alpha parameter
 	// can be adjusted to downweight the importance of older samples.
-	restGetByHashDurationHistogram = metrics.NewRegisteredHistogram("arb/das/rest/getbyhash/duration", nil, metrics.NewExpDecaySample(1028, 0.015))
+	restGetByHashDurationHistogram = metrics.NewRegisteredHistogram("mt/das/rest/getbyhash/duration", nil, metrics.NewExpDecaySample(1028, 0.015))
 )
 
 type RestfulDasServer struct {

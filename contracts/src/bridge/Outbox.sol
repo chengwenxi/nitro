@@ -42,7 +42,7 @@ contract Outbox is DelegateCallAware, IOutbox {
     L2ToL1Context internal context;
 
     // default context values to be used in storage instead of zero, to save on storage refunds
-    // it is assumed that arb-os never assigns these values to a valid leaf to be redeemed
+    // it is assumed that mt-os never assigns these values to a valid leaf to be redeemed
     uint128 private constant L2BLOCK_DEFAULT_CONTEXT = type(uint128).max;
     uint128 private constant L1BLOCK_DEFAULT_CONTEXT = type(uint128).max;
     uint128 private constant TIMESTAMP_DEFAULT_CONTEXT = type(uint128).max;

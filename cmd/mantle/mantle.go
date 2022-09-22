@@ -259,7 +259,7 @@ func main() {
 		return
 	}
 
-	arbDb, err := stack.OpenDatabase("mantledata", 0, 0, "", false)
+	mtDb, err := stack.OpenDatabase("mantledata", 0, 0, "", false)
 	if err != nil {
 		panic(fmt.Sprintf("Failed to open database: %v", err))
 	}
@@ -288,7 +288,7 @@ func main() {
 		ctx,
 		stack,
 		chainDb,
-		arbDb,
+		mtDb,
 		&NodeConfigFetcher{liveNodeConfig},
 		l2BlockChain,
 		l1Client,
@@ -591,9 +591,9 @@ func ParseNode(ctx context.Context, args []string) (*NodeConfig, *genericconf.Wa
 
 func applyMantleOneParameters(k *koanf.Koanf) error {
 	return k.Load(confmap.Provider(map[string]interface{}{
-		"persistent.chain":                   "arb1",
-		"node.forwarding-target":             "https://arb1.mantle.io/rpc",
-		"node.feed.input.url":                "wss://arb1.mantle.io/feed",
+		"persistent.chain":                   "mt1",
+		"node.forwarding-target":             "https://mt1.mantle.io/rpc",
+		"node.feed.input.url":                "wss://mt1.mantle.io/feed",
 		"l1.rollup.bridge":                   "0x8315177ab297ba92a06054ce80a67ed4dbd7ed3a",
 		"l1.rollup.inbox":                    "0x4dbd4fc535ac27206064b68ffcf827b0a60bab3f",
 		"l1.rollup.rollup":                   "0x5ef0d09d1e6204141b4d37530808ed19f60fba35",

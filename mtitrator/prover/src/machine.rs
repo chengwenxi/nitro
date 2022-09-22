@@ -9,7 +9,7 @@ use crate::{
     merkle::{Merkle, MerkleType},
     reinterpret::{ReinterpretAsSigned, ReinterpretAsUnsigned},
     utils::{file_bytes, Bytes32, CBytes, RemoteTableType},
-    value::{ArbValueType, FunctionType, IntegerValType, ProgramCounter, Value},
+    value::{FunctionType, IntegerValType, MtValueType, ProgramCounter, Value},
     wavm::{
         pack_cross_module_call, unpack_cross_module_call, wasm_to_wavm, FloatingPointImpls,
         IBinOpType, IRelOpType, IUnOpType, Instruction, Opcode,
@@ -63,7 +63,7 @@ pub struct Function {
     ty: FunctionType,
     #[serde(skip)]
     code_merkle: Merkle,
-    local_types: Vec<ArbValueType>,
+    local_types: Vec<MtValueType>,
 }
 
 impl Function {
@@ -115,7 +115,7 @@ impl Function {
     fn new_from_wavm(
         code: Vec<Instruction>,
         ty: FunctionType,
-        local_types: Vec<ArbValueType>,
+        local_types: Vec<MtValueType>,
     ) -> Function {
         assert!(
             u32::try_from(code.len()).is_ok(),
@@ -220,7 +220,7 @@ struct Table {
 
 impl Table {
     fn serialize_for_proof(&self) -> Result<Vec<u8>> {
-        let mut data = vec![ArbValueType::try_from(self.ty.element_type)?.serialize()];
+        let mut data = vec![MtValueType::try_from(self.ty.element_type)?.serialize()];
         data.extend(&(self.elems.len() as u64).to_be_bytes());
         data.extend(self.elems_merkle.root());
         Ok(data)
@@ -229,7 +229,7 @@ impl Table {
     fn hash(&self) -> Result<Bytes32> {
         let mut h = Keccak256::new();
         h.update("Table:");
-        h.update(&[ArbValueType::try_from(self.ty.element_type)?.serialize()]);
+        h.update(&[MtValueType::try_from(self.ty.element_type)?.serialize()]);
         h.update(&(self.elems.len() as u64).to_be_bytes());
         h.update(self.elems_merkle.root());
         Ok(h.finalize().into())
@@ -491,12 +491,12 @@ impl Module {
         // Make internal functions
         let internals_offset = code.len() as u32;
         let mut memory_load_internal_type = FunctionType::default();
-        memory_load_internal_type.inputs.push(ArbValueType::I32);
-        memory_load_internal_type.outputs.push(ArbValueType::I32);
+        memory_load_internal_type.inputs.push(MtValueType::I32);
+        memory_load_internal_type.outputs.push(MtValueType::I32);
         func_types.push(memory_load_internal_type.clone());
         code.push(make_internal_func(
             Opcode::MemoryLoad {
-                ty: ArbValueType::I32,
+                ty: MtValueType::I32,
                 bytes: 1,
                 signed: false,
             },
@@ -505,19 +505,19 @@ impl Module {
         func_types.push(memory_load_internal_type.clone());
         code.push(make_internal_func(
             Opcode::MemoryLoad {
-                ty: ArbValueType::I32,
+                ty: MtValueType::I32,
                 bytes: 4,
                 signed: false,
             },
             memory_load_internal_type,
         ));
         let mut memory_store_internal_type = FunctionType::default();
-        memory_store_internal_type.inputs.push(ArbValueType::I32);
-        memory_store_internal_type.inputs.push(ArbValueType::I32);
+        memory_store_internal_type.inputs.push(MtValueType::I32);
+        memory_store_internal_type.inputs.push(MtValueType::I32);
         func_types.push(memory_store_internal_type.clone());
         code.push(make_internal_func(
             Opcode::MemoryStore {
-                ty: ArbValueType::I32,
+                ty: MtValueType::I32,
                 bytes: 1,
             },
             memory_store_internal_type.clone(),
@@ -525,7 +525,7 @@ impl Module {
         func_types.push(memory_store_internal_type.clone());
         code.push(make_internal_func(
             Opcode::MemoryStore {
-                ty: ArbValueType::I32,
+                ty: MtValueType::I32,
                 bytes: 4,
             },
             memory_store_internal_type,
@@ -971,10 +971,10 @@ impl Machine {
                     let mut sig = op.signature();
                     // wavm codegen takes care of effecting this type change at callsites
                     for ty in sig.inputs.iter_mut().chain(sig.outputs.iter_mut()) {
-                        if *ty == ArbValueType::F32 {
-                            *ty = ArbValueType::I32;
-                        } else if *ty == ArbValueType::F64 {
-                            *ty = ArbValueType::I64;
+                        if *ty == MtValueType::F32 {
+                            *ty = MtValueType::I32;
+                        } else if *ty == MtValueType::F64 {
+                            *ty = MtValueType::I64;
                         }
                     }
                     ensure!(
@@ -1033,9 +1033,9 @@ impl Machine {
         // Rust support
         if let Some(&f) = main_module.exports.get("main").filter(|_| runtime_support) {
             let mut expected_type = FunctionType::default();
-            expected_type.inputs.push(ArbValueType::I32); // argc
-            expected_type.inputs.push(ArbValueType::I32); // argv
-            expected_type.outputs.push(ArbValueType::I32); // ret
+            expected_type.inputs.push(MtValueType::I32); // argc
+            expected_type.inputs.push(MtValueType::I32); // argv
+            expected_type.outputs.push(MtValueType::I32); // ret
             ensure!(
                 main_module.func_types[f as usize] == expected_type,
                 "Main function doesn't match expected signature of [argc, argv] -> [ret]",
@@ -1050,8 +1050,8 @@ impl Machine {
         // Go support
         if let Some(&f) = main_module.exports.get("run").filter(|_| runtime_support) {
             let mut expected_type = FunctionType::default();
-            expected_type.inputs.push(ArbValueType::I32); // argc
-            expected_type.inputs.push(ArbValueType::I32); // argv
+            expected_type.inputs.push(MtValueType::I32); // argc
+            expected_type.inputs.push(MtValueType::I32); // argv
             ensure!(
                 main_module.func_types[f as usize] == expected_type,
                 "Run function doesn't match expected signature of [argc, argv]",
@@ -1809,20 +1809,20 @@ impl Machine {
                 }
                 Opcode::Reinterpret(dest, source) => {
                     let val = match self.value_stack.pop() {
-                        Some(Value::I32(x)) if source == ArbValueType::I32 => {
-                            assert_eq!(dest, ArbValueType::F32, "Unsupported reinterpret");
+                        Some(Value::I32(x)) if source == MtValueType::I32 => {
+                            assert_eq!(dest, MtValueType::F32, "Unsupported reinterpret");
                             Value::F32(f32::from_bits(x))
                         }
-                        Some(Value::I64(x)) if source == ArbValueType::I64 => {
-                            assert_eq!(dest, ArbValueType::F64, "Unsupported reinterpret");
+                        Some(Value::I64(x)) if source == MtValueType::I64 => {
+                            assert_eq!(dest, MtValueType::F64, "Unsupported reinterpret");
                             Value::F64(f64::from_bits(x))
                         }
-                        Some(Value::F32(x)) if source == ArbValueType::F32 => {
-                            assert_eq!(dest, ArbValueType::I32, "Unsupported reinterpret");
+                        Some(Value::F32(x)) if source == MtValueType::F32 => {
+                            assert_eq!(dest, MtValueType::I32, "Unsupported reinterpret");
                             Value::I32(x.to_bits())
                         }
-                        Some(Value::F64(x)) if source == ArbValueType::F64 => {
-                            assert_eq!(dest, ArbValueType::I64, "Unsupported reinterpret");
+                        Some(Value::F64(x)) if source == MtValueType::F64 => {
+                            assert_eq!(dest, MtValueType::I64, "Unsupported reinterpret");
                             Value::I64(x.to_bits())
                         }
                         v => bail!("bad reinterpret: val {:?} source {:?}", v, source),

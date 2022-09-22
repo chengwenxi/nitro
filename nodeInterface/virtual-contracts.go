@@ -160,13 +160,13 @@ func init() {
 		return speedLimit, nil
 	}
 
-	arbSys, err := precompilesgen.MtSysMetaData.GetAbi()
+	mtSys, err := precompilesgen.MtSysMetaData.GetAbi()
 	if err != nil {
 		panic(err)
 	}
-	l2ToL1TxTopic = arbSys.Events["L2ToL1Tx"].ID
-	l2ToL1TransactionTopic = arbSys.Events["L2ToL1Transaction"].ID
-	merkleTopic = arbSys.Events["SendMerkleUpdate"].ID
+	l2ToL1TxTopic = mtSys.Events["L2ToL1Tx"].ID
+	l2ToL1TransactionTopic = mtSys.Events["L2ToL1Transaction"].ID
+	merkleTopic = mtSys.Events["SendMerkleUpdate"].ID
 }
 
 func mtNodeFromNodeInterfaceBackend(backend BackendAPI) (*mtnode.Node, error) {

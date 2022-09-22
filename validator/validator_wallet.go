@@ -162,12 +162,12 @@ func (v *ValidatorWallet) ExecuteTransactions(ctx context.Context, builder *Vali
 	}
 
 	if len(txes) == 1 {
-		arbTx, err := v.executeTransaction(ctx, txes[0], gasRefunder)
+		mtTx, err := v.executeTransaction(ctx, txes[0], gasRefunder)
 		if err != nil {
 			return nil, err
 		}
 		builder.transactions = nil
-		return arbTx, nil
+		return mtTx, nil
 	}
 
 	totalAmount := big.NewInt(0)
@@ -194,12 +194,12 @@ func (v *ValidatorWallet) ExecuteTransactions(ctx context.Context, builder *Vali
 	}
 	defer (func() { v.auth.Value = oldAuthValue })()
 
-	arbTx, err := v.con.ExecuteTransactionsWithGasRefunder(v.auth, gasRefunder, data, dest, amount)
+	mtTx, err := v.con.ExecuteTransactionsWithGasRefunder(v.auth, gasRefunder, data, dest, amount)
 	if err != nil {
 		return nil, err
 	}
 	builder.transactions = nil
-	return arbTx, nil
+	return mtTx, nil
 }
 
 func (v *ValidatorWallet) TimeoutChallenges(ctx context.Context, manager common.Address, challenges []uint64) (*types.Transaction, error) {

@@ -106,9 +106,9 @@ func TestRetryableNoExist(t *testing.T) {
 	_, _, l2client, l2stack := CreateTestL2(t, ctx)
 	defer requireClose(t, l2stack)
 
-	arbRetryableTx, err := precompilesgen.NewMtRetryableTx(common.HexToAddress("6e"), l2client)
+	mtRetryableTx, err := precompilesgen.NewMtRetryableTx(common.HexToAddress("6e"), l2client)
 	Require(t, err)
-	_, err = arbRetryableTx.GetTimeout(&bind.CallOpts{}, common.Hash{})
+	_, err = mtRetryableTx.GetTimeout(&bind.CallOpts{}, common.Hash{})
 	if err.Error() != "error NoTicketWithID()" {
 		Fail(t, "didn't get expected NoTicketWithID error")
 	}
@@ -238,9 +238,9 @@ func TestSubmitRetryableFailThenRetry(t *testing.T) {
 		Fail(t, receipt.GasUsed)
 	}
 
-	arbRetryableTx, err := precompilesgen.NewMtRetryableTx(common.HexToAddress("6e"), l2client)
+	mtRetryableTx, err := precompilesgen.NewMtRetryableTx(common.HexToAddress("6e"), l2client)
 	Require(t, err)
-	tx, err := arbRetryableTx.Redeem(&ownerTxOpts, ticketId)
+	tx, err := mtRetryableTx.Redeem(&ownerTxOpts, ticketId)
 	Require(t, err)
 	receipt, err = EnsureTxSucceeded(ctx, l2client, tx)
 	Require(t, err)

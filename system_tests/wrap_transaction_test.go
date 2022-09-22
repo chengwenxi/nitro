@@ -21,11 +21,11 @@ import (
 
 func GetPendingBlockNumber(ctx context.Context, client mtutil.L1Interface) (*big.Int, error) {
 	// Attempt to get the block number from MtSys, if it exists
-	arbSys, err := precompilesgen.NewMtSys(common.BigToAddress(big.NewInt(100)), client)
+	mtSys, err := precompilesgen.NewMtSys(common.BigToAddress(big.NewInt(100)), client)
 	if err != nil {
 		return mtutil.GetPendingCallBlockNumber(ctx, client)
 	}
-	blockNum, err := arbSys.ArbBlockNumber(&bind.CallOpts{Context: ctx})
+	blockNum, err := mtSys.MtBlockNumber(&bind.CallOpts{Context: ctx})
 	if err != nil {
 		return mtutil.GetPendingCallBlockNumber(ctx, client)
 	}

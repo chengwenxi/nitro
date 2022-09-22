@@ -1,4 +1,4 @@
-To interact with Mantle One and the RinkArby testnet, you can rely on the same popular node providers that you are already using on Ethereum. There are multiple providers that may help you build on Mantle, here is a list of a couple of them.
+To interact with Mantle testnet, you can rely on the same popular node providers that you are already using on Ethereum. There are multiple providers that may help you build on Mantle, here is a list of a couple of them.
 
 ## [Alchemy](https://alchemy.com/?a=mantle-docs)
 

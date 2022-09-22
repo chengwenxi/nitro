@@ -67,19 +67,19 @@
 
 - **Retryable Ticket**: An L1 to L2 cross chain message initiated by an L1 transaction sent to an Mantle chain for execution (e.g., a token deposit).
 
-- **Retryable Autoredeem**: The "automatic" execution of a retryable ticket on Mantle (using provided ArbGas).
+- **Retryable Autoredeem**: The "automatic" execution of a retryable ticket on Mantle (using provided MtGas).
 
 ## Token Bridging
 
-- **Arb Token Bridge**: A series of contracts on Ethereum and Mantle for trustlessly moving tokens between the L1 and L2.
+- **Mt Token Bridge**: A series of contracts on Ethereum and Mantle for trustlessly moving tokens between the L1 and L2.
 
 - **Token Gateway**: A pair of contracts in the token bridge — one on L1, one on L2 — that provide a particular mechanism for handling the transfer of tokens between layers. Token gateways currently active in the bridge are the StandardERC20 Gateway, the CustomERC20 Gateway, and the WETH Gateway.
 
 - **Gateway Router**: Contracts in the token bridge responsible for mapping tokens to their appropriate gateways.
 
-- **Standard Arb-Token**: An L2 token contract deployed via the StandardERC20 gateway; offers basic ERC20 functionality in addition to deposit / withdrawal affordances.
+- **Standard Mt-Token**: An L2 token contract deployed via the StandardERC20 gateway; offers basic ERC20 functionality in addition to deposit / withdrawal affordances.
 
-- **Custom Arb-Token**: Any L2 token contract registered to the Arb Token Bridge that isn't a standard arb-token (i.e., a token that uses any gateway other than the StandardERC20 Gateway).
+- **Custom Mt-Token**: Any L2 token contract registered to the Mt Token Bridge that isn't a standard mt-token (i.e., a token that uses any gateway other than the StandardERC20 Gateway).
 
 ## Transaction Ordering
 
