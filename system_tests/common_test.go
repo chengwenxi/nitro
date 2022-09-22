@@ -1,5 +1,5 @@
 // Copyright 2021-2022, Mantlenetwork, Inc.
-// For license information, see https://github.com/mantle/blob/master/LICENSE
+// For license information, see https://github.com/mantlenetworkio/mantle/blob/main/LICENSE
 
 package mttest
 
@@ -274,7 +274,7 @@ func createL2BlockChain(
 	t *testing.T, l2info *BlockchainTestInfo, dataDir string, chainConfig *params.ChainConfig,
 ) (*BlockchainTestInfo, *node.Node, ethdb.Database, ethdb.Database, *core.BlockChain) {
 	if l2info == nil {
-		l2info = NewmttestInfo(t, chainConfig.ChainID)
+		l2info = NewMtTestInfo(t, chainConfig.ChainID)
 	}
 	stack, err := mtnode.CreateDefaultStackForTest(dataDir)
 	Require(t, err)

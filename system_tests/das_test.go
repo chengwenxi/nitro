@@ -1,5 +1,5 @@
 // Copyright 2021-2022, Mantlenetwork, Inc.
-// For license information, see https://github.com/mantle/blob/master/LICENSE
+// For license information, see https://github.com/mantlenetworkio/mantle/blob/main/LICENSE
 
 package mttest
 
@@ -113,7 +113,7 @@ func TestDASRekey(t *testing.T) {
 	dasDataDir := t.TempDir()
 	nodeDir := t.TempDir()
 	dasRpcServerA, pubkeyA, backendConfigA, _, restServerUrlA := startLocalDASServer(t, ctx, dasDataDir, l1client, addresses.SequencerInbox)
-	l2info := NewmttestInfo(t, chainConfig.ChainID)
+	l2info := NewMtTestInfo(t, chainConfig.ChainID)
 	l1NodeConfigA := mtnode.ConfigDefaultL1Test()
 	l1NodeConfigB := mtnode.ConfigDefaultL1NonSequencerTest()
 	sequencerTxOpts := l1info.GetDefaultTransactOpts("Sequencer", ctx)

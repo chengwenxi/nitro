@@ -1,5 +1,5 @@
 // Copyright 2021-2022, Mantlenetwork, Inc.
-// For license information, see https://github.com/mantle/blob/master/LICENSE
+// For license information, see https://github.com/mantlenetworkio/mantle/blob/main/LICENSE
 
 //go:build redistest
 // +build redistest
@@ -54,7 +54,7 @@ func TestRedisSeqCoordinatorPriorities(t *testing.T) {
 	nodeConfig.SeqCoordinator.Enable = true
 	nodeConfig.SeqCoordinator.RedisUrl = redisutil.GetTestRedisURL(t)
 
-	l2Info := NewArbTestInfo(t, params.ArbitrumDevTestChainConfig().ChainID)
+	l2Info := NewMtTestInfo(t, params.MantleDevTestChainConfig().ChainID)
 
 	// stdio protocol makes sure forwarder initialization doesn't fail
 	nodeNames := []string{"stdio://A", "stdio://B", "stdio://C", "stdio://D", "stdio://E"}

@@ -1,5 +1,5 @@
 // Copyright 2021-2022, Mantlenetwork, Inc.
-// For license information, see https://github.com/mantle/blob/master/LICENSE
+// For license information, see https://github.com/mantlenetworkio/mantle/blob/main/LICENSE
 
 package mttest
 
@@ -52,7 +52,7 @@ func NewBlockChainTestInfo(t *testing.T, signer types.Signer, gasPrice *big.Int,
 	}
 }
 
-func NewmttestInfo(t *testing.T, chainId *big.Int) *BlockchainTestInfo {
+func NewMtTestInfo(t *testing.T, chainId *big.Int) *BlockchainTestInfo {
 	var transferGas uint64 = util.NormalizeL2GasForL1GasInitial(800_000, params.GWei) // include room for aggregator L1 costs
 	mtinfo := NewBlockChainTestInfo(
 		t,
