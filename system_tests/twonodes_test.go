@@ -1,7 +1,7 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantlenetworkio/mantle/blob/main/LICENSE
 
-package arbtest
+package mttest
 
 import (
 	"context"
@@ -27,7 +27,7 @@ func testTwoNodesSimple(t *testing.T, dasModeStr string) {
 	authorizeDASKeyset(t, ctx, dasSignerKey, l1info, l1client)
 	l1NodeConfigBDataAvailability := l1NodeConfigA.DataAvailability
 	l1NodeConfigBDataAvailability.AggregatorConfig.Enable = false
-	l2clientB, _, l2stackB := Create2ndNode(t, ctx, nodeA, l1stack, &l2info.ArbInitData, &l1NodeConfigBDataAvailability)
+	l2clientB, _, l2stackB := Create2ndNode(t, ctx, nodeA, l1stack, &l2info.MtInitData, &l1NodeConfigBDataAvailability)
 	defer requireClose(t, l2stackB)
 
 	l2info.GenerateAccount("User2")

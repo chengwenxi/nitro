@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package das
 
@@ -10,8 +10,8 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/das/dastree"
+	"github.com/mantlenetworkio/mantle/das/dastree"
+	"github.com/mantlenetworkio/mantle/mtstate"
 )
 
 type MemoryBackedStorageService struct { // intended for testing and debugging
@@ -69,8 +69,8 @@ func (m *MemoryBackedStorageService) Close(ctx context.Context) error {
 	return nil
 }
 
-func (m *MemoryBackedStorageService) ExpirationPolicy(ctx context.Context) (arbstate.ExpirationPolicy, error) {
-	return arbstate.KeepForever, nil
+func (m *MemoryBackedStorageService) ExpirationPolicy(ctx context.Context) (mtstate.ExpirationPolicy, error) {
+	return mtstate.KeepForever, nil
 }
 
 func (m *MemoryBackedStorageService) String() string {

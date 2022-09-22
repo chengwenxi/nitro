@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package das
 
@@ -8,15 +8,15 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/util/pretty"
+	"github.com/mantlenetworkio/mantle/mtstate"
+	"github.com/mantlenetworkio/mantle/mtutil"
+	"github.com/mantlenetworkio/mantle/util/pretty"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/offchainlabs/nitro/arbutil"
-	"github.com/offchainlabs/nitro/das/dastree"
-	"github.com/offchainlabs/nitro/solgen/go/bridgegen"
+	"github.com/mantlenetworkio/mantle/das/dastree"
+	"github.com/mantlenetworkio/mantle/solgen/go/bridgegen"
 )
 
 type syncedKeysetCache struct {
@@ -45,13 +45,13 @@ type ChainFetchDAS struct {
 }
 
 type ChainFetchReader struct {
-	arbstate.DataAvailabilityReader
+	mtstate.DataAvailabilityReader
 	seqInboxCaller   *bridgegen.SequencerInboxCaller
 	seqInboxFilterer *bridgegen.SequencerInboxFilterer
 	keysetCache      syncedKeysetCache
 }
 
-func NewChainFetchDAS(inner DataAvailabilityService, l1client arbutil.L1Interface, seqInboxAddr common.Address) (*ChainFetchDAS, error) {
+func NewChainFetchDAS(inner DataAvailabilityService, l1client mtutil.L1Interface, seqInboxAddr common.Address) (*ChainFetchDAS, error) {
 	seqInbox, err := bridgegen.NewSequencerInbox(seqInboxAddr, l1client)
 	if err != nil {
 		return nil, err
@@ -68,7 +68,7 @@ func NewChainFetchDASWithSeqInbox(inner DataAvailabilityService, seqInbox *bridg
 	}, nil
 }
 
-func NewChainFetchReader(inner arbstate.DataAvailabilityReader, l1client arbutil.L1Interface, seqInboxAddr common.Address) (*ChainFetchReader, error) {
+func NewChainFetchReader(inner mtstate.DataAvailabilityReader, l1client mtutil.L1Interface, seqInboxAddr common.Address) (*ChainFetchReader, error) {
 	seqInbox, err := bridgegen.NewSequencerInbox(seqInboxAddr, l1client)
 	if err != nil {
 		return nil, err
@@ -77,7 +77,7 @@ func NewChainFetchReader(inner arbstate.DataAvailabilityReader, l1client arbutil
 	return NewChainFetchReaderWithSeqInbox(inner, seqInbox)
 }
 
-func NewChainFetchReaderWithSeqInbox(inner arbstate.DataAvailabilityReader, seqInbox *bridgegen.SequencerInbox) (*ChainFetchReader, error) {
+func NewChainFetchReaderWithSeqInbox(inner mtstate.DataAvailabilityReader, seqInbox *bridgegen.SequencerInbox) (*ChainFetchReader, error) {
 	return &ChainFetchReader{
 		DataAvailabilityReader: inner,
 		seqInboxCaller:         &seqInbox.SequencerInboxCaller,
@@ -101,7 +101,7 @@ func (this *ChainFetchReader) String() string {
 
 func chainFetchGetByHash(
 	ctx context.Context,
-	daReader arbstate.DataAvailabilityReader,
+	daReader mtstate.DataAvailabilityReader,
 	cache *syncedKeysetCache,
 	seqInboxCaller *bridgegen.SequencerInboxCaller,
 	seqInboxFilterer *bridgegen.SequencerInboxFilterer,

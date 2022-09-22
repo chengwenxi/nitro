@@ -1,11 +1,11 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantlenetworkio/mantle/blob/main/LICENSE
 
 // race detection makes things slow and miss timeouts
 //go:build !race
 // +build !race
 
-package arbtest
+package mttest
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/offchainlabs/nitro/arbos/l2pricing"
+	"github.com/mantlenetworkio/mantle/mtos/l2pricing"
 
 	"github.com/ethereum/go-ethereum/core/types"
 )
@@ -48,7 +48,7 @@ func testTwoNodesLong(t *testing.T, dasModeStr string) {
 
 	l1NodeConfigBDataAvailability := l1NodeConfigA.DataAvailability
 	l1NodeConfigBDataAvailability.AggregatorConfig.Enable = false
-	l2clientB, nodeB, l2stackB := Create2ndNode(t, ctx, nodeA, l1stack, &l2info.ArbInitData, &l1NodeConfigBDataAvailability)
+	l2clientB, nodeB, l2stackB := Create2ndNode(t, ctx, nodeA, l1stack, &l2info.MtInitData, &l1NodeConfigBDataAvailability)
 	defer requireClose(t, l2stackB)
 
 	l2info.GenerateAccount("DelayedFaucet")

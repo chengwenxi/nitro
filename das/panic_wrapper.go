@@ -1,5 +1,5 @@
-// Copyright 2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package das
 
@@ -10,7 +10,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/offchainlabs/nitro/arbstate"
+	"github.com/mantlenetworkio/mantle/mtstate"
 )
 
 type WriterPanicWrapper struct {
@@ -26,7 +26,7 @@ func (w *WriterPanicWrapper) String() string {
 	return fmt.Sprintf("WriterPanicWrapper{%v}", w.DataAvailabilityServiceWriter)
 }
 
-func (w *WriterPanicWrapper) Store(ctx context.Context, message []byte, timeout uint64, sig []byte) (*arbstate.DataAvailabilityCertificate, error) {
+func (w *WriterPanicWrapper) Store(ctx context.Context, message []byte, timeout uint64, sig []byte) (*mtstate.DataAvailabilityCertificate, error) {
 	cert, err := w.DataAvailabilityServiceWriter.Store(ctx, message, timeout, sig)
 	if err != nil {
 		panic(fmt.Sprintf("panic wrapper Store: %v", err))

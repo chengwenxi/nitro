@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 // SPDX-License-Identifier: BUSL-1.1
 
 // solhint-disable-next-line compiler-version
@@ -54,7 +54,7 @@ interface IOutbox {
      *      to a contract address without any code (as enforced by the Bridge contract).
      * @param proof Merkle proof of message inclusion in send root
      * @param index Merkle path to message
-     * @param l2Sender sender if original message (i.e., caller of ArbSys.sendTxToL1)
+     * @param l2Sender sender if original message (i.e., caller of MtSys.sendTxToL1)
      * @param to destination address for L1 contract call
      * @param l2Block l2 block number at which sendTxToL1 call was made
      * @param l1Block l1 block number at which sendTxToL1 call was made
@@ -81,7 +81,7 @@ interface IOutbox {
      *       not really a fixed cost, but can be treated as so with a fixed overhead for gas estimation).
      *       We can't include the cost of proof validation since this is intended to be used to simulate txs
      *       that are included in yet-to-be confirmed merkle roots. The simulation entrypoint could instead pretend
-     *       to confirm a pending merkle root, but that would be less pratical for integrating with tooling.
+     *       to confirm a pending merkle root, but that would be less practical for integrating with tooling.
      *       It is only possible to trigger it when the msg sender is address zero, which should be impossible
      *       unless under simulation in an eth_call or eth_estimateGas
      */

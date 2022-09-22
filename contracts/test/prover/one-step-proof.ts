@@ -9,7 +9,7 @@ async function sendTestMessages() {
   const { deployer } = await getNamedAccounts();
   const inbox = await ethers.getContract("InboxStub", deployer);
   const seqInbox = await ethers.getContract("SequencerInboxStub", deployer);
-  const msgRoot = "../arbitrator/prover/test-cases/rust/data/";
+  const msgRoot = "../mtitrator/prover/test-cases/rust/data/";
   const gasOpts = { gasLimit: ethers.utils.hexlify(250000), gasPrice: ethers.utils.parseUnits('5', "gwei") };
   for (let msgNum = 0; msgNum < 2; msgNum++) {
     const path = msgRoot + "msg" + String(msgNum) + ".bin";
@@ -21,7 +21,7 @@ async function sendTestMessages() {
 }
 
 describe("OneStepProof", function () {
-  const arbProofsRoot = "./test/prover/proofs/";
+  const mtProofsRoot = "./test/prover/proofs/";
   const specProofsRoot = "./test/prover/spec-proofs/";
 
   before(async function () {
@@ -32,9 +32,9 @@ describe("OneStepProof", function () {
   })
 
   const proofs = [];
-  for (let file of fs.readdirSync(arbProofsRoot)) {
+  for (let file of fs.readdirSync(mtProofsRoot)) {
     if (!file.endsWith(".json")) continue;
-    proofs.push([arbProofsRoot + file, file]);
+    proofs.push([mtProofsRoot + file, file]);
   }
   if (fs.existsSync(specProofsRoot)) {
     for (let file of fs.readdirSync(specProofsRoot)) {

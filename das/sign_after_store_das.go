@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package das
 
@@ -12,19 +12,19 @@ import (
 	"os"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common/hexutil"
+	flag "github.com/spf13/pflag"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
 
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/blsSignatures"
-	"github.com/offchainlabs/nitro/das/dastree"
-	"github.com/offchainlabs/nitro/solgen/go/bridgegen"
-	"github.com/offchainlabs/nitro/util/pretty"
-
-	flag "github.com/spf13/pflag"
+	"github.com/mantlenetworkio/mantle/blsSignatures"
+	"github.com/mantlenetworkio/mantle/das/dastree"
+	"github.com/mantlenetworkio/mantle/mtstate"
+	"github.com/mantlenetworkio/mantle/solgen/go/bridgegen"
+	"github.com/mantlenetworkio/mantle/util/contracts"
+	"github.com/mantlenetworkio/mantle/util/pretty"
 )
 
 type KeyConfig struct {
@@ -79,7 +79,7 @@ type SignAfterStoreDAS struct {
 	keysetHash     [32]byte
 	keysetBytes    []byte
 	storageService StorageService
-	bpVerifier     *BatchPosterVerifier
+	bpVerifier     *contracts.BatchPosterVerifier
 
 	// Extra batch poster verifier, for local installations to have their
 	// own way of testing Stores.
@@ -124,7 +124,7 @@ func NewSignAfterStoreDASWithSeqInboxCaller(
 		return nil, err
 	}
 
-	keyset := &arbstate.DataAvailabilityKeyset{
+	keyset := &mtstate.DataAvailabilityKeyset{
 		AssumedHonest: 1,
 		PubKeys:       []blsSignatures.PublicKey{publicKey},
 	}
@@ -137,9 +137,9 @@ func NewSignAfterStoreDASWithSeqInboxCaller(
 		return nil, err
 	}
 
-	var bpVerifier *BatchPosterVerifier
+	var bpVerifier *contracts.BatchPosterVerifier
 	if seqInboxCaller != nil {
-		bpVerifier = NewBatchPosterVerifier(seqInboxCaller)
+		bpVerifier = contracts.NewBatchPosterVerifier(seqInboxCaller)
 	}
 
 	var extraBpVerifier func(message []byte, timeout uint64, sig []byte) bool
@@ -182,7 +182,7 @@ func NewSignAfterStoreDASWithSeqInboxCaller(
 
 func (d *SignAfterStoreDAS) Store(
 	ctx context.Context, message []byte, timeout uint64, sig []byte,
-) (c *arbstate.DataAvailabilityCertificate, err error) {
+) (c *mtstate.DataAvailabilityCertificate, err error) {
 	log.Trace("das.SignAfterStoreDAS.Store", "message", pretty.FirstFewBytes(message), "timeout", time.Unix(int64(timeout), 0), "sig", pretty.FirstFewBytes(sig), "this", d)
 	var verified bool
 	if d.extraBpVerifier != nil {
@@ -203,7 +203,7 @@ func (d *SignAfterStoreDAS) Store(
 		}
 	}
 
-	c = &arbstate.DataAvailabilityCertificate{
+	c = &mtstate.DataAvailabilityCertificate{
 		Timeout:     timeout,
 		DataHash:    dastree.Hash(message),
 		Version:     1,
@@ -242,6 +242,6 @@ func (d *SignAfterStoreDAS) HealthCheck(ctx context.Context) error {
 	return d.storageService.HealthCheck(ctx)
 }
 
-func (d *SignAfterStoreDAS) ExpirationPolicy(ctx context.Context) (arbstate.ExpirationPolicy, error) {
+func (d *SignAfterStoreDAS) ExpirationPolicy(ctx context.Context) (mtstate.ExpirationPolicy, error) {
 	return d.storageService.ExpirationPolicy(ctx)
 }

@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package das
 
@@ -13,14 +13,16 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/offchainlabs/nitro/arbstate"
+
+	"github.com/mantlenetworkio/mantle/mtstate"
+	"github.com/mantlenetworkio/mantle/util/signature"
 )
 
 type StubSignatureCheckDAS struct {
 	keyDir string
 }
 
-func (s *StubSignatureCheckDAS) Store(ctx context.Context, message []byte, timeout uint64, sig []byte) (*arbstate.DataAvailabilityCertificate, error) {
+func (s *StubSignatureCheckDAS) Store(ctx context.Context, message []byte, timeout uint64, sig []byte) (*mtstate.DataAvailabilityCertificate, error) {
 	pubkeyEncoded, err := ioutil.ReadFile(s.keyDir + "/ecdsa.pub")
 	if err != nil {
 		return nil, err
@@ -37,8 +39,8 @@ func (s *StubSignatureCheckDAS) Store(ctx context.Context, message []byte, timeo
 	return nil, nil
 }
 
-func (s *StubSignatureCheckDAS) ExpirationPolicy(ctx context.Context) (arbstate.ExpirationPolicy, error) {
-	return arbstate.KeepForever, nil
+func (s *StubSignatureCheckDAS) ExpirationPolicy(ctx context.Context) (mtstate.ExpirationPolicy, error) {
+	return mtstate.KeepForever, nil
 }
 
 func (s *StubSignatureCheckDAS) GetByHash(ctx context.Context, hash common.Hash) ([]byte, error) {
@@ -60,7 +62,7 @@ func TestExtraSignatureCheck(t *testing.T) {
 
 	privateKey, err := crypto.LoadECDSA(keyDir + "/ecdsa")
 	Require(t, err)
-	signer := DasSignerFromPrivateKey(privateKey)
+	signer := signature.DataSignerFromPrivateKey(privateKey)
 
 	var da DataAvailabilityServiceWriter = &StubSignatureCheckDAS{keyDir}
 	da, err = NewStoreSigningDAS(da, signer)

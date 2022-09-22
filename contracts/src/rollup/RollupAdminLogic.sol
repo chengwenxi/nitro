@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 // SPDX-License-Identifier: BUSL-1.1
 
 pragma solidity ^0.8.0;
@@ -340,7 +340,7 @@ contract RollupAdminLogic is RollupCore, IRollupAdmin, DoubleLogicUUPSUpgradeabl
         emit OwnerFunctionCalled(28);
     }
 
-    function createNitroMigrationGenesis(RollupLib.Assertion calldata assertion)
+    function createMantleMigrationGenesis(RollupLib.Assertion calldata assertion)
         external
         whenPaused
     {
@@ -371,5 +371,14 @@ contract RollupAdminLogic is RollupCore, IRollupAdmin, DoubleLogicUUPSUpgradeabl
         createNewNode(assertion, 0, expectedInboxCount, bytes32(0));
         confirmNode(1, genesisBlockHash, expectedSendRoot);
         emit OwnerFunctionCalled(29);
+    }
+
+    /**
+     * @notice set the validatorWhitelistDisabled flag
+     * @param _validatorWhitelistDisabled new value of validatorWhitelistDisabled, i.e. true = disabled
+     */
+    function setValidatorWhitelistDisabled(bool _validatorWhitelistDisabled) external {
+        validatorWhitelistDisabled = _validatorWhitelistDisabled;
+        emit OwnerFunctionCalled(30);
     }
 }

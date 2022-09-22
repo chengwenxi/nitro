@@ -1,12 +1,12 @@
 {
-  "name": "@arbitrum/nitro-contracts",
+  "name": "@mantle/mantle-contracts",
   "version": "1.0.0-beta.8",
-  "description": "Layer 2 precompiles and rollup for Arbitrum Nitro",
-  "author": "Offchain Labs, Inc.",
+  "description": "Layer 2 precompiles and rollup for Mantle",
+  "author": "Mantlenetwork, Inc.",
   "license": "BUSL-1.1",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/offchainlabs/nitro.git",
+    "url": "git+https://github.com/mantlenetworkio/mantle.git",
     "directory": "contracts"
   },
   "files": [
@@ -15,7 +15,7 @@
     "hardhat.prod-config.js"
   ],
   "bugs": {
-    "url": "https://github.com/offchainlabs/nitro/issues"
+    "url": "https://github.com/mantlenetworkio/mantle/issues"
   },
   "scripts": {
     "build": "./scripts/build.bash",
@@ -25,6 +25,7 @@
     "build:0.6": "INTERFACE_TESTER_SOLC_VERSION=0.6.9 yarn run build",
     "build:0.7": "INTERFACE_TESTER_SOLC_VERSION=0.7.0 yarn run build",
     "test:compatibility": "yarn run build:0.6 && yarn run build:0.7",
+    "test:storage": "./test/storage/test.bash",
     "postinstall": "patch-package"
   },
   "dependencies": {
@@ -57,5 +58,8 @@
     "ts-node": "^10.4.0",
     "typechain": "^8.0.0",
     "typescript": "^4.5.4"
+  },
+  "optionalDependencies": {
+    "sol2uml": "2.2.0"
   }
 }

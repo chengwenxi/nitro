@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package blsSignatures
 
@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/offchainlabs/nitro/util/testhelpers"
+	"github.com/mantlenetworkio/mantle/util/testhelpers"
 )
 
 func TestValidSignature(t *testing.T) {

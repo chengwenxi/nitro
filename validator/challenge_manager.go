@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package validator
 
@@ -9,8 +9,6 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/offchainlabs/nitro/arbstate"
-
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind/backends"
@@ -18,8 +16,9 @@ import (
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/offchainlabs/nitro/arbutil"
-	"github.com/offchainlabs/nitro/solgen/go/challengegen"
+	"github.com/mantlenetworkio/mantle/mtstate"
+	"github.com/mantlenetworkio/mantle/mtutil"
+	"github.com/mantlenetworkio/mantle/solgen/go/challengegen"
 	"github.com/pkg/errors"
 )
 
@@ -69,12 +68,12 @@ type ChallengeManager struct {
 	inboxTracker      InboxTrackerInterface
 	txStreamer        TransactionStreamerInterface
 	blockchain        *core.BlockChain
-	das               arbstate.DataAvailabilityReader
-	machineLoader     *NitroMachineLoader
+	das               mtstate.DataAvailabilityReader
+	machineLoader     *MantleMachineLoader
 	targetNumMachines int
 	wasmModuleRoot    common.Hash
 
-	initialMachine        *ArbitratorMachine
+	initialMachine        *MtitratorMachine
 	initialMachineBlockNr int64
 
 	// nil until working on execution challenge
@@ -90,11 +89,11 @@ func NewChallengeManager(
 	challengeManagerAddr common.Address,
 	challengeIndex uint64,
 	l2blockChain *core.BlockChain,
-	das arbstate.DataAvailabilityReader,
+	das mtstate.DataAvailabilityReader,
 	inboxReader InboxReaderInterface,
 	inboxTracker InboxTrackerInterface,
 	txStreamer TransactionStreamerInterface,
-	machineLoader *NitroMachineLoader,
+	machineLoader *MantleMachineLoader,
 	startL1Block uint64,
 	targetNumMachines int,
 	confirmationBlocks int64,
@@ -438,7 +437,7 @@ func (m *ChallengeManager) createInitialMachine(ctx context.Context, blockNum in
 		if err != nil {
 			return err
 		}
-		message, err := m.txStreamer.GetMessage(arbutil.SignedBlockNumberToMessageCount(blockNum, genesisBlockNum))
+		message, err := m.txStreamer.GetMessage(mtutil.SignedBlockNumberToMessageCount(blockNum, genesisBlockNum))
 		if err != nil {
 			return err
 		}
@@ -447,7 +446,7 @@ func (m *ChallengeManager) createInitialMachine(ctx context.Context, blockNum in
 			return fmt.Errorf("next block header %v after challenge point unknown", blockNum+1)
 		}
 		preimages, readBatchInfo, hasDelayedMsg, delayedMsgNr, err := BlockDataForValidation(
-			ctx, m.blockchain, m.inboxReader, nextHeader, blockHeader, message, false,
+			ctx, m.blockchain, m.inboxReader, nextHeader, blockHeader, *message, false,
 		)
 		if err != nil {
 			return err

@@ -18,7 +18,7 @@ if [[ $# -gt 0 ]] && [[ $1 == "script" ]]; then
     exit $?
 fi
 
-num_volumes=`docker volume ls --filter label=com.docker.compose.project=nitro -q | wc -l`
+num_volumes=`docker volume ls --filter label=com.docker.compose.project=mantle -q | wc -l`
 
 if [[ $num_volumes -eq 0 ]]; then
     force_init=true
@@ -30,8 +30,9 @@ run=true
 force_build=false
 validate=false
 detach=false
-blockscout=true
+blockscout=false
 redundantsequencers=0
+batchposters=1
 while [[ $# -gt 0 ]]; do
     case $1 in
         --init)
@@ -67,10 +68,20 @@ while [[ $# -gt 0 ]]; do
             detach=true
             shift
             ;;
+        --batchposters)
+            batchposters=$2
+            if ! [[ $batchposters =~ [0-3] ]] ; then
+                echo "batchposters must be between 0 and 3 value:$batchposters."
+                exit 1
+            fi
+            shift
+            shift
+            ;;
         --redundantsequencers)
             redundantsequencers=$2
-            if ! [[ $redundantsequencers =~ "[0-3]" ]] ; then
-                echo "redundantsequencers must be between 0 and 3"
+            if ! [[ $redundantsequencers =~ [0-3] ]] ; then
+                echo "redundantsequencers must be between 0 and 3 value:$redundantsequencers."
+                exit 1
             fi
             shift
             shift
@@ -83,6 +94,7 @@ while [[ $# -gt 0 ]]; do
             echo --build:           rebuild docker image
             echo --init:            remove all data, rebuild, deploy new rollup
             echo --validate:        heavy computation, validating all blocks in WASM
+            echo --batchposters:    batch posters [0-3]
             echo --redundantsequencers redundant sequencers [0-3]
             echo --detach:          detach from nodes after running them
             echo --no-run:          does not launch nodes \(usefull with build or init\)
@@ -96,7 +108,7 @@ if $force_init; then
     force_build=true
 fi
 
-NODES="sequencer poster"
+NODES="sequencer"
 
 if [ $redundantsequencers -gt 0 ]; then
     NODES="$NODES sequencer_b"
@@ -107,6 +119,17 @@ fi
 if [ $redundantsequencers -gt 2 ]; then
     NODES="$NODES sequencer_d"
 fi
+
+if [ $batchposters -gt 0 ]; then
+    NODES="$NODES poster"
+fi
+if [ $batchposters -gt 1 ]; then
+    NODES="$NODES poster_b"
+fi
+if [ $batchposters -gt 2 ]; then
+    NODES="$NODES poster_c"
+fi
+
 
 if $validate; then
     NODES="$NODES validator"
@@ -125,11 +148,11 @@ fi
 if $force_init; then
     echo == Removing old data..
     docker-compose down
-    leftoverContainers=`docker container ls -a --filter label=com.docker.compose.project=nitro -q | xargs echo`
+    leftoverContainers=`docker container ls -a --filter label=com.docker.compose.project=mantle -q | xargs echo`
     if [ `echo $leftoverContainers | wc -w` -gt 0 ]; then
         docker rm $leftoverContainers
     fi
-    docker volume prune -f --filter label=com.docker.compose.project=nitro
+    docker volume prune -f --filter label=com.docker.compose.project=mantle
 
     echo == Generating l1 keys
     docker-compose run --entrypoint sh geth -c "echo passphrase > /root/.ethereum/passphrase"

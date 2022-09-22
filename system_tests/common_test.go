@@ -1,7 +1,7 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantlenetworkio/mantle/blob/main/LICENSE
 
-package arbtest
+package mttest
 
 import (
 	"bytes"
@@ -11,13 +11,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/offchainlabs/nitro/arbos/util"
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/blsSignatures"
-	"github.com/offchainlabs/nitro/cmd/genericconf"
-	"github.com/offchainlabs/nitro/das"
-	"github.com/offchainlabs/nitro/util/arbmath"
-	"github.com/offchainlabs/nitro/util/headerreader"
+	"github.com/mantlenetworkio/mantle/blsSignatures"
+	"github.com/mantlenetworkio/mantle/cmd/genericconf"
+	"github.com/mantlenetworkio/mantle/das"
+	"github.com/mantlenetworkio/mantle/mtos"
+	"github.com/mantlenetworkio/mantle/mtos/util"
+	"github.com/mantlenetworkio/mantle/mtstate"
+	"github.com/mantlenetworkio/mantle/mtutil"
+	"github.com/mantlenetworkio/mantle/util/headerreader"
+	"github.com/mantlenetworkio/mantle/util/mtmath"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
@@ -31,20 +33,18 @@ import (
 	"github.com/ethereum/go-ethereum/node"
 	"github.com/ethereum/go-ethereum/params"
 
-	"github.com/offchainlabs/nitro/arbnode"
-	"github.com/offchainlabs/nitro/arbos"
-	"github.com/offchainlabs/nitro/arbutil"
-	_ "github.com/offchainlabs/nitro/nodeInterface"
-	"github.com/offchainlabs/nitro/solgen/go/bridgegen"
-	"github.com/offchainlabs/nitro/solgen/go/mocksgen"
-	"github.com/offchainlabs/nitro/solgen/go/precompilesgen"
-	"github.com/offchainlabs/nitro/statetransfer"
-	"github.com/offchainlabs/nitro/util/testhelpers"
-	"github.com/offchainlabs/nitro/validator"
+	"github.com/mantlenetworkio/mantle/mtnode"
+	_ "github.com/mantlenetworkio/mantle/nodeInterface"
+	"github.com/mantlenetworkio/mantle/solgen/go/bridgegen"
+	"github.com/mantlenetworkio/mantle/solgen/go/mocksgen"
+	"github.com/mantlenetworkio/mantle/solgen/go/precompilesgen"
+	"github.com/mantlenetworkio/mantle/statetransfer"
+	"github.com/mantlenetworkio/mantle/util/testhelpers"
+	"github.com/mantlenetworkio/mantle/validator"
 )
 
 type info = *BlockchainTestInfo
-type client = arbutil.L1Interface
+type client = mtutil.L1Interface
 
 func SendWaitTestTransactions(t *testing.T, ctx context.Context, client client, txs []*types.Transaction) {
 	t.Helper()
@@ -78,8 +78,8 @@ func SendSignedTxViaL1(
 	t *testing.T,
 	ctx context.Context,
 	l1info *BlockchainTestInfo,
-	l1client arbutil.L1Interface,
-	l2client arbutil.L1Interface,
+	l1client mtutil.L1Interface,
+	l2client mtutil.L1Interface,
 	delayedTx *types.Transaction,
 ) *types.Receipt {
 	delayedInboxContract, err := bridgegen.NewInbox(l1info.GetAddress("Inbox"), l1client)
@@ -88,7 +88,7 @@ func SendSignedTxViaL1(
 
 	txbytes, err := delayedTx.MarshalBinary()
 	Require(t, err)
-	txwrapped := append([]byte{arbos.L2MessageKind_SignedTx}, txbytes...)
+	txwrapped := append([]byte{mtos.L2MessageKind_SignedTx}, txbytes...)
 	l1tx, err := delayedInboxContract.SendL2Message(&usertxopts, txwrapped)
 	Require(t, err)
 	_, err = EnsureTxSucceeded(ctx, l1client, l1tx)
@@ -109,8 +109,8 @@ func SendUnsignedTxViaL1(
 	t *testing.T,
 	ctx context.Context,
 	l1info *BlockchainTestInfo,
-	l1client arbutil.L1Interface,
-	l2client arbutil.L1Interface,
+	l1client mtutil.L1Interface,
+	l2client mtutil.L1Interface,
 	templateTx *types.Transaction,
 ) *types.Receipt {
 	delayedInboxContract, err := bridgegen.NewInbox(l1info.GetAddress("Inbox"), l1client)
@@ -121,7 +121,7 @@ func SendUnsignedTxViaL1(
 	nonce, err := l2client.NonceAt(ctx, remapped, nil)
 	Require(t, err)
 
-	unsignedTx := types.NewTx(&types.ArbitrumUnsignedTx{
+	unsignedTx := types.NewTx(&types.MantleUnsignedTx{
 		ChainId:   templateTx.ChainId(),
 		From:      remapped,
 		Nonce:     nonce,
@@ -134,9 +134,9 @@ func SendUnsignedTxViaL1(
 
 	l1tx, err := delayedInboxContract.SendUnsignedTransaction(
 		&usertxopts,
-		arbmath.UintToBig(unsignedTx.Gas()),
+		mtmath.UintToBig(unsignedTx.Gas()),
 		unsignedTx.GasFeeCap(),
-		arbmath.UintToBig(unsignedTx.Nonce()),
+		mtmath.UintToBig(unsignedTx.Nonce()),
 		*unsignedTx.To(),
 		unsignedTx.Value(),
 		unsignedTx.Data(),
@@ -187,8 +187,8 @@ func createTestL1BlockChain(t *testing.T, l1info info) (info, *ethclient.Client,
 	}
 	l1info.GenerateAccount("Faucet")
 
-	chainConfig := params.ArbitrumDevTestChainConfig()
-	chainConfig.ArbitrumChainParams = params.ArbitrumChainParams{}
+	chainConfig := params.MantleDevTestChainConfig()
+	chainConfig.MantleChainParams = params.MantleChainParams{}
 
 	stackConf := node.DefaultConfig
 	stackConf.HTTPPort = 0
@@ -241,7 +241,7 @@ func createTestL1BlockChain(t *testing.T, l1info info) (info, *ethclient.Client,
 
 func DeployOnTestL1(
 	t *testing.T, ctx context.Context, l1info info, l1client client, chainId *big.Int,
-) *arbnode.RollupAddresses {
+) *mtnode.RollupAddresses {
 	l1info.GenerateAccount("RollupOwner")
 	l1info.GenerateAccount("Sequencer")
 	l1info.GenerateAccount("User")
@@ -252,15 +252,15 @@ func DeployOnTestL1(
 		l1info.PrepareTx("Faucet", "User", 30000, big.NewInt(9223372036854775807), nil)})
 
 	l1TransactionOpts := l1info.GetDefaultTransactOpts("RollupOwner", ctx)
-	config := arbnode.GenerateRollupConfig(false, common.Hash{}, l1info.GetAddress("RollupOwner"), chainId, common.Address{})
-	addresses, err := arbnode.DeployOnL1(
+	config := mtnode.GenerateRollupConfig(false, common.Hash{}, l1info.GetAddress("RollupOwner"), chainId, common.Address{})
+	addresses, err := mtnode.DeployOnL1(
 		ctx,
 		l1client,
 		&l1TransactionOpts,
 		l1info.GetAddress("Sequencer"),
 		0,
-		headerreader.TestConfig,
-		validator.DefaultNitroMachineConfig,
+		func() *headerreader.Config { return &headerreader.TestConfig },
+		validator.DefaultMantleMachineConfig,
 		config,
 	)
 	Require(t, err)
@@ -274,20 +274,20 @@ func createL2BlockChain(
 	t *testing.T, l2info *BlockchainTestInfo, dataDir string, chainConfig *params.ChainConfig,
 ) (*BlockchainTestInfo, *node.Node, ethdb.Database, ethdb.Database, *core.BlockChain) {
 	if l2info == nil {
-		l2info = NewArbTestInfo(t, chainConfig.ChainID)
+		l2info = NewMtTestInfo(t, chainConfig.ChainID)
 	}
-	stack, err := arbnode.CreateDefaultStackForTest(dataDir)
+	stack, err := mtnode.CreateDefaultStackForTest(dataDir)
 	Require(t, err)
 	chainDb, err := stack.OpenDatabase("chaindb", 0, 0, "", false)
 	Require(t, err)
-	arbDb, err := stack.OpenDatabase("arbdb", 0, 0, "", false)
+	mtDb, err := stack.OpenDatabase("mtdb", 0, 0, "", false)
 	Require(t, err)
 
-	initReader := statetransfer.NewMemoryInitDataReader(&l2info.ArbInitData)
-	blockchain, err := arbnode.WriteOrTestBlockChain(chainDb, nil, initReader, chainConfig, arbnode.ConfigDefaultL2Test(), 0)
+	initReader := statetransfer.NewMemoryInitDataReader(&l2info.MtInitData)
+	blockchain, err := mtnode.WriteOrTestBlockChain(chainDb, nil, initReader, chainConfig, mtnode.ConfigDefaultL2Test(), 0)
 	Require(t, err)
 
-	return l2info, stack, chainDb, arbDb, blockchain
+	return l2info, stack, chainDb, mtDb, blockchain
 }
 
 func ClientForStack(t *testing.T, backend *node.Node) *ethclient.Client {
@@ -296,35 +296,35 @@ func ClientForStack(t *testing.T, backend *node.Node) *ethclient.Client {
 	return ethclient.NewClient(rpcClient)
 }
 
-// Create and deploy L1 and arbnode for L2
+// Create and deploy L1 and mtnode for L2
 func createTestNodeOnL1(
 	t *testing.T,
 	ctx context.Context,
 	isSequencer bool,
 ) (
-	l2info info, node *arbnode.Node, l2client *ethclient.Client, l2stack *node.Node, l1info info,
+	l2info info, node *mtnode.Node, l2client *ethclient.Client, l2stack *node.Node, l1info info,
 	l1backend *eth.Ethereum, l1client *ethclient.Client, l1stack *node.Node,
 ) {
-	conf := arbnode.ConfigDefaultL1Test()
-	return createTestNodeOnL1WithConfig(t, ctx, isSequencer, conf, params.ArbitrumDevTestChainConfig())
+	conf := mtnode.ConfigDefaultL1Test()
+	return createTestNodeOnL1WithConfig(t, ctx, isSequencer, conf, params.MantleDevTestChainConfig())
 }
 
 func createTestNodeOnL1WithConfig(
 	t *testing.T,
 	ctx context.Context,
 	isSequencer bool,
-	nodeConfig *arbnode.Config,
+	nodeConfig *mtnode.Config,
 	chainConfig *params.ChainConfig,
 ) (
-	l2info info, currentNode *arbnode.Node, l2client *ethclient.Client, l2stack *node.Node, l1info info,
+	l2info info, currentNode *mtnode.Node, l2client *ethclient.Client, l2stack *node.Node, l1info info,
 	l1backend *eth.Ethereum, l1client *ethclient.Client, l1stack *node.Node,
 ) {
 	fatalErrChan := make(chan error, 10)
 	l1info, l1client, l1backend, l1stack = createTestL1BlockChain(t, nil)
 	var l2chainDb ethdb.Database
-	var l2arbDb ethdb.Database
+	var l2mtDb ethdb.Database
 	var l2blockchain *core.BlockChain
-	l2info, l2stack, l2chainDb, l2arbDb, l2blockchain = createL2BlockChain(t, nil, "", chainConfig)
+	l2info, l2stack, l2chainDb, l2mtDb, l2blockchain = createL2BlockChain(t, nil, "", chainConfig)
 	addresses := DeployOnTestL1(t, ctx, l1info, l1client, chainConfig.ChainID)
 	var sequencerTxOptsPtr *bind.TransactOpts
 	if isSequencer {
@@ -339,8 +339,8 @@ func createTestNodeOnL1WithConfig(
 	}
 
 	var err error
-	currentNode, err = arbnode.CreateNode(
-		ctx, l2stack, l2chainDb, l2arbDb, nodeConfig, l2blockchain, l1client,
+	currentNode, err = mtnode.CreateNode(
+		ctx, l2stack, l2chainDb, l2mtDb, nodeConfig, l2blockchain, l1client,
 		addresses, sequencerTxOptsPtr, nil, fatalErrChan,
 	)
 	Require(t, err)
@@ -356,16 +356,16 @@ func createTestNodeOnL1WithConfig(
 
 // L2 -Only. Enough for tests that needs no interface to L1
 // Requires precompiles.AllowDebugPrecompiles = true
-func CreateTestL2(t *testing.T, ctx context.Context) (*BlockchainTestInfo, *arbnode.Node, *ethclient.Client, *node.Node) {
-	return CreateTestL2WithConfig(t, ctx, nil, arbnode.ConfigDefaultL2Test(), true)
+func CreateTestL2(t *testing.T, ctx context.Context) (*BlockchainTestInfo, *mtnode.Node, *ethclient.Client, *node.Node) {
+	return CreateTestL2WithConfig(t, ctx, nil, mtnode.ConfigDefaultL2Test(), true)
 }
 
 func CreateTestL2WithConfig(
-	t *testing.T, ctx context.Context, l2Info *BlockchainTestInfo, nodeConfig *arbnode.Config, takeOwnership bool,
-) (*BlockchainTestInfo, *arbnode.Node, *ethclient.Client, *node.Node) {
+	t *testing.T, ctx context.Context, l2Info *BlockchainTestInfo, nodeConfig *mtnode.Config, takeOwnership bool,
+) (*BlockchainTestInfo, *mtnode.Node, *ethclient.Client, *node.Node) {
 	feedErrChan := make(chan error, 10)
-	l2info, stack, chainDb, arbDb, blockchain := createL2BlockChain(t, l2Info, "", params.ArbitrumDevTestChainConfig())
-	currentNode, err := arbnode.CreateNode(ctx, stack, chainDb, arbDb, nodeConfig, blockchain, nil, nil, nil, nil, feedErrChan)
+	l2info, stack, chainDb, mtDb, blockchain := createL2BlockChain(t, l2Info, "", params.MantleDevTestChainConfig())
+	currentNode, err := mtnode.CreateNode(ctx, stack, chainDb, mtDb, nodeConfig, blockchain, nil, nil, nil, nil, feedErrChan)
 	Require(t, err)
 
 	// Give the node an init message
@@ -379,11 +379,11 @@ func CreateTestL2WithConfig(
 		debugAuth := l2info.GetDefaultTransactOpts("Owner", ctx)
 
 		// make auth a chain owner
-		arbdebug, err := precompilesgen.NewArbDebug(common.HexToAddress("0xff"), client)
-		Require(t, err, "failed to deploy ArbDebug")
+		mtdebug, err := precompilesgen.NewMtDebug(common.HexToAddress("0xff"), client)
+		Require(t, err, "failed to deploy MtDebug")
 
-		tx, err := arbdebug.BecomeChainOwner(&debugAuth)
-		Require(t, err, "failed to deploy ArbDebug")
+		tx, err := mtdebug.BecomeChainOwner(&debugAuth)
+		Require(t, err, "failed to deploy MtDebug")
 
 		_, err = EnsureTxSucceeded(ctx, client, tx)
 		Require(t, err)
@@ -424,12 +424,12 @@ func Fail(t *testing.T, printables ...interface{}) {
 func Create2ndNode(
 	t *testing.T,
 	ctx context.Context,
-	first *arbnode.Node,
+	first *mtnode.Node,
 	l1stack *node.Node,
-	l2InitData *statetransfer.ArbosInitializationInfo,
+	l2InitData *statetransfer.MtosInitializationInfo,
 	dasConfig *das.DataAvailabilityConfig,
-) (*ethclient.Client, *arbnode.Node, *node.Node) {
-	nodeConf := arbnode.ConfigDefaultL1NonSequencerTest()
+) (*ethclient.Client, *mtnode.Node, *node.Node) {
+	nodeConf := mtnode.ConfigDefaultL1NonSequencerTest()
 	if dasConfig == nil {
 		nodeConf.DataAvailability.Enable = false
 	} else {
@@ -441,30 +441,30 @@ func Create2ndNode(
 func Create2ndNodeWithConfig(
 	t *testing.T,
 	ctx context.Context,
-	first *arbnode.Node,
+	first *mtnode.Node,
 	l1stack *node.Node,
-	l2InitData *statetransfer.ArbosInitializationInfo,
-	nodeConfig *arbnode.Config,
-) (*ethclient.Client, *arbnode.Node, *node.Node) {
+	l2InitData *statetransfer.MtosInitializationInfo,
+	nodeConfig *mtnode.Config,
+) (*ethclient.Client, *mtnode.Node, *node.Node) {
 	feedErrChan := make(chan error, 10)
 	l1rpcClient, err := l1stack.Attach()
 	if err != nil {
 		Fail(t, err)
 	}
 	l1client := ethclient.NewClient(l1rpcClient)
-	l2stack, err := arbnode.CreateDefaultStackForTest("")
+	l2stack, err := mtnode.CreateDefaultStackForTest("")
 	Require(t, err)
 
 	l2chainDb, err := l2stack.OpenDatabase("chaindb", 0, 0, "", false)
 	Require(t, err)
-	l2arbDb, err := l2stack.OpenDatabase("arbdb", 0, 0, "", false)
+	l2mtDb, err := l2stack.OpenDatabase("mtdb", 0, 0, "", false)
 	Require(t, err)
 	initReader := statetransfer.NewMemoryInitDataReader(l2InitData)
 
-	l2blockchain, err := arbnode.WriteOrTestBlockChain(l2chainDb, nil, initReader, first.ArbInterface.BlockChain().Config(), arbnode.ConfigDefaultL2Test(), 0)
+	l2blockchain, err := mtnode.WriteOrTestBlockChain(l2chainDb, nil, initReader, first.MtInterface.BlockChain().Config(), mtnode.ConfigDefaultL2Test(), 0)
 	Require(t, err)
 
-	currentNode, err := arbnode.CreateNode(ctx, l2stack, l2chainDb, l2arbDb, nodeConfig, l2blockchain, l1client, first.DeployInfo, nil, nil, feedErrChan)
+	currentNode, err := mtnode.CreateNode(ctx, l2stack, l2chainDb, l2mtDb, nodeConfig, l2blockchain, l1client, first.DeployInfo, nil, nil, feedErrChan)
 	Require(t, err)
 
 	err = l2stack.Start()
@@ -493,12 +493,12 @@ func authorizeDASKeyset(
 	ctx context.Context,
 	dasSignerKey *blsSignatures.PublicKey,
 	l1info info,
-	l1client arbutil.L1Interface,
+	l1client mtutil.L1Interface,
 ) {
 	if dasSignerKey == nil {
 		return
 	}
-	keyset := &arbstate.DataAvailabilityKeyset{
+	keyset := &mtstate.DataAvailabilityKeyset{
 		AssumedHonest: 1,
 		PubKeys:       []blsSignatures.PublicKey{*dasSignerKey},
 	}
@@ -517,9 +517,9 @@ func authorizeDASKeyset(
 
 func setupConfigWithDAS(
 	t *testing.T, ctx context.Context, dasModeString string,
-) (*params.ChainConfig, *arbnode.Config, *das.LifecycleManager, string, *blsSignatures.PublicKey) {
-	l1NodeConfigA := arbnode.ConfigDefaultL1Test()
-	chainConfig := params.ArbitrumDevTestChainConfig()
+) (*params.ChainConfig, *mtnode.Config, *das.LifecycleManager, string, *blsSignatures.PublicKey) {
+	l1NodeConfigA := mtnode.ConfigDefaultL1Test()
+	chainConfig := params.MantleDevTestChainConfig()
 	var dbPath string
 	var err error
 
@@ -527,10 +527,10 @@ func setupConfigWithDAS(
 	switch dasModeString {
 	case "db":
 		enableDbStorage = true
-		chainConfig = params.ArbitrumDevTestDASChainConfig()
+		chainConfig = params.MantleDevTestDASChainConfig()
 	case "files":
 		enableFileStorage = true
-		chainConfig = params.ArbitrumDevTestDASChainConfig()
+		chainConfig = params.MantleDevTestDASChainConfig()
 	case "onchain":
 		enableDas = false
 	default:
@@ -564,7 +564,7 @@ func setupConfigWithDAS(
 	var lifecycleManager *das.LifecycleManager
 	if dasModeString != "onchain" {
 		var dasServerStack das.DataAvailabilityService
-		dasServerStack, lifecycleManager, err = arbnode.SetUpDataAvailability(ctx, dasConfig, nil, nil)
+		dasServerStack, lifecycleManager, err = mtnode.SetUpDataAvailability(ctx, dasConfig, nil, nil)
 
 		Require(t, err)
 		rpcLis, err := net.Listen("tcp", "localhost:0")

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020, Offchain Labs, Inc.
+ * Copyright 2019-2020, Mantlenetwork, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -335,7 +335,7 @@ const getDoubleLogicUUPSTarget = async (slot: "user" | "admin", provider: provid
                 _IMPLEMENTATION_PRIMARY_SLOT : _IMPLEMENTATION_SECONDARY_SLOT)).substring(26).toLowerCase()}`
 }
 
-describe("ArbRollup", () => {
+describe("MtRollup", () => {
   it("should deploy contracts", async function () {
     accounts = await initializeAccounts();
 
@@ -1028,4 +1028,23 @@ describe("ArbRollup", () => {
     await expect(proxySecondaryImpl.interface.functions["initialize(address)"].stateMutability).to.eq('view')
   });
 
+  it("should fail the chainid fork check", async function () {
+    await expect(sequencerInbox.removeDelayAfterFork()).to.revertedWith("NotForked()");
+  });
+
+  it("should fail the batch poster check", async function () {
+    await expect(sequencerInbox.addSequencerL2Batch(0, "0x", 0, ethers.constants.AddressZero, 0, 0)).to.revertedWith("NotBatchPoster()");
+  });
+
+  it("should fail the onlyValidator check", async function () {
+    await expect(rollupUser.withdrawStakerFunds()).to.revertedWith("NOT_VALIDATOR");
+  });
+
+  it("should fail to call removeWhitelistAfterFork", async function () {
+    await expect(rollupUser.removeWhitelistAfterFork()).to.revertedWith("CHAIN_ID_NOT_CHANGED");
+  });
+
+  it("should fail to call removeWhitelistAfterValidatorAfk", async function () {
+    await expect(rollupUser.removeWhitelistAfterValidatorAfk()).to.revertedWith("VALIDATOR_NOT_AFK");
+  });
 });

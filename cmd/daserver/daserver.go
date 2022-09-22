@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package main
 
@@ -19,10 +19,10 @@ import (
 	"github.com/ethereum/go-ethereum/metrics"
 	"github.com/ethereum/go-ethereum/metrics/exp"
 
-	"github.com/offchainlabs/nitro/arbnode"
-	"github.com/offchainlabs/nitro/cmd/genericconf"
-	"github.com/offchainlabs/nitro/cmd/util"
-	"github.com/offchainlabs/nitro/das"
+	"github.com/mantlenetworkio/mantle/cmd/genericconf"
+	"github.com/mantlenetworkio/mantle/cmd/util"
+	"github.com/mantlenetworkio/mantle/das"
+	"github.com/mantlenetworkio/mantle/mtnode"
 )
 
 type DAServerConfig struct {
@@ -157,7 +157,7 @@ func startup() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	dasImpl, dasLifecycleManager, err := arbnode.SetUpDataAvailabilityWithoutNode(ctx, &serverConfig.DAConf)
+	dasImpl, dasLifecycleManager, err := mtnode.SetUpDataAvailabilityWithoutNode(ctx, &serverConfig.DAConf)
 	if err != nil {
 		return err
 	}

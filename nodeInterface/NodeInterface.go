@@ -1,5 +1,5 @@
-// Copyright 2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package nodeInterface
 
@@ -10,26 +10,26 @@ import (
 	"math/big"
 	"sort"
 
-	"github.com/ethereum/go-ethereum/arbitrum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/mantle"
 	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/offchainlabs/nitro/arbnode"
-	"github.com/offchainlabs/nitro/arbos"
-	"github.com/offchainlabs/nitro/arbos/l1pricing"
-	"github.com/offchainlabs/nitro/arbos/retryables"
-	"github.com/offchainlabs/nitro/arbos/util"
-	"github.com/offchainlabs/nitro/arbutil"
-	"github.com/offchainlabs/nitro/util/arbmath"
-	"github.com/offchainlabs/nitro/util/merkletree"
-	"github.com/offchainlabs/nitro/validator"
+	"github.com/mantlenetworkio/mantle/mtnode"
+	"github.com/mantlenetworkio/mantle/mtos"
+	"github.com/mantlenetworkio/mantle/mtos/l1pricing"
+	"github.com/mantlenetworkio/mantle/mtos/retryables"
+	"github.com/mantlenetworkio/mantle/mtos/util"
+	"github.com/mantlenetworkio/mantle/mtutil"
+	"github.com/mantlenetworkio/mantle/util/merkletree"
+	"github.com/mantlenetworkio/mantle/util/mtmath"
+	"github.com/mantlenetworkio/mantle/validator"
 )
 
-// To avoid creating new RPC methods for client-side tooling, nitro Geth's InterceptRPCMessage() hook provides
+// To avoid creating new RPC methods for client-side tooling, mantle Geth's InterceptRPCMessage() hook provides
 // an opportunity to swap out the message its handling before deriving a transaction from it.
 //
 // This mechanism handles messages sent to 0xc8 and uses NodeInterface.sol to determine what to do. No contract
@@ -53,13 +53,13 @@ var l2ToL1TransactionTopic common.Hash
 var blockInGenesis = errors.New("")
 var blockAfterLatestBatch = errors.New("")
 
-func (n NodeInterface) NitroGenesisBlock(c ctx) (huge, error) {
-	block := n.backend.ChainConfig().ArbitrumChainParams.GenesisBlockNum
-	return arbmath.UintToBig(block), nil
+func (n NodeInterface) MantleGenesisBlock(c ctx) (huge, error) {
+	block := n.backend.ChainConfig().MantleChainParams.GenesisBlockNum
+	return mtmath.UintToBig(block), nil
 }
 
 func (n NodeInterface) FindBatchContainingBlock(c ctx, evm mech, blockNum uint64) (uint64, error) {
-	node, err := arbNodeFromNodeInterfaceBackend(n.backend)
+	node, err := mtNodeFromNodeInterfaceBackend(n.backend)
 	if err != nil {
 		return 0, err
 	}
@@ -71,14 +71,14 @@ func (n NodeInterface) FindBatchContainingBlock(c ctx, evm mech, blockNum uint64
 }
 
 func (n NodeInterface) GetL1Confirmations(c ctx, evm mech, blockHash bytes32) (uint64, error) {
-	node, err := arbNodeFromNodeInterfaceBackend(n.backend)
+	node, err := mtNodeFromNodeInterfaceBackend(n.backend)
 	if err != nil {
 		return 0, err
 	}
 	if node.InboxReader == nil {
 		return 0, nil
 	}
-	bc := node.ArbInterface.BlockChain()
+	bc := node.MtInterface.BlockChain()
 	header := bc.GetHeaderByHash(blockHash)
 	if header == nil {
 		return 0, errors.New("unknown block hash")
@@ -106,7 +106,7 @@ func (n NodeInterface) GetL1Confirmations(c ctx, evm mech, blockHash bytes32) (u
 	if err != nil {
 		return 0, err
 	}
-	if latestL1Block < meta.L1Block || arbutil.BlockNumberToMessageCount(blockNum, genesis) > meta.MessageCount {
+	if latestL1Block < meta.L1Block || mtutil.BlockNumberToMessageCount(blockNum, genesis) > meta.MessageCount {
 		return 0, nil
 	}
 	canonicalHash := bc.GetCanonicalHash(header.Number.Uint64())
@@ -137,7 +137,7 @@ func (n NodeInterface) EstimateRetryableTicket(
 	l1BaseFee, _ := c.State.L1PricingState().PricePerUnit()
 	maxSubmissionFee := retryables.RetryableSubmissionFee(len(data), l1BaseFee)
 
-	submitTx := &types.ArbitrumSubmitRetryableTx{
+	submitTx := &types.MantleSubmitRetryableTx{
 		ChainId:          nil,
 		RequestId:        hash{},
 		From:             util.RemapL1Address(sender),
@@ -153,8 +153,8 @@ func (n NodeInterface) EstimateRetryableTicket(
 		RetryData:        data,
 	}
 
-	// ArbitrumSubmitRetryableTx is unsigned so the following won't panic
-	msg, err := types.NewTx(submitTx).AsMessage(types.NewArbitrumSigner(nil), nil)
+	// MantleSubmitRetryableTx is unsigned so the following won't panic
+	msg, err := types.NewTx(submitTx).AsMessage(types.NewMantleSigner(nil), nil)
 	*n.returnMessage.message = msg
 	*n.returnMessage.changed = true
 	return err
@@ -173,10 +173,10 @@ func (n NodeInterface) ConstructOutboxProof(c ctx, evm mech, size, leaf uint64) 
 		return hash0, hash0, nil, errors.New("leaf does not exist")
 	}
 
-	balanced := size == arbmath.NextPowerOf2(size)/2
-	treeLevels := int(arbmath.Log2ceil(size)) // the # of levels in the tree
-	proofLevels := treeLevels - 1             // the # of levels where a hash is needed (all but root)
-	walkLevels := treeLevels                  // the # of levels we need to consider when building walks
+	balanced := size == mtmath.NextPowerOf2(size)/2
+	treeLevels := int(mtmath.Log2ceil(size)) // the # of levels in the tree
+	proofLevels := treeLevels - 1            // the # of levels where a hash is needed (all but root)
+	walkLevels := treeLevels                 // the # of levels we need to consider when building walks
 	if balanced {
 		walkLevels -= 1 // skip the root
 	}
@@ -251,8 +251,8 @@ func (n NodeInterface) ConstructOutboxProof(c ctx, evm mech, size, leaf uint64) 
 			}
 			for _, tx := range all {
 				for _, log := range tx {
-					if log.Address != types.ArbSysAddress {
-						// log not produced by ArbOS
+					if log.Address != types.MtSysAddress {
+						// log not produced by MtOS
 						continue
 					}
 
@@ -425,7 +425,7 @@ func (n NodeInterface) ConstructOutboxProof(c ctx, evm mech, size, leaf uint64) 
 
 func (n NodeInterface) messageArgs(
 	evm mech, value huge, to addr, contractCreation bool, data []byte,
-) arbitrum.TransactionArgs {
+) mantle.TransactionArgs {
 	msg := n.sourceMessage
 	from := msg.From()
 	gas := msg.Gas()
@@ -434,7 +434,7 @@ func (n NodeInterface) messageArgs(
 	maxPriorityFeePerGas := msg.GasTipCap()
 	chainid := evm.ChainConfig().ChainID
 
-	args := arbitrum.TransactionArgs{
+	args := mantle.TransactionArgs{
 		ChainID:              (*hexutil.Big)(chainid),
 		From:                 &from,
 		Gas:                  (*hexutil.Uint64)(&gas),
@@ -478,15 +478,15 @@ func (n NodeInterface) GasEstimateL1Component(
 	//   See in GasChargingHook that this does not induce truncation error
 	//
 	feeForL1, _ := pricing.PosterDataCost(msg, l1pricing.BatchPosterAddress)
-	feeForL1 = arbmath.BigMulByBips(feeForL1, arbos.GasEstimationL1PricePadding)
-	gasForL1 := arbmath.BigDiv(feeForL1, baseFee).Uint64()
+	feeForL1 = mtmath.BigMulByBips(feeForL1, mtos.GasEstimationL1PricePadding)
+	gasForL1 := mtmath.BigDiv(feeForL1, baseFee).Uint64()
 	return gasForL1, baseFee, l1BaseFeeEstimate, nil
 }
 
 func (n NodeInterface) GasEstimateComponents(
 	c ctx, evm mech, value huge, to addr, contractCreation bool, data []byte,
 ) (uint64, uint64, huge, huge, error) {
-	node, err := arbNodeFromNodeInterfaceBackend(n.backend)
+	node, err := mtNodeFromNodeInterfaceBackend(n.backend)
 	if err != nil {
 		return 0, 0, nil, nil, err
 	}
@@ -500,7 +500,7 @@ func (n NodeInterface) GasEstimateComponents(
 	block := rpc.BlockNumberOrHashWithHash(n.header.Hash(), false)
 	args := n.messageArgs(evm, value, to, contractCreation, data)
 
-	totalRaw, err := arbitrum.EstimateGas(context, backend, args, block, gasCap)
+	totalRaw, err := mantle.EstimateGas(context, backend, args, block, gasCap)
 	if err != nil {
 		return 0, 0, nil, nil, err
 	}
@@ -528,17 +528,17 @@ func (n NodeInterface) GasEstimateComponents(
 	// Compute the fee paid for L1 in L2 terms
 	//   See in GasChargingHook that this does not induce truncation error
 	//
-	feeForL1 = arbmath.BigMulByBips(feeForL1, arbos.GasEstimationL1PricePadding)
-	gasForL1 := arbmath.BigDiv(feeForL1, baseFee).Uint64()
+	feeForL1 = mtmath.BigMulByBips(feeForL1, mtos.GasEstimationL1PricePadding)
+	gasForL1 := mtmath.BigDiv(feeForL1, baseFee).Uint64()
 
 	return total, gasForL1, baseFee, l1BaseFeeEstimate, nil
 }
 
-func findBatchContainingBlock(node *arbnode.Node, genesis uint64, block uint64) (uint64, error) {
+func findBatchContainingBlock(node *mtnode.Node, genesis uint64, block uint64) (uint64, error) {
 	if block <= genesis {
 		return 0, fmt.Errorf("%wblock %v is part of genesis", blockInGenesis, block)
 	}
-	pos := arbutil.BlockNumberToMessageCount(block, genesis) - 1
+	pos := mtutil.BlockNumberToMessageCount(block, genesis) - 1
 	high, err := node.InboxTracker.GetBatchCount()
 	if err != nil {
 		return 0, err
@@ -548,7 +548,7 @@ func findBatchContainingBlock(node *arbnode.Node, genesis uint64, block uint64) 
 	if err != nil {
 		return 0, err
 	}
-	latestBlock := arbutil.MessageCountToBlockNumber(latestCount, genesis)
+	latestBlock := mtutil.MessageCountToBlockNumber(latestCount, genesis)
 	if int64(block) > latestBlock {
 		return 0, fmt.Errorf(
 			"%wrequested block %v is after latest on-chain block %v published in batch %v",
@@ -561,7 +561,7 @@ func findBatchContainingBlock(node *arbnode.Node, genesis uint64, block uint64) 
 func (n NodeInterface) LegacyLookupMessageBatchProof(c ctx, evm mech, batchNum huge, index uint64) (
 	proof []bytes32, path huge, l2Sender addr, l1Dest addr, l2Block huge, l1Block huge, timestamp huge, amount huge, calldataForL1 []byte, err error) {
 
-	node, err := arbNodeFromNodeInterfaceBackend(n.backend)
+	node, err := mtNodeFromNodeInterfaceBackend(n.backend)
 	if err != nil {
 		return
 	}

@@ -1,7 +1,7 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantlenetworkio/mantle/blob/main/LICENSE
 
-package arbtest
+package mttest
 
 import (
 	"context"
@@ -17,11 +17,11 @@ import (
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/params"
-	"github.com/offchainlabs/nitro/arbos"
-	"github.com/offchainlabs/nitro/arbos/arbosState"
-	"github.com/offchainlabs/nitro/arbos/l2pricing"
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/statetransfer"
+	"github.com/mantlenetworkio/mantle/mtos"
+	"github.com/mantlenetworkio/mantle/mtos/l2pricing"
+	"github.com/mantlenetworkio/mantle/mtos/mtosState"
+	"github.com/mantlenetworkio/mantle/mtstate"
+	"github.com/mantlenetworkio/mantle/statetransfer"
 )
 
 func BuildBlock(
@@ -29,14 +29,14 @@ func BuildBlock(
 	lastBlockHeader *types.Header,
 	chainContext core.ChainContext,
 	chainConfig *params.ChainConfig,
-	inbox arbstate.InboxBackend,
+	inbox mtstate.InboxBackend,
 	seqBatch []byte,
 ) (*types.Block, error) {
 	var delayedMessagesRead uint64
 	if lastBlockHeader != nil {
 		delayedMessagesRead = lastBlockHeader.Nonce.Uint64()
 	}
-	inboxMultiplexer := arbstate.NewInboxMultiplexer(inbox, delayedMessagesRead, nil, arbstate.KeysetValidate)
+	inboxMultiplexer := mtstate.NewInboxMultiplexer(inbox, delayedMessagesRead, nil, mtstate.KeysetValidate)
 
 	ctx := context.Background()
 	message, err := inboxMultiplexer.Pop(ctx)
@@ -50,7 +50,7 @@ func BuildBlock(
 	batchFetcher := func(uint64) ([]byte, error) {
 		return seqBatch, nil
 	}
-	block, _, err := arbos.ProduceBlock(
+	block, _, err := mtos.ProduceBlock(
 		l1Message, delayedMessagesRead, lastBlockHeader, statedb, chainContext, chainConfig, batchFetcher,
 	)
 	return block, err
@@ -111,10 +111,10 @@ func (c noopChainContext) GetHeader(common.Hash, uint64) *types.Header {
 func FuzzStateTransition(f *testing.F) {
 	f.Fuzz(func(t *testing.T, seqMsg []byte, delayedMsg []byte) {
 		chainDb := rawdb.NewMemoryDatabase()
-		stateRoot, err := arbosState.InitializeArbosInDatabase(
+		stateRoot, err := mtosState.InitializeMtosInDatabase(
 			chainDb,
-			statetransfer.NewMemoryInitDataReader(&statetransfer.ArbosInitializationInfo{}),
-			params.ArbitrumRollupGoerliTestnetChainConfig(),
+			statetransfer.NewMemoryInitDataReader(&statetransfer.MtosInitializationInfo{}),
+			params.MantleRollupGoerliTestnetChainConfig(),
 			0,
 			0,
 		)
@@ -130,7 +130,7 @@ func FuzzStateTransition(f *testing.F) {
 			Nonce:      types.EncodeNonce(0),
 			Time:       0,
 			ParentHash: common.Hash{},
-			Extra:      []byte("Arbitrum"),
+			Extra:      []byte("Mantle"),
 			GasLimit:   l2pricing.GethBlockGasLimit,
 			GasUsed:    0,
 			BaseFee:    big.NewInt(l2pricing.InitialBaseFeeWei),
@@ -154,7 +154,7 @@ func FuzzStateTransition(f *testing.F) {
 			positionWithinMessage: 0,
 			delayedMessages:       delayedMessages,
 		}
-		_, err = BuildBlock(statedb, genesis, noopChainContext{}, params.ArbitrumOneChainConfig(), inbox, seqBatch)
+		_, err = BuildBlock(statedb, genesis, noopChainContext{}, params.MantleOneChainConfig(), inbox, seqBatch)
 		if err != nil {
 			// With the fixed header it shouldn't be possible to read a delayed message,
 			// and no other type of error should be possible.

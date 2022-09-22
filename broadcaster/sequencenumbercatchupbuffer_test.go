@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2021, Offchain Labs, Inc.
+ * Copyright 2020-2021, Mantlenetwork, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/arbutil"
+	"github.com/mantlenetworkio/mantle/mtstate"
+	"github.com/mantlenetworkio/mantle/mtutil"
 )
 
 func TestGetEmptyCacheMessages(t *testing.T) {
@@ -37,15 +37,15 @@ func TestGetEmptyCacheMessages(t *testing.T) {
 	}
 }
 
-func createDummyBroadcastMessages(seqNums []arbutil.MessageIndex) []*BroadcastFeedMessage {
+func createDummyBroadcastMessages(seqNums []mtutil.MessageIndex) []*BroadcastFeedMessage {
 	return createDummyBroadcastMessagesImpl(seqNums, len(seqNums))
 }
-func createDummyBroadcastMessagesImpl(seqNums []arbutil.MessageIndex, length int) []*BroadcastFeedMessage {
+func createDummyBroadcastMessagesImpl(seqNums []mtutil.MessageIndex, length int) []*BroadcastFeedMessage {
 	broadcastMessages := make([]*BroadcastFeedMessage, 0, length)
 	for _, seqNum := range seqNums {
 		broadcastMessage := &BroadcastFeedMessage{
 			SequenceNumber: seqNum,
-			Message:        arbstate.MessageWithMetadata{},
+			Message:        mtstate.EmptyTestMessageWithMetadata,
 		}
 		broadcastMessages = append(broadcastMessages, broadcastMessage)
 	}
@@ -54,7 +54,7 @@ func createDummyBroadcastMessagesImpl(seqNums []arbutil.MessageIndex, length int
 }
 
 func TestGetCacheMessages(t *testing.T) {
-	indexes := []arbutil.MessageIndex{40, 41, 42, 43, 44, 45, 46}
+	indexes := []mtutil.MessageIndex{40, 41, 42, 43, 44, 45, 46}
 	buffer := SequenceNumberCatchupBuffer{
 		messages:     createDummyBroadcastMessages(indexes),
 		messageCount: int32(len(indexes)),
@@ -110,7 +110,7 @@ func TestDeleteConfirmedNil(t *testing.T) {
 }
 
 func TestDeleteConfirmInvalidOrder(t *testing.T) {
-	indexes := []arbutil.MessageIndex{40, 42}
+	indexes := []mtutil.MessageIndex{40, 42}
 	buffer := SequenceNumberCatchupBuffer{
 		messages:     createDummyBroadcastMessages(indexes),
 		messageCount: int32(len(indexes)),
@@ -124,7 +124,7 @@ func TestDeleteConfirmInvalidOrder(t *testing.T) {
 }
 
 func TestDeleteConfirmed(t *testing.T) {
-	indexes := []arbutil.MessageIndex{40, 41, 42, 43, 44, 45, 46}
+	indexes := []mtutil.MessageIndex{40, 41, 42, 43, 44, 45, 46}
 	buffer := SequenceNumberCatchupBuffer{
 		messages:     createDummyBroadcastMessages(indexes),
 		messageCount: int32(len(indexes)),
@@ -138,7 +138,7 @@ func TestDeleteConfirmed(t *testing.T) {
 
 }
 func TestDeleteFreeMem(t *testing.T) {
-	indexes := []arbutil.MessageIndex{40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51}
+	indexes := []mtutil.MessageIndex{40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51}
 	buffer := SequenceNumberCatchupBuffer{
 		messages:     createDummyBroadcastMessagesImpl(indexes, len(indexes)*10+1),
 		messageCount: int32(len(indexes)),
@@ -169,7 +169,7 @@ func TestBroadcastBadMessage(t *testing.T) {
 }
 
 func TestBroadcastPastSeqNum(t *testing.T) {
-	indexes := []arbutil.MessageIndex{40}
+	indexes := []mtutil.MessageIndex{40}
 	buffer := SequenceNumberCatchupBuffer{
 		messages:     createDummyBroadcastMessagesImpl(indexes, len(indexes)*10+1),
 		messageCount: int32(len(indexes)),
@@ -190,7 +190,7 @@ func TestBroadcastPastSeqNum(t *testing.T) {
 }
 
 func TestBroadcastFutureSeqNum(t *testing.T) {
-	indexes := []arbutil.MessageIndex{40}
+	indexes := []mtutil.MessageIndex{40}
 	buffer := SequenceNumberCatchupBuffer{
 		messages:     createDummyBroadcastMessagesImpl(indexes, len(indexes)*10+1),
 		messageCount: int32(len(indexes)),

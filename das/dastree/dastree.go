@@ -1,5 +1,5 @@
-// Copyright 2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package dastree
 
@@ -9,7 +9,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/offchainlabs/nitro/util/arbmath"
+	"github.com/mantlenetworkio/mantle/util/mtmath"
 )
 
 const BinSize = 64 * 1024 // 64 kB
@@ -52,15 +52,15 @@ func RecordHash(record func(bytes32, []byte), preimage ...[]byte) bytes32 {
 		return append([]byte{before}, slice...)
 	}
 
-	unrolled := arbmath.ConcatByteSlices(preimage...)
+	unrolled := mtmath.ConcatByteSlices(preimage...)
 	if len(unrolled) == 0 {
-		return arbmath.FlipBit(keccord(prepend(LeafByte, keccord([]byte{}).Bytes())), 0)
+		return mtmath.FlipBit(keccord(prepend(LeafByte, keccord([]byte{}).Bytes())), 0)
 	}
 
 	length := uint32(len(unrolled))
 	leaves := []node{}
 	for bin := uint32(0); bin < length; bin += BinSize {
-		end := arbmath.MinUint32(bin+BinSize, length)
+		end := mtmath.MinUint32(bin+BinSize, length)
 		hash := keccord(prepend(LeafByte, keccord(unrolled[bin:end]).Bytes()))
 		leaves = append(leaves, node{hash, end - bin})
 	}
@@ -74,7 +74,7 @@ func RecordHash(record func(bytes32, []byte), preimage ...[]byte) bytes32 {
 			firstHash := layer[i].hash.Bytes()
 			otherHash := layer[i+1].hash.Bytes()
 			sizeUnder := layer[i].size + layer[i+1].size
-			dataUnder := arbmath.ConcatByteSlices(firstHash, otherHash, arbmath.Uint32ToBytes(sizeUnder))
+			dataUnder := mtmath.ConcatByteSlices(firstHash, otherHash, mtmath.Uint32ToBytes(sizeUnder))
 			parent := node{
 				keccord(prepend(NodeByte, dataUnder)),
 				sizeUnder,
@@ -86,7 +86,7 @@ func RecordHash(record func(bytes32, []byte), preimage ...[]byte) bytes32 {
 		}
 		layer = paired
 	}
-	return arbmath.FlipBit(layer[0].hash, 0)
+	return mtmath.FlipBit(layer[0].hash, 0)
 }
 
 func Hash(preimage ...[]byte) bytes32 {
@@ -101,7 +101,7 @@ func HashBytes(preimage ...[]byte) []byte {
 func FlatHashToTreeHash(flat bytes32) bytes32 {
 	// Forms a degenerate dastree that's just a single leaf
 	// note: the inner preimage may be larger than the 64 kB standard
-	return arbmath.FlipBit(crypto.Keccak256Hash(FlatHashToTreeLeaf(flat)), 0)
+	return mtmath.FlipBit(crypto.Keccak256Hash(FlatHashToTreeLeaf(flat)), 0)
 }
 
 func FlatHashToTreeLeaf(flat bytes32) []byte {
@@ -145,7 +145,7 @@ func Content(root bytes32, oracle func(bytes32) []byte) ([]byte, error) {
 		return kind, data[1:], nil
 	}
 
-	start := arbmath.FlipBit(root, 0)
+	start := mtmath.FlipBit(root, 0)
 	total := uint32(0)
 	kind, upper, err := unpeal(start)
 	if err != nil {
@@ -180,7 +180,7 @@ func Content(root bytes32, oracle func(bytes32) []byte) ([]byte, error) {
 			leaves = append(leaves, leaf)
 		case NodeByte:
 			count := binary.BigEndian.Uint32(data[64:])
-			power := uint32(arbmath.NextOrCurrentPowerOf2(uint64(count)))
+			power := uint32(mtmath.NextOrCurrentPowerOf2(uint64(count)))
 
 			if place.size != count {
 				return nil, fmt.Errorf("invalid size data: %v vs %v for %v", count, place.size, data)

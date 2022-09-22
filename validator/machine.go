@@ -1,11 +1,11 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package validator
 
 /*
 #cgo CFLAGS: -g -Wall -I../target/include/
-#include "arbitrator.h"
+#include "mtitrator.h"
 
 ResolvedPreimage preimageResolverC(size_t context, const uint8_t* hash);
 */
@@ -33,41 +33,41 @@ type MachineInterface interface {
 	ProveNextStep() []byte
 }
 
-// Holds an arbitrator machine pointer, and manages its lifetime
-type ArbitratorMachine struct {
+// Holds an mtitrator machine pointer, and manages its lifetime
+type MtitratorMachine struct {
 	ptr       *C.struct_Machine
 	contextId *int64 // has a finalizer attached to remove the preimage resolver from the global map
 	frozen    bool   // does not allow anything that changes machine state, not cloned with the machine
 }
 
-// Assert that ArbitratorMachine implements MachineInterface
-var _ MachineInterface = (*ArbitratorMachine)(nil)
+// Assert that MtitratorMachine implements MachineInterface
+var _ MachineInterface = (*MtitratorMachine)(nil)
 
 var preimageResolvers sync.Map
 var lastPreimageResolverId int64 // atomic
 
-func freeMachine(mach *ArbitratorMachine) {
-	C.arbitrator_free_machine(mach.ptr)
+func freeMachine(mach *MtitratorMachine) {
+	C.mtitrator_free_machine(mach.ptr)
 }
 
 func freeContextId(context *int64) {
 	preimageResolvers.Delete(*context)
 }
 
-func machineFromPointer(ptr *C.struct_Machine) *ArbitratorMachine {
+func machineFromPointer(ptr *C.struct_Machine) *MtitratorMachine {
 	if ptr == nil {
 		return nil
 	}
-	mach := &ArbitratorMachine{ptr: ptr}
-	C.arbitrator_set_preimage_resolver(ptr, (*[0]byte)(C.preimageResolverC))
+	mach := &MtitratorMachine{ptr: ptr}
+	C.mtitrator_set_preimage_resolver(ptr, (*[0]byte)(C.preimageResolverC))
 	runtime.SetFinalizer(mach, freeMachine)
 	return mach
 }
 
-func LoadSimpleMachine(wasm string, libraries []string) (*ArbitratorMachine, error) {
+func LoadSimpleMachine(wasm string, libraries []string) (*MtitratorMachine, error) {
 	cWasm := C.CString(wasm)
 	cLibraries := CreateCStringList(libraries)
-	mach := C.arbitrator_load_machine(cWasm, cLibraries, C.long(len(libraries)))
+	mach := C.mtitrator_load_machine(cWasm, cLibraries, C.long(len(libraries)))
 	C.free(unsafe.Pointer(cWasm))
 	FreeCStringList(cLibraries, len(libraries))
 	if mach == nil {
@@ -76,54 +76,54 @@ func LoadSimpleMachine(wasm string, libraries []string) (*ArbitratorMachine, err
 	return machineFromPointer(mach), nil
 }
 
-func (m *ArbitratorMachine) Freeze() {
+func (m *MtitratorMachine) Freeze() {
 	m.frozen = true
 }
 
 // Even if origin is frozen - clone is not
-func (m *ArbitratorMachine) Clone() *ArbitratorMachine {
+func (m *MtitratorMachine) Clone() *MtitratorMachine {
 	defer runtime.KeepAlive(m)
-	newMach := machineFromPointer(C.arbitrator_clone_machine(m.ptr))
+	newMach := machineFromPointer(C.mtitrator_clone_machine(m.ptr))
 	newMach.contextId = m.contextId
 	return newMach
 }
 
-func (m *ArbitratorMachine) CloneMachineInterface() MachineInterface {
+func (m *MtitratorMachine) CloneMachineInterface() MachineInterface {
 	return m.Clone()
 }
 
-func (m *ArbitratorMachine) SetGlobalState(globalState GoGlobalState) error {
+func (m *MtitratorMachine) SetGlobalState(globalState GoGlobalState) error {
 	defer runtime.KeepAlive(m)
 	if m.frozen {
 		return errors.New("machine frozen")
 	}
 	cGlobalState := GlobalStateToC(globalState)
-	C.arbitrator_set_global_state(m.ptr, cGlobalState)
+	C.mtitrator_set_global_state(m.ptr, cGlobalState)
 	return nil
 }
 
-func (m *ArbitratorMachine) GetGlobalState() GoGlobalState {
+func (m *MtitratorMachine) GetGlobalState() GoGlobalState {
 	defer runtime.KeepAlive(m)
-	cGlobalState := C.arbitrator_global_state(m.ptr)
+	cGlobalState := C.mtitrator_global_state(m.ptr)
 	return GlobalStateFromC(cGlobalState)
 }
 
-func (m *ArbitratorMachine) GetStepCount() uint64 {
+func (m *MtitratorMachine) GetStepCount() uint64 {
 	defer runtime.KeepAlive(m)
-	return uint64(C.arbitrator_get_num_steps(m.ptr))
+	return uint64(C.mtitrator_get_num_steps(m.ptr))
 }
 
-func (m *ArbitratorMachine) IsRunning() bool {
+func (m *MtitratorMachine) IsRunning() bool {
 	defer runtime.KeepAlive(m)
-	return C.arbitrator_get_status(m.ptr) == C.ARBITRATOR_MACHINE_STATUS_RUNNING
+	return C.mtitrator_get_status(m.ptr) == C.MTITRATOR_MACHINE_STATUS_RUNNING
 }
 
-func (m *ArbitratorMachine) IsErrored() bool {
+func (m *MtitratorMachine) IsErrored() bool {
 	defer runtime.KeepAlive(m)
-	return C.arbitrator_get_status(m.ptr) == C.ARBITRATOR_MACHINE_STATUS_ERRORED
+	return C.mtitrator_get_status(m.ptr) == C.MTITRATOR_MACHINE_STATUS_ERRORED
 }
 
-func (m *ArbitratorMachine) ValidForStep(requestedStep uint64) bool {
+func (m *MtitratorMachine) ValidForStep(requestedStep uint64) bool {
 	haveStep := m.GetStepCount()
 	if haveStep > requestedStep {
 		return false
@@ -158,7 +158,7 @@ func manageConditionByte(ctx context.Context) (*C.uint8_t, func()) {
 	return conditionByte, cancel
 }
 
-func (m *ArbitratorMachine) Step(ctx context.Context, count uint64) error {
+func (m *MtitratorMachine) Step(ctx context.Context, count uint64) error {
 	defer runtime.KeepAlive(m)
 
 	if m.frozen {
@@ -167,7 +167,7 @@ func (m *ArbitratorMachine) Step(ctx context.Context, count uint64) error {
 	conditionByte, cancel := manageConditionByte(ctx)
 	defer cancel()
 
-	err := C.arbitrator_step(m.ptr, C.uint64_t(count), conditionByte)
+	err := C.mtitrator_step(m.ptr, C.uint64_t(count), conditionByte)
 	if err != nil {
 		errString := C.GoString(err)
 		C.free(unsafe.Pointer(err))
@@ -177,7 +177,7 @@ func (m *ArbitratorMachine) Step(ctx context.Context, count uint64) error {
 	return ctx.Err()
 }
 
-func (m *ArbitratorMachine) StepUntilHostIo(ctx context.Context) error {
+func (m *MtitratorMachine) StepUntilHostIo(ctx context.Context) error {
 	defer runtime.KeepAlive(m)
 	if m.frozen {
 		return errors.New("machine frozen")
@@ -186,43 +186,43 @@ func (m *ArbitratorMachine) StepUntilHostIo(ctx context.Context) error {
 	conditionByte, cancel := manageConditionByte(ctx)
 	defer cancel()
 
-	C.arbitrator_step_until_host_io(m.ptr, conditionByte)
+	C.mtitrator_step_until_host_io(m.ptr, conditionByte)
 
 	return ctx.Err()
 }
 
-func (m *ArbitratorMachine) Hash() (hash common.Hash) {
+func (m *MtitratorMachine) Hash() (hash common.Hash) {
 	defer runtime.KeepAlive(m)
-	bytes := C.arbitrator_hash(m.ptr)
+	bytes := C.mtitrator_hash(m.ptr)
 	for i, b := range bytes.bytes {
 		hash[i] = byte(b)
 	}
 	return
 }
 
-func (m *ArbitratorMachine) GetModuleRoot() (hash common.Hash) {
+func (m *MtitratorMachine) GetModuleRoot() (hash common.Hash) {
 	defer runtime.KeepAlive(m)
-	bytes := C.arbitrator_module_root(m.ptr)
+	bytes := C.mtitrator_module_root(m.ptr)
 	for i, b := range bytes.bytes {
 		hash[i] = byte(b)
 	}
 	return
 }
-func (m *ArbitratorMachine) ProveNextStep() []byte {
+func (m *MtitratorMachine) ProveNextStep() []byte {
 	defer runtime.KeepAlive(m)
 
-	rustProof := C.arbitrator_gen_proof(m.ptr)
+	rustProof := C.mtitrator_gen_proof(m.ptr)
 	proofBytes := C.GoBytes(unsafe.Pointer(rustProof.ptr), C.int(rustProof.len))
-	C.arbitrator_free_proof(rustProof)
+	C.mtitrator_free_proof(rustProof)
 
 	return proofBytes
 }
 
-func (m *ArbitratorMachine) SerializeState(path string) error {
+func (m *MtitratorMachine) SerializeState(path string) error {
 	defer runtime.KeepAlive(m)
 
 	cPath := C.CString(path)
-	status := C.arbitrator_serialize_state(m.ptr, cPath)
+	status := C.mtitrator_serialize_state(m.ptr, cPath)
 	C.free(unsafe.Pointer(cPath))
 
 	if status != 0 {
@@ -232,7 +232,7 @@ func (m *ArbitratorMachine) SerializeState(path string) error {
 	}
 }
 
-func (m *ArbitratorMachine) DeserializeAndReplaceState(path string) error {
+func (m *MtitratorMachine) DeserializeAndReplaceState(path string) error {
 	defer runtime.KeepAlive(m)
 
 	if m.frozen {
@@ -240,7 +240,7 @@ func (m *ArbitratorMachine) DeserializeAndReplaceState(path string) error {
 	}
 
 	cPath := C.CString(path)
-	status := C.arbitrator_deserialize_and_replace_state(m.ptr, cPath)
+	status := C.mtitrator_deserialize_and_replace_state(m.ptr, cPath)
 	C.free(unsafe.Pointer(cPath))
 
 	if status != 0 {
@@ -250,14 +250,14 @@ func (m *ArbitratorMachine) DeserializeAndReplaceState(path string) error {
 	}
 }
 
-func (m *ArbitratorMachine) AddSequencerInboxMessage(index uint64, data []byte) error {
+func (m *MtitratorMachine) AddSequencerInboxMessage(index uint64, data []byte) error {
 	defer runtime.KeepAlive(m)
 
 	if m.frozen {
 		return errors.New("machine frozen")
 	}
 	cbyte := CreateCByteArray(data)
-	status := C.arbitrator_add_inbox_message(m.ptr, C.uint64_t(0), C.uint64_t(index), cbyte)
+	status := C.mtitrator_add_inbox_message(m.ptr, C.uint64_t(0), C.uint64_t(index), cbyte)
 	DestroyCByteArray(cbyte)
 	if status != 0 {
 		return errors.New("failed to add sequencer inbox message")
@@ -266,7 +266,7 @@ func (m *ArbitratorMachine) AddSequencerInboxMessage(index uint64, data []byte) 
 	}
 }
 
-func (m *ArbitratorMachine) AddDelayedInboxMessage(index uint64, data []byte) error {
+func (m *MtitratorMachine) AddDelayedInboxMessage(index uint64, data []byte) error {
 	defer runtime.KeepAlive(m)
 
 	if m.frozen {
@@ -274,7 +274,7 @@ func (m *ArbitratorMachine) AddDelayedInboxMessage(index uint64, data []byte) er
 	}
 
 	cbyte := CreateCByteArray(data)
-	status := C.arbitrator_add_inbox_message(m.ptr, C.uint64_t(1), C.uint64_t(index), cbyte)
+	status := C.mtitrator_add_inbox_message(m.ptr, C.uint64_t(1), C.uint64_t(index), cbyte)
 	DestroyCByteArray(cbyte)
 	if status != 0 {
 		return errors.New("failed to add sequencer inbox message")
@@ -316,7 +316,7 @@ func preimageResolver(context C.size_t, ptr unsafe.Pointer) C.ResolvedPreimage {
 	}
 }
 
-func (m *ArbitratorMachine) SetPreimageResolver(resolver GoPreimageResolver) error {
+func (m *MtitratorMachine) SetPreimageResolver(resolver GoPreimageResolver) error {
 	if m.frozen {
 		return errors.New("machine frozen")
 	}
@@ -324,6 +324,6 @@ func (m *ArbitratorMachine) SetPreimageResolver(resolver GoPreimageResolver) err
 	preimageResolvers.Store(id, resolver)
 	m.contextId = &id
 	runtime.SetFinalizer(m.contextId, freeContextId)
-	C.arbitrator_set_context(m.ptr, C.uint64_t(id))
+	C.mtitrator_set_context(m.ptr, C.uint64_t(id))
 	return nil
 }

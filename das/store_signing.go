@@ -1,33 +1,26 @@
-// Copyright 2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package das
 
 import (
 	"context"
-	"crypto/ecdsa"
 	"encoding/binary"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/das/dastree"
-	"github.com/offchainlabs/nitro/util/pretty"
+
+	"github.com/mantlenetworkio/mantle/das/dastree"
+	"github.com/mantlenetworkio/mantle/mtstate"
+	"github.com/mantlenetworkio/mantle/util/pretty"
+	"github.com/mantlenetworkio/mantle/util/signature"
 )
 
-var uniquifyingPrefix = []byte("Arbitrum Nitro DAS API Store:")
+var uniquifyingPrefix = []byte("Mantle DAS API Store:")
 
-type DasSigner func([]byte) ([]byte, error) // takes 32-byte array (hash of data) and produces signature bytes (and/or error)
-
-func DasSignerFromPrivateKey(privateKey *ecdsa.PrivateKey) DasSigner {
-	return func(data []byte) ([]byte, error) {
-		return crypto.Sign(data, privateKey)
-	}
-}
-
-func applyDasSigner(signer DasSigner, data []byte, timeout uint64) ([]byte, error) {
+func applyDasSigner(signer signature.DataSignerFunc, data []byte, timeout uint64) ([]byte, error) {
 	return signer(dasStoreHash(data, timeout))
 }
 
@@ -47,11 +40,11 @@ func dasStoreHash(data []byte, timeout uint64) []byte {
 
 type StoreSigningDAS struct {
 	DataAvailabilityServiceWriter
-	signer DasSigner
+	signer signature.DataSignerFunc
 	addr   common.Address
 }
 
-func NewStoreSigningDAS(inner DataAvailabilityServiceWriter, signer DasSigner) (DataAvailabilityServiceWriter, error) {
+func NewStoreSigningDAS(inner DataAvailabilityServiceWriter, signer signature.DataSignerFunc) (DataAvailabilityServiceWriter, error) {
 	sig, err := applyDasSigner(signer, []byte{}, 0)
 	if err != nil {
 		return nil, err
@@ -63,7 +56,7 @@ func NewStoreSigningDAS(inner DataAvailabilityServiceWriter, signer DasSigner) (
 	return &StoreSigningDAS{inner, signer, addr}, nil
 }
 
-func (s *StoreSigningDAS) Store(ctx context.Context, message []byte, timeout uint64, sig []byte) (*arbstate.DataAvailabilityCertificate, error) {
+func (s *StoreSigningDAS) Store(ctx context.Context, message []byte, timeout uint64, sig []byte) (*mtstate.DataAvailabilityCertificate, error) {
 	log.Trace("das.StoreSigningDAS.Store(...)", "message", pretty.FirstFewBytes(message), "timeout", time.Unix(int64(timeout), 0), "sig", pretty.FirstFewBytes(sig), "this", s)
 	mySig, err := applyDasSigner(s.signer, message, timeout)
 	if err != nil {

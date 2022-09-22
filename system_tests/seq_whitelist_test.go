@@ -1,7 +1,7 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantlenetworkio/mantle/blob/main/LICENSE
 
-package arbtest
+package mttest
 
 import (
 	"context"
@@ -9,14 +9,14 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/params"
-	"github.com/offchainlabs/nitro/arbnode"
+	"github.com/mantlenetworkio/mantle/mtnode"
 )
 
 func TestSequencerWhitelist(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	config := arbnode.ConfigDefaultL2Test()
+	config := mtnode.ConfigDefaultL2Test()
 	config.Sequencer.SenderWhitelist = GetTestAddressForAccountName(t, "Owner").String() + "," + GetTestAddressForAccountName(t, "User").String()
 	l2info, _, client, l2stack := CreateTestL2WithConfig(t, ctx, nil, config, true)
 	defer requireClose(t, l2stack)

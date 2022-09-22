@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package nodeInterface
 
@@ -8,20 +8,20 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/arbitrum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/offchainlabs/nitro/arbnode"
-	"github.com/offchainlabs/nitro/arbos/arbosState"
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/precompiles"
-	"github.com/offchainlabs/nitro/solgen/go/node_interfacegen"
-	"github.com/offchainlabs/nitro/solgen/go/precompilesgen"
-	"github.com/offchainlabs/nitro/util/arbmath"
+	"github.com/ethereum/go-ethereum/mantle"
+	"github.com/mantlenetworkio/mantle/mtnode"
+	"github.com/mantlenetworkio/mantle/mtos/mtosState"
+	"github.com/mantlenetworkio/mantle/mtstate"
+	"github.com/mantlenetworkio/mantle/precompiles"
+	"github.com/mantlenetworkio/mantle/solgen/go/node_interfacegen"
+	"github.com/mantlenetworkio/mantle/solgen/go/precompilesgen"
+	"github.com/mantlenetworkio/mantle/util/mtmath"
 )
 
 type addr = common.Address
@@ -36,7 +36,7 @@ type BackendAPI = core.NodeInterfaceBackendAPI
 type ExecutionResult = core.ExecutionResult
 
 func init() {
-	arbstate.RequireHookedGeth()
+	mtstate.RequireHookedGeth()
 
 	nodeInterfaceImpl := &NodeInterface{Address: types.NodeInterfaceAddress}
 	nodeInterfaceMeta := node_interfacegen.NodeInterfaceMetaData
@@ -54,9 +54,9 @@ func init() {
 		backend core.NodeInterfaceBackendAPI,
 	) (Message, *ExecutionResult, error) {
 		to := msg.To()
-		arbosVersion := arbosState.ArbOSVersion(statedb) // check ArbOS has been installed
-		if to != nil && arbosVersion != 0 {
-			var precompile precompiles.ArbosPrecompile
+		mtosVersion := mtosState.MtOSVersion(statedb) // check MtOS has been installed
+		if to != nil && mtosVersion != 0 {
+			var precompile precompiles.MtosPrecompile
 			var swapMessages bool
 			returnMessage := &Message{}
 			var address addr
@@ -121,14 +121,14 @@ func init() {
 			// It's already unlimited
 			return
 		}
-		arbosVersion := arbosState.ArbOSVersion(statedb)
-		if arbosVersion == 0 {
-			// ArbOS hasn't been installed, so use the vanilla gas cap
+		mtosVersion := mtosState.MtOSVersion(statedb)
+		if mtosVersion == 0 {
+			// MtOS hasn't been installed, so use the vanilla gas cap
 			return
 		}
-		state, err := arbosState.OpenSystemArbosState(statedb, nil, true)
+		state, err := mtosState.OpenSystemMtosState(statedb, nil, true)
 		if err != nil {
-			log.Error("failed to open ArbOS state", "err", err)
+			log.Error("failed to open MtOS state", "err", err)
 			return
 		}
 		if header.BaseFee.Sign() == 0 {
@@ -137,18 +137,18 @@ func init() {
 		}
 
 		posterCost, _ := state.L1PricingState().PosterDataCost(msg, header.Coinbase)
-		posterCostInL2Gas := arbmath.BigToUintSaturating(arbmath.BigDiv(posterCost, header.BaseFee))
-		*gascap = arbmath.SaturatingUAdd(*gascap, posterCostInL2Gas)
+		posterCostInL2Gas := mtmath.BigToUintSaturating(mtmath.BigDiv(posterCost, header.BaseFee))
+		*gascap = mtmath.SaturatingUAdd(*gascap, posterCostInL2Gas)
 	}
 
-	core.GetArbOSSpeedLimitPerSecond = func(statedb *state.StateDB) (uint64, error) {
-		arbosVersion := arbosState.ArbOSVersion(statedb)
-		if arbosVersion == 0 {
-			return 0.0, errors.New("ArbOS not installed")
+	core.GetMtOSSpeedLimitPerSecond = func(statedb *state.StateDB) (uint64, error) {
+		mtosVersion := mtosState.MtOSVersion(statedb)
+		if mtosVersion == 0 {
+			return 0.0, errors.New("MtOS not installed")
 		}
-		state, err := arbosState.OpenSystemArbosState(statedb, nil, true)
+		state, err := mtosState.OpenSystemMtosState(statedb, nil, true)
 		if err != nil {
-			log.Error("failed to open ArbOS state", "err", err)
+			log.Error("failed to open MtOS state", "err", err)
 			return 0.0, err
 		}
 		pricing := state.L2PricingState()
@@ -160,23 +160,23 @@ func init() {
 		return speedLimit, nil
 	}
 
-	arbSys, err := precompilesgen.ArbSysMetaData.GetAbi()
+	mtSys, err := precompilesgen.MtSysMetaData.GetAbi()
 	if err != nil {
 		panic(err)
 	}
-	l2ToL1TxTopic = arbSys.Events["L2ToL1Tx"].ID
-	l2ToL1TransactionTopic = arbSys.Events["L2ToL1Transaction"].ID
-	merkleTopic = arbSys.Events["SendMerkleUpdate"].ID
+	l2ToL1TxTopic = mtSys.Events["L2ToL1Tx"].ID
+	l2ToL1TransactionTopic = mtSys.Events["L2ToL1Transaction"].ID
+	merkleTopic = mtSys.Events["SendMerkleUpdate"].ID
 }
 
-func arbNodeFromNodeInterfaceBackend(backend BackendAPI) (*arbnode.Node, error) {
-	apiBackend, ok := backend.(*arbitrum.APIBackend)
+func mtNodeFromNodeInterfaceBackend(backend BackendAPI) (*mtnode.Node, error) {
+	apiBackend, ok := backend.(*mantle.APIBackend)
 	if !ok {
-		return nil, errors.New("API backend isn't Arbitrum")
+		return nil, errors.New("API backend isn't Mantle")
 	}
-	arbNode, ok := apiBackend.GetArbitrumNode().(*arbnode.Node)
+	mtNode, ok := apiBackend.GetMantleNode().(*mtnode.Node)
 	if !ok {
-		return nil, errors.New("failed to get Arbitrum Node from backend")
+		return nil, errors.New("failed to get Mantle Node from backend")
 	}
-	return arbNode, nil
+	return mtNode, nil
 }

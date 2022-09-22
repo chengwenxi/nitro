@@ -1,7 +1,7 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantlenetworkio/mantle/blob/main/LICENSE
 
-package arbtest
+package mttest
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/offchainlabs/nitro/arbos/l1pricing"
+	"github.com/mantlenetworkio/mantle/mtos/l1pricing"
 )
 
 // L1 Pricer pool address gets something when the sequencer posts batches
@@ -22,7 +22,7 @@ func TestSequencerCompensation(t *testing.T) {
 	defer requireClose(t, l1stack)
 	defer requireClose(t, l2stackA)
 
-	l2clientB, _, l2stackB := Create2ndNode(t, ctx, node1, l1stack, &l2info.ArbInitData, nil)
+	l2clientB, _, l2stackB := Create2ndNode(t, ctx, node1, l1stack, &l2info.MtInitData, nil)
 	defer requireClose(t, l2stackB)
 
 	l2info.GenerateAccount("User2")

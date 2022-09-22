@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package precompiles
 
@@ -12,11 +12,11 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/offchainlabs/nitro/arbos"
-	"github.com/offchainlabs/nitro/arbos/arbosState"
-	"github.com/offchainlabs/nitro/arbos/util"
-	templates "github.com/offchainlabs/nitro/solgen/go/precompilesgen"
-	"github.com/offchainlabs/nitro/util/arbmath"
+	"github.com/mantlenetworkio/mantle/mtos"
+	"github.com/mantlenetworkio/mantle/mtos/mtosState"
+	"github.com/mantlenetworkio/mantle/mtos/util"
+	templates "github.com/mantlenetworkio/mantle/solgen/go/precompilesgen"
+	"github.com/mantlenetworkio/mantle/util/mtmath"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -29,7 +29,7 @@ import (
 	"github.com/ethereum/go-ethereum/params"
 )
 
-type ArbosPrecompile interface {
+type MtosPrecompile interface {
 	// Important fields: evm.StateDB and evm.Config.Tracer
 	// NOTE: if precompileAddress != actingAsAddress, watch out!
 	// This is a delegatecall or callcode, so caller might be wrong.
@@ -65,15 +65,15 @@ type Precompile struct {
 	name          string
 	implementer   reflect.Value
 	address       common.Address
-	arbosVersion  uint64
+	mtosVersion   uint64
 }
 
 type PrecompileMethod struct {
-	name         string
-	template     abi.Method
-	purity       purity
-	handler      reflect.Method
-	arbosVersion uint64
+	name        string
+	template    abi.Method
+	purity      purity
+	handler     reflect.Method
+	mtosVersion uint64
 }
 
 type PrecompileEvent struct {
@@ -510,28 +510,28 @@ func MakePrecompile(metadata *bind.MetaData, implementer interface{}) (addr, Pre
 	}
 }
 
-func Precompiles() map[addr]ArbosPrecompile {
+func Precompiles() map[addr]MtosPrecompile {
 
 	//nolint:gocritic
 	hex := func(s string) addr {
 		return common.HexToAddress(s)
 	}
 
-	contracts := make(map[addr]ArbosPrecompile)
+	contracts := make(map[addr]MtosPrecompile)
 
-	insert := func(address addr, impl ArbosPrecompile) Precompile {
+	insert := func(address addr, impl MtosPrecompile) Precompile {
 		contracts[address] = impl
 		return impl.Precompile()
 	}
 
-	insert(MakePrecompile(templates.ArbInfoMetaData, &ArbInfo{Address: hex("65")}))
-	insert(MakePrecompile(templates.ArbAddressTableMetaData, &ArbAddressTable{Address: hex("66")}))
-	insert(MakePrecompile(templates.ArbBLSMetaData, &ArbBLS{Address: hex("67")}))
-	insert(MakePrecompile(templates.ArbFunctionTableMetaData, &ArbFunctionTable{Address: hex("68")}))
-	insert(MakePrecompile(templates.ArbosTestMetaData, &ArbosTest{Address: hex("69")}))
-	insert(MakePrecompile(templates.ArbGasInfoMetaData, &ArbGasInfo{Address: hex("6c")}))
-	insert(MakePrecompile(templates.ArbAggregatorMetaData, &ArbAggregator{Address: hex("6d")}))
-	insert(MakePrecompile(templates.ArbStatisticsMetaData, &ArbStatistics{Address: hex("6f")}))
+	insert(MakePrecompile(templates.MtInfoMetaData, &MtInfo{Address: hex("65")}))
+	insert(MakePrecompile(templates.MtAddressTableMetaData, &MtAddressTable{Address: hex("66")}))
+	insert(MakePrecompile(templates.MtBLSMetaData, &MtBLS{Address: hex("67")}))
+	insert(MakePrecompile(templates.MtFunctionTableMetaData, &MtFunctionTable{Address: hex("68")}))
+	insert(MakePrecompile(templates.MtosTestMetaData, &MtosTest{Address: hex("69")}))
+	insert(MakePrecompile(templates.MtGasInfoMetaData, &MtGasInfo{Address: hex("6c")}))
+	insert(MakePrecompile(templates.MtAggregatorMetaData, &MtAggregator{Address: hex("6d")}))
+	insert(MakePrecompile(templates.MtStatisticsMetaData, &MtStatistics{Address: hex("6f")}))
 
 	eventCtx := func(gasLimit uint64, err error) *Context {
 		if err != nil {
@@ -543,43 +543,43 @@ func Precompiles() map[addr]ArbosPrecompile {
 		}
 	}
 
-	ArbOwnerPublic := insert(MakePrecompile(templates.ArbOwnerPublicMetaData, &ArbOwnerPublic{Address: hex("6b")}))
-	ArbOwnerPublic.methodsByName["GetInfraFeeAccount"].arbosVersion = 5
+	MtOwnerPublic := insert(MakePrecompile(templates.MtOwnerPublicMetaData, &MtOwnerPublic{Address: hex("6b")}))
+	MtOwnerPublic.methodsByName["GetInfraFeeAccount"].mtosVersion = 5
 
-	ArbRetryableImpl := &ArbRetryableTx{Address: types.ArbRetryableTxAddress}
-	ArbRetryable := insert(MakePrecompile(templates.ArbRetryableTxMetaData, ArbRetryableImpl))
-	arbos.ArbRetryableTxAddress = ArbRetryable.address
-	arbos.RedeemScheduledEventID = ArbRetryable.events["RedeemScheduled"].template.ID
+	MtRetryableImpl := &MtRetryableTx{Address: types.MtRetryableTxAddress}
+	MtRetryable := insert(MakePrecompile(templates.MtRetryableTxMetaData, MtRetryableImpl))
+	mtos.MtRetryableTxAddress = MtRetryable.address
+	mtos.RedeemScheduledEventID = MtRetryable.events["RedeemScheduled"].template.ID
 	emitReedeemScheduled := func(evm mech, gas, nonce uint64, ticketId, retryTxHash bytes32, donor addr, maxRefund *big.Int, submissionFeeRefund *big.Int) error {
-		context := eventCtx(ArbRetryableImpl.RedeemScheduledGasCost(hash{}, hash{}, 0, 0, addr{}, common.Big0, common.Big0))
-		return ArbRetryableImpl.RedeemScheduled(context, evm, ticketId, retryTxHash, nonce, gas, donor, maxRefund, submissionFeeRefund)
+		context := eventCtx(MtRetryableImpl.RedeemScheduledGasCost(hash{}, hash{}, 0, 0, addr{}, common.Big0, common.Big0))
+		return MtRetryableImpl.RedeemScheduled(context, evm, ticketId, retryTxHash, nonce, gas, donor, maxRefund, submissionFeeRefund)
 	}
-	arbos.EmitReedeemScheduledEvent = emitReedeemScheduled
-	arbos.EmitTicketCreatedEvent = func(evm mech, ticketId bytes32) error {
-		context := eventCtx(ArbRetryableImpl.TicketCreatedGasCost(hash{}))
-		return ArbRetryableImpl.TicketCreated(context, evm, ticketId)
+	mtos.EmitReedeemScheduledEvent = emitReedeemScheduled
+	mtos.EmitTicketCreatedEvent = func(evm mech, ticketId bytes32) error {
+		context := eventCtx(MtRetryableImpl.TicketCreatedGasCost(hash{}))
+		return MtRetryableImpl.TicketCreated(context, evm, ticketId)
 	}
 
-	ArbSys := insert(MakePrecompile(templates.ArbSysMetaData, &ArbSys{Address: types.ArbSysAddress}))
-	arbos.ArbSysAddress = ArbSys.address
-	arbos.L2ToL1TransactionEventID = ArbSys.events["L2ToL1Transaction"].template.ID
-	arbos.L2ToL1TxEventID = ArbSys.events["L2ToL1Tx"].template.ID
+	MtSys := insert(MakePrecompile(templates.MtSysMetaData, &MtSys{Address: types.MtSysAddress}))
+	mtos.MtSysAddress = MtSys.address
+	mtos.L2ToL1TransactionEventID = MtSys.events["L2ToL1Transaction"].template.ID
+	mtos.L2ToL1TxEventID = MtSys.events["L2ToL1Tx"].template.ID
 
-	ArbOwnerImpl := &ArbOwner{Address: hex("70")}
+	MtOwnerImpl := &MtOwner{Address: hex("70")}
 	emitOwnerActs := func(evm mech, method bytes4, owner addr, data []byte) error {
-		context := eventCtx(ArbOwnerImpl.OwnerActsGasCost(method, owner, data))
-		return ArbOwnerImpl.OwnerActs(context, evm, method, owner, data)
+		context := eventCtx(MtOwnerImpl.OwnerActsGasCost(method, owner, data))
+		return MtOwnerImpl.OwnerActs(context, evm, method, owner, data)
 	}
-	_, ArbOwner := MakePrecompile(templates.ArbOwnerMetaData, ArbOwnerImpl)
-	ArbOwner.methodsByName["GetInfraFeeAccount"].arbosVersion = 5
-	ArbOwner.methodsByName["SetInfraFeeAccount"].arbosVersion = 5
+	_, MtOwner := MakePrecompile(templates.MtOwnerMetaData, MtOwnerImpl)
+	MtOwner.methodsByName["GetInfraFeeAccount"].mtosVersion = 5
+	MtOwner.methodsByName["SetInfraFeeAccount"].mtosVersion = 5
 
-	insert(ownerOnly(ArbOwnerImpl.Address, ArbOwner, emitOwnerActs))
-	insert(debugOnly(MakePrecompile(templates.ArbDebugMetaData, &ArbDebug{Address: hex("ff")})))
+	insert(ownerOnly(MtOwnerImpl.Address, MtOwner, emitOwnerActs))
+	insert(debugOnly(MakePrecompile(templates.MtDebugMetaData, &MtDebug{Address: hex("ff")})))
 
-	ArbosActs := insert(MakePrecompile(templates.ArbosActsMetaData, &ArbosActs{Address: types.ArbosAddress}))
-	arbos.InternalTxStartBlockMethodID = ArbosActs.GetMethodID("StartBlock")
-	arbos.InternalTxBatchPostingReportMethodID = ArbosActs.GetMethodID("BatchPostingReport")
+	MtosActs := insert(MakePrecompile(templates.MtosActsMetaData, &MtosActs{Address: types.MtosAddress}))
+	mtos.InternalTxStartBlockMethodID = MtosActs.GetMethodID("StartBlock")
+	mtos.InternalTxBatchPostingReportMethodID = MtosActs.GetMethodID("BatchPostingReport")
 
 	return contracts
 }
@@ -608,20 +608,20 @@ func (p Precompile) Call(
 	gasSupplied uint64,
 	evm *vm.EVM,
 ) (output []byte, gasLeft uint64, err error) {
-	arbosVersion := arbosState.ArbOSVersion(evm.StateDB)
+	mtosVersion := mtosState.MtOSVersion(evm.StateDB)
 
-	if arbosVersion < p.arbosVersion {
+	if mtosVersion < p.mtosVersion {
 		// the precompile isn't yet active, so treat this call as if it were to a contract that doesn't exist
 		return []byte{}, gasSupplied, nil
 	}
 
 	if len(input) < 4 {
-		// ArbOS precompiles always have canonical method selectors
+		// MtOS precompiles always have canonical method selectors
 		return nil, 0, vm.ErrExecutionReverted
 	}
 	id := *(*[4]byte)(input)
 	method, ok := p.methods[id]
-	if !ok || arbosVersion < method.arbosVersion {
+	if !ok || mtosVersion < method.mtosVersion {
 		// method does not exist or hasn't yet been activated
 		return nil, 0, vm.ErrExecutionReverted
 	}
@@ -649,15 +649,15 @@ func (p Precompile) Call(
 		tracingInfo: util.NewTracingInfo(evm, caller, precompileAddress, util.TracingDuringEVM),
 	}
 
-	argsCost := params.CopyGas * arbmath.WordsForBytes(uint64(len(input)-4))
+	argsCost := params.CopyGas * mtmath.WordsForBytes(uint64(len(input)-4))
 	if err := callerCtx.Burn(argsCost); err != nil {
 		// user cannot afford the argument data supplied
 		return nil, 0, vm.ErrExecutionReverted
 	}
 
 	if method.purity != pure {
-		// impure methods may need the ArbOS state, so open & update the call context now
-		state, err := arbosState.OpenArbosState(evm.StateDB, callerCtx)
+		// impure methods may need the MtOS state, so open & update the call context now
+		state, err := mtosState.OpenMtosState(evm.StateDB, callerCtx)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -665,7 +665,7 @@ func (p Precompile) Call(
 	}
 
 	switch txProcessor := evm.ProcessingHook.(type) {
-	case *arbos.TxProcessor:
+	case *mtos.TxProcessor:
 		callerCtx.txProcessor = txProcessor
 	case *vm.DefaultTxProcessor:
 		glog.Error("processing hook not set")
@@ -715,7 +715,7 @@ func (p Precompile) Call(
 		var solErr *SolError
 		isSolErr := errors.As(errRet, &solErr)
 		if isSolErr {
-			resultCost := params.CopyGas * arbmath.WordsForBytes(uint64(len(solErr.data)))
+			resultCost := params.CopyGas * mtmath.WordsForBytes(uint64(len(solErr.data)))
 			if err := callerCtx.Burn(resultCost); err != nil {
 				// user cannot afford the result data returned
 				return nil, 0, vm.ErrExecutionReverted
@@ -735,7 +735,7 @@ func (p Precompile) Call(
 		return nil, callerCtx.gasLeft, vm.ErrExecutionReverted
 	}
 
-	resultCost := params.CopyGas * arbmath.WordsForBytes(uint64(len(encoded)))
+	resultCost := params.CopyGas * mtmath.WordsForBytes(uint64(len(encoded)))
 	if err := callerCtx.Burn(resultCost); err != nil {
 		// user cannot afford the result data returned
 		return nil, 0, vm.ErrExecutionReverted

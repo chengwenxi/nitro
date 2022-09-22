@@ -1,7 +1,7 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantlenetworkio/mantle/blob/main/LICENSE
 
-package arbtest
+package mttest
 
 import (
 	"context"
@@ -16,31 +16,31 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/solgen/go/node_interfacegen"
-	"github.com/offchainlabs/nitro/solgen/go/precompilesgen"
-	"github.com/offchainlabs/nitro/util/arbmath"
-	"github.com/offchainlabs/nitro/util/merkletree"
+	"github.com/mantlenetworkio/mantle/mtstate"
+	"github.com/mantlenetworkio/mantle/solgen/go/node_interfacegen"
+	"github.com/mantlenetworkio/mantle/solgen/go/precompilesgen"
+	"github.com/mantlenetworkio/mantle/util/merkletree"
+	"github.com/mantlenetworkio/mantle/util/mtmath"
 )
 
 func TestOutboxProofs(t *testing.T) {
 	t.Parallel()
-	arbstate.RequireHookedGeth()
+	mtstate.RequireHookedGeth()
 	rand.Seed(time.Now().UTC().UnixNano())
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	arbSysAbi, err := precompilesgen.ArbSysMetaData.GetAbi()
+	mtSysAbi, err := precompilesgen.MtSysMetaData.GetAbi()
 	Require(t, err, "failed to get abi")
-	withdrawTopic := arbSysAbi.Events["L2ToL1Tx"].ID
-	merkleTopic := arbSysAbi.Events["SendMerkleUpdate"].ID
+	withdrawTopic := mtSysAbi.Events["L2ToL1Tx"].ID
+	merkleTopic := mtSysAbi.Events["SendMerkleUpdate"].ID
 
 	l2info, _, client, l2stack := CreateTestL2(t, ctx)
 	defer requireClose(t, l2stack)
 
 	auth := l2info.GetDefaultTransactOpts("Owner", ctx)
 
-	arbSys, err := precompilesgen.NewArbSys(types.ArbSysAddress, client)
+	mtSys, err := precompilesgen.NewMtSys(types.MtSysAddress, client)
 	Require(t, err)
 	nodeInterface, err := node_interfacegen.NewNodeInterface(types.NodeInterfaceAddress, client)
 	Require(t, err)
@@ -66,14 +66,14 @@ func TestOutboxProofs(t *testing.T) {
 	for i := int64(0); i < txnCount; i++ {
 		auth.Value = big.NewInt(i * 1000000000)
 		auth.Nonce = big.NewInt(i + 1)
-		tx, err := arbSys.WithdrawEth(&auth, common.Address{})
-		Require(t, err, "ArbSys failed")
+		tx, err := mtSys.WithdrawEth(&auth, common.Address{})
+		Require(t, err, "MtSys failed")
 		txns = append(txns, tx.Hash())
 
 		time.Sleep(4 * time.Millisecond) // Geth takes a few ms for the receipt to show up
 		_, err = client.TransactionReceipt(ctx, tx.Hash())
 		if err == nil {
-			merkleState, err := arbSys.SendMerkleTreeState(&bind.CallOpts{})
+			merkleState, err := mtSys.SendMerkleTreeState(&bind.CallOpts{})
 			Require(t, err, "could not get merkle root")
 
 			root := proofRoot{
@@ -99,7 +99,7 @@ func TestOutboxProofs(t *testing.T) {
 		for _, log := range receipt.Logs {
 
 			if log.Topics[0] == withdrawTopic {
-				parsedLog, err := arbSys.ParseL2ToL1Tx(*log)
+				parsedLog, err := mtSys.ParseL2ToL1Tx(*log)
 				Require(t, err, "Failed to parse log")
 
 				provables = append(provables, proofPair{
@@ -117,10 +117,10 @@ func TestOutboxProofs(t *testing.T) {
 		rootHash := root.root
 		treeSize := root.size
 
-		balanced := treeSize == arbmath.NextPowerOf2(treeSize)/2
-		treeLevels := int(arbmath.Log2ceil(treeSize)) // the # of levels in the tree
-		proofLevels := treeLevels - 1                 // the # of levels where a hash is needed (all but root)
-		walkLevels := treeLevels                      // the # of levels we need to consider when building walks
+		balanced := treeSize == mtmath.NextPowerOf2(treeSize)/2
+		treeLevels := int(mtmath.Log2ceil(treeSize)) // the # of levels in the tree
+		proofLevels := treeLevels - 1                // the # of levels where a hash is needed (all but root)
+		walkLevels := treeLevels                     // the # of levels we need to consider when building walks
 		if balanced {
 			walkLevels -= 1 // skip the root
 		}
@@ -189,7 +189,7 @@ func TestOutboxProofs(t *testing.T) {
 			if len(query) > 0 {
 				logs, err = client.FilterLogs(ctx, ethereum.FilterQuery{
 					Addresses: []common.Address{
-						types.ArbSysAddress,
+						types.MtSysAddress,
 					},
 					Topics: [][]common.Hash{
 						{merkleTopic, withdrawTopic},

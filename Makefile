@@ -1,11 +1,11 @@
-# Copyright 2021-2022, Offchain Labs, Inc.
-# For license information, see https://github.com/nitro/blob/master/LICENSE
+# Copyright 2021-2022, Mantlenetwork, Inc.
+# For license information, see https://github.com/mantle/blob/master/LICENSE
 
 # Docker builds mess up file timestamps. Then again, in docker builds we never
 # have to update an existing file. So - for docker, convert all dependencies
 # to order-only dependencies (timestamps ignored).
 # WARNING: when using this trick, you cannot use the $< automatic variable
-ifeq ($(origin NITRO_BUILD_IGNORE_TIMESTAMPS),undefined)
+ifeq ($(origin MANTLE_BUILD_IGNORE_TIMESTAMPS),undefined)
  DEP_PREDICATE:=
  ORDER_ONLY_PREDICATE:=|
 else
@@ -14,16 +14,16 @@ else
 endif
 
 
-ifneq ($(origin NITRO_VERSION),undefined)
- GOLANG_LDFLAGS += -X github.com/offchainlabs/nitro/cmd/util.version=$(NITRO_VERSION)
+ifneq ($(origin MANTLE_VERSION),undefined)
+ GOLANG_LDFLAGS += -X github.com/mantlenetworkio/mantle/cmd/util.version=$(MANTLE_VERSION)
 endif
 
-ifneq ($(origin NITRO_DATETIME),undefined)
- GOLANG_LDFLAGS += -X github.com/offchainlabs/nitro/cmd/util.datetime=$(NITRO_DATETIME)
+ifneq ($(origin MANTLE_DATETIME),undefined)
+ GOLANG_LDFLAGS += -X github.com/mantlenetworkio/mantle/cmd/util.datetime=$(MANTLE_DATETIME)
 endif
 
-ifneq ($(origin NITRO_MODIFIED),undefined)
- GOLANG_LDFLAGS += -X github.com/offchainlabs/nitro/cmd/util.modified=$(NITRO_MODIFIED)
+ifneq ($(origin MANTLE_MODIFIED),undefined)
+ GOLANG_LDFLAGS += -X github.com/mantlenetworkio/mantle/cmd/util.modified=$(MANTLE_MODIFIED)
 endif
 
 ifneq ($(origin GOLANG_LDFLAGS),undefined)
@@ -35,7 +35,7 @@ precompiles = $(patsubst %,./solgen/generated/%.go, $(precompile_names))
 
 output_root=target
 
-repo_dirs = arbos arbnode arbstate cmd precompiles solgen system_tests util validator wavmio
+repo_dirs = mtos mtnode mtstate cmd precompiles solgen system_tests util validator wavmio
 go_source = $(wildcard $(patsubst %,%/*.go, $(repo_dirs)) $(patsubst %,%/*/*.go, $(repo_dirs)))
 
 color_pink = "\e[38;5;161;1m"
@@ -43,32 +43,32 @@ color_reset = "\e[0;0m"
 
 done = "%bdone!%b\n" $(color_pink) $(color_reset)
 
-replay_deps=arbos wavmio arbstate arbcompress solgen/go/node-interfacegen blsSignatures cmd/replay
+replay_deps=mtos wavmio mtstate mtcompress solgen/go/node-interfacegen blsSignatures cmd/replay
 
 replay_wasm=$(output_root)/machines/latest/replay.wasm
 
-arbitrator_generated_header=$(output_root)/include/arbitrator.h
-arbitrator_wasm_libs_nogo=$(output_root)/machines/latest/wasi_stub.wasm $(output_root)/machines/latest/host_io.wasm $(output_root)/machines/latest/soft-float.wasm
-arbitrator_wasm_libs=$(arbitrator_wasm_libs_nogo) $(patsubst %,$(output_root)/machines/latest/%.wasm, go_stub brotli)
-arbitrator_prover_lib=$(output_root)/lib/libprover.a
-arbitrator_prover_bin=$(output_root)/bin/prover
-arbitrator_jit=$(output_root)/bin/jit
+mtitrator_generated_header=$(output_root)/include/mtitrator.h
+mtitrator_wasm_libs_nogo=$(output_root)/machines/latest/wasi_stub.wasm $(output_root)/machines/latest/host_io.wasm $(output_root)/machines/latest/soft-float.wasm
+mtitrator_wasm_libs=$(mtitrator_wasm_libs_nogo) $(patsubst %,$(output_root)/machines/latest/%.wasm, go_stub brotli)
+mtitrator_prover_lib=$(output_root)/lib/libprover.a
+mtitrator_prover_bin=$(output_root)/bin/prover
+mtitrator_jit=$(output_root)/bin/jit
 
-arbitrator_cases=arbitrator/prover/test-cases
+mtitrator_cases=mtitrator/prover/test-cases
 
-arbitrator_tests_wat=$(wildcard $(arbitrator_cases)/*.wat)
-arbitrator_tests_rust=$(wildcard $(arbitrator_cases)/rust/src/bin/*.rs)
+mtitrator_tests_wat=$(wildcard $(mtitrator_cases)/*.wat)
+mtitrator_tests_rust=$(wildcard $(mtitrator_cases)/rust/src/bin/*.rs)
 
-arbitrator_test_wasms=$(patsubst %.wat,%.wasm, $(arbitrator_tests_wat)) $(patsubst $(arbitrator_cases)/rust/src/bin/%.rs,$(arbitrator_cases)/rust/target/wasm32-wasi/release/%.wasm, $(arbitrator_tests_rust)) $(arbitrator_cases)/go/main
+mtitrator_test_wasms=$(patsubst %.wat,%.wasm, $(mtitrator_tests_wat)) $(patsubst $(mtitrator_cases)/rust/src/bin/%.rs,$(mtitrator_cases)/rust/target/wasm32-wasi/release/%.wasm, $(mtitrator_tests_rust)) $(mtitrator_cases)/go/main
 
 WASI_SYSROOT?=/opt/wasi-sdk/wasi-sysroot
 
-arbitrator_wasm_lib_flags_nogo=$(patsubst %, -l %, $(arbitrator_wasm_libs_nogo))
-arbitrator_wasm_lib_flags=$(patsubst %, -l %, $(arbitrator_wasm_libs))
+mtitrator_wasm_lib_flags_nogo=$(patsubst %, -l %, $(mtitrator_wasm_libs_nogo))
+mtitrator_wasm_lib_flags=$(patsubst %, -l %, $(mtitrator_wasm_libs))
 
-arbitrator_wasm_wasistub_files = $(wildcard arbitrator/wasm-libraries/wasi-stub/src/*/*)
-arbitrator_wasm_gostub_files = $(wildcard arbitrator/wasm-libraries/go-stub/src/*/*)
-arbitrator_wasm_hostio_files = $(wildcard arbitrator/wasm-libraries/host-io/src/*/*)
+mtitrator_wasm_wasistub_files = $(wildcard mtitrator/wasm-libraries/wasi-stub/src/*/*)
+mtitrator_wasm_gostub_files = $(wildcard mtitrator/wasm-libraries/go-stub/src/*/*)
+mtitrator_wasm_hostio_files = $(wildcard mtitrator/wasm-libraries/host-io/src/*/*)
 
 # user targets
 
@@ -79,26 +79,26 @@ push: lint test-go .make/fmt
 all: build build-replay-env test-gen-proofs
 	@touch .make/all
 
-build: $(patsubst %,$(output_root)/bin/%, nitro deploy relay daserver datool seq-coordinator-invalidate)
+build: $(patsubst %,$(output_root)/bin/%, mantle deploy relay daserver datool seq-coordinator-invalidate)
 	@printf $(done)
 
 build-node-deps: $(go_source) build-prover-header build-prover-lib build-jit .make/solgen .make/cbrotli-lib
 
 test-go-deps: \
 	build-replay-env \
-	$(patsubst %,$(arbitrator_cases)/%.wasm, global-state read-inboxmsg-10 global-state-wrapper const)
+	$(patsubst %,$(mtitrator_cases)/%.wasm, global-state read-inboxmsg-10 global-state-wrapper const)
 
-build-prover-header: $(arbitrator_generated_header)
+build-prover-header: $(mtitrator_generated_header)
 
-build-prover-lib: $(arbitrator_prover_lib)
+build-prover-lib: $(mtitrator_prover_lib)
 
-build-prover-bin: $(arbitrator_prover_bin)
+build-prover-bin: $(mtitrator_prover_bin)
 
-build-jit: $(arbitrator_jit)
+build-jit: $(mtitrator_jit)
 
-build-replay-env: $(arbitrator_prover_bin) $(arbitrator_wasm_libs) $(replay_wasm) $(output_root)/machines/latest/machine.wavm.br
+build-replay-env: $(mtitrator_prover_bin) $(mtitrator_wasm_libs) $(replay_wasm) $(output_root)/machines/latest/machine.wavm.br
 
-build-wasm-libs: $(arbitrator_wasm_libs)
+build-wasm-libs: $(mtitrator_wasm_libs)
 
 build-wasm-bin: $(replay_wasm)
 
@@ -121,42 +121,42 @@ test-go-challenge: test-go-deps
 	@printf $(done)
 
 test-go-redis: test-go-deps
-	go test -p 1 -run TestSeqCoordinator -tags redistest ./system_tests/... ./arbnode/...
+	go test -p 1 -run TestRedis -tags redistest ./system_tests/... ./mtnode/...
 	@printf $(done)
 
 test-gen-proofs: \
-	$(patsubst $(arbitrator_cases)/%.wat,contracts/test/prover/proofs/%.json, $(arbitrator_tests_wat)) \
-	$(patsubst $(arbitrator_cases)/rust/src/bin/%.rs,contracts/test/prover/proofs/rust-%.json, $(arbitrator_tests_rust)) \
+	$(patsubst $(mtitrator_cases)/%.wat,contracts/test/prover/proofs/%.json, $(mtitrator_tests_wat)) \
+	$(patsubst $(mtitrator_cases)/rust/src/bin/%.rs,contracts/test/prover/proofs/rust-%.json, $(mtitrator_tests_rust)) \
 	contracts/test/prover/proofs/go.json
 
-wasm-ci-build: $(arbitrator_wasm_libs) $(arbitrator_test_wasms)
+wasm-ci-build: $(mtitrator_wasm_libs) $(mtitrator_test_wasms)
 	@printf $(done)
 
 clean:
 	go clean -testcache
-	rm -rf $(arbitrator_cases)/rust/target
-	rm -f $(arbitrator_cases)/*.wasm $(arbitrator_cases)/go/main
-	rm -rf arbitrator/wasm-testsuite/tests
+	rm -rf $(mtitrator_cases)/rust/target
+	rm -f $(mtitrator_cases)/*.wasm $(mtitrator_cases)/go/main
+	rm -rf mtitrator/wasm-testsuite/tests
 	rm -rf $(output_root)
 	rm -f contracts/test/prover/proofs/*.json contracts/test/prover/spec-proofs/*.json
-	rm -rf arbitrator/target
-	rm -rf arbitrator/wasm-libraries/target
-	rm -f arbitrator/wasm-libraries/soft-float/soft-float.wasm
-	rm -f arbitrator/wasm-libraries/soft-float/*.o
-	rm -f arbitrator/wasm-libraries/soft-float/SoftFloat/build/Wasm-Clang/*.o
-	rm -f arbitrator/wasm-libraries/soft-float/SoftFloat/build/Wasm-Clang/*.a
+	rm -rf mtitrator/target
+	rm -rf mtitrator/wasm-libraries/target
+	rm -f mtitrator/wasm-libraries/soft-float/soft-float.wasm
+	rm -f mtitrator/wasm-libraries/soft-float/*.o
+	rm -f mtitrator/wasm-libraries/soft-float/SoftFloat/build/Wasm-Clang/*.o
+	rm -f mtitrator/wasm-libraries/soft-float/SoftFloat/build/Wasm-Clang/*.a
 	@rm -rf contracts/build contracts/cache solgen/go/
 	@rm -f .make/*
 
 docker:
-	docker build -t nitro-node-slim --target nitro-node-slim .
-	docker build -t nitro-node --target nitro-node .
-	docker build -t nitro-node-dev --target nitro-node-dev .
+	docker build -t mantle-node-slim --target mantle-node-slim .
+	docker build -t mantle-node --target mantle-node .
+	docker build -t mantle-node-dev --target mantle-node-dev .
 
 # regular build rules
 
-$(output_root)/bin/nitro: $(DEP_PREDICATE) build-node-deps
-	go build $(GOLANG_PARAMS) -o $@ "$(CURDIR)/cmd/nitro"
+$(output_root)/bin/mantle: $(DEP_PREDICATE) build-node-deps
+	go build $(GOLANG_PARAMS) -o $@ "$(CURDIR)/cmd/mantle"
 
 $(output_root)/bin/deploy: $(DEP_PREDICATE) build-node-deps
 	go build $(GOLANG_PARAMS) -o $@ "$(CURDIR)/cmd/deploy"
@@ -179,61 +179,61 @@ $(replay_wasm): $(DEP_PREDICATE) $(go_source) .make/solgen
 	GOOS=js GOARCH=wasm go build -o $(output_root)/tmp/replay.wasm ./cmd/replay/...
 	if ! diff -qN $(output_root)/tmp/replay.wasm $@ > /dev/null; then cp $(output_root)/tmp/replay.wasm $@; fi
 
-$(arbitrator_prover_bin): $(DEP_PREDICATE) arbitrator/prover/src/*.rs arbitrator/prover/Cargo.toml
-	mkdir -p `dirname $(arbitrator_prover_bin)`
-	cargo build --manifest-path arbitrator/Cargo.toml --release --bin prover
-	install arbitrator/target/release/prover $@
+$(mtitrator_prover_bin): $(DEP_PREDICATE) mtitrator/prover/src/*.rs mtitrator/prover/Cargo.toml
+	mkdir -p `dirname $(mtitrator_prover_bin)`
+	cargo build --manifest-path mtitrator/Cargo.toml --release --bin prover
+	install mtitrator/target/release/prover $@
 
-$(arbitrator_prover_lib): $(DEP_PREDICATE) arbitrator/prover/src/*.rs arbitrator/prover/Cargo.toml
-	mkdir -p `dirname $(arbitrator_prover_lib)`
-	cargo build --manifest-path arbitrator/Cargo.toml --release --lib -p prover
-	install arbitrator/target/release/libprover.a $@
+$(mtitrator_prover_lib): $(DEP_PREDICATE) mtitrator/prover/src/*.rs mtitrator/prover/Cargo.toml
+	mkdir -p `dirname $(mtitrator_prover_lib)`
+	cargo build --manifest-path mtitrator/Cargo.toml --release --lib -p prover
+	install mtitrator/target/release/libprover.a $@
 
-$(arbitrator_jit): $(DEP_PREDICATE) .make/cbrotli-lib arbitrator/jit/src/*.rs arbitrator/jit/*.rs arbitrator/jit/Cargo.toml
-	mkdir -p `dirname $(arbitrator_jit)`
-	cargo build --manifest-path arbitrator/Cargo.toml --release --bin jit
-	install arbitrator/target/release/jit $@
+$(mtitrator_jit): $(DEP_PREDICATE) .make/cbrotli-lib mtitrator/jit/src/*.rs mtitrator/jit/*.rs mtitrator/jit/Cargo.toml
+	mkdir -p `dirname $(mtitrator_jit)`
+	cargo build --manifest-path mtitrator/Cargo.toml --release --bin jit
+	install mtitrator/target/release/jit $@
 
-$(arbitrator_cases)/rust/target/wasm32-wasi/release/%.wasm: $(arbitrator_cases)/rust/src/bin/%.rs $(arbitrator_cases)/rust/src/lib.rs
-	cargo build --manifest-path $(arbitrator_cases)/rust/Cargo.toml --release --target wasm32-wasi --bin $(patsubst $(arbitrator_cases)/rust/target/wasm32-wasi/release/%.wasm,%, $@)
+$(mtitrator_cases)/rust/target/wasm32-wasi/release/%.wasm: $(mtitrator_cases)/rust/src/bin/%.rs $(mtitrator_cases)/rust/src/lib.rs
+	cargo build --manifest-path $(mtitrator_cases)/rust/Cargo.toml --release --target wasm32-wasi --bin $(patsubst $(mtitrator_cases)/rust/target/wasm32-wasi/release/%.wasm,%, $@)
 
-$(arbitrator_cases)/go/main: $(arbitrator_cases)/go/main.go $(arbitrator_cases)/go/go.mod $(arbitrator_cases)/go/go.sum
-	cd $(arbitrator_cases)/go && GOOS=js GOARCH=wasm go build main.go
+$(mtitrator_cases)/go/main: $(mtitrator_cases)/go/main.go $(mtitrator_cases)/go/go.mod $(mtitrator_cases)/go/go.sum
+	cd $(mtitrator_cases)/go && GOOS=js GOARCH=wasm go build main.go
 
-$(arbitrator_generated_header): $(DEP_PREDICATE) arbitrator/prover/src/lib.rs arbitrator/prover/src/utils.rs
-	@echo creating ${PWD}/$(arbitrator_generated_header)
-	mkdir -p `dirname $(arbitrator_generated_header)`
-	cd arbitrator && cbindgen --config cbindgen.toml --crate prover --output ../$(arbitrator_generated_header)
+$(mtitrator_generated_header): $(DEP_PREDICATE) mtitrator/prover/src/lib.rs mtitrator/prover/src/utils.rs
+	@echo creating ${PWD}/$(mtitrator_generated_header)
+	mkdir -p `dirname $(mtitrator_generated_header)`
+	cd mtitrator && cbindgen --config cbindgen.toml --crate prover --output ../$(mtitrator_generated_header)
 
-$(output_root)/machines/latest/wasi_stub.wasm: $(DEP_PREDICATE) $(arbitrator_wasm_wasistub_files)
+$(output_root)/machines/latest/wasi_stub.wasm: $(DEP_PREDICATE) $(mtitrator_wasm_wasistub_files)
 	mkdir -p $(output_root)/machines/latest
-	cargo build --manifest-path arbitrator/wasm-libraries/Cargo.toml --release --target wasm32-unknown-unknown --package wasi-stub
-	install arbitrator/wasm-libraries/target/wasm32-unknown-unknown/release/wasi_stub.wasm $@
+	cargo build --manifest-path mtitrator/wasm-libraries/Cargo.toml --release --target wasm32-unknown-unknown --package wasi-stub
+	install mtitrator/wasm-libraries/target/wasm32-unknown-unknown/release/wasi_stub.wasm $@
 
-arbitrator/wasm-libraries/soft-float/SoftFloat/build/Wasm-Clang/softfloat.a: $(DEP_PREDICATE) \
-		arbitrator/wasm-libraries/soft-float/SoftFloat/build/Wasm-Clang/Makefile \
-		arbitrator/wasm-libraries/soft-float/SoftFloat/build/Wasm-Clang/platform.h \
-		arbitrator/wasm-libraries/soft-float/SoftFloat/source/*.c \
-		arbitrator/wasm-libraries/soft-float/SoftFloat/source/include/*.h \
-		arbitrator/wasm-libraries/soft-float/SoftFloat/source/8086/*.c \
-		arbitrator/wasm-libraries/soft-float/SoftFloat/source/8086/*.h
-	cd arbitrator/wasm-libraries/soft-float/SoftFloat/build/Wasm-Clang && make $(MAKEFLAGS)
+mtitrator/wasm-libraries/soft-float/SoftFloat/build/Wasm-Clang/softfloat.a: $(DEP_PREDICATE) \
+		mtitrator/wasm-libraries/soft-float/SoftFloat/build/Wasm-Clang/Makefile \
+		mtitrator/wasm-libraries/soft-float/SoftFloat/build/Wasm-Clang/platform.h \
+		mtitrator/wasm-libraries/soft-float/SoftFloat/source/*.c \
+		mtitrator/wasm-libraries/soft-float/SoftFloat/source/include/*.h \
+		mtitrator/wasm-libraries/soft-float/SoftFloat/source/8086/*.c \
+		mtitrator/wasm-libraries/soft-float/SoftFloat/source/8086/*.h
+	cd mtitrator/wasm-libraries/soft-float/SoftFloat/build/Wasm-Clang && make $(MAKEFLAGS)
 
-arbitrator/wasm-libraries/soft-float/bindings32.o: $(DEP_PREDICATE) arbitrator/wasm-libraries/soft-float/bindings32.c
-	clang arbitrator/wasm-libraries/soft-float/bindings32.c --sysroot $(WASI_SYSROOT) -I arbitrator/wasm-libraries/soft-float/SoftFloat/source/include -target wasm32-wasi -Wconversion -c -o $@
+mtitrator/wasm-libraries/soft-float/bindings32.o: $(DEP_PREDICATE) mtitrator/wasm-libraries/soft-float/bindings32.c
+	clang mtitrator/wasm-libraries/soft-float/bindings32.c --sysroot $(WASI_SYSROOT) -I mtitrator/wasm-libraries/soft-float/SoftFloat/source/include -target wasm32-wasi -Wconversion -c -o $@
 
-arbitrator/wasm-libraries/soft-float/bindings64.o: $(DEP_PREDICATE) arbitrator/wasm-libraries/soft-float/bindings64.c
-	clang arbitrator/wasm-libraries/soft-float/bindings64.c --sysroot $(WASI_SYSROOT) -I arbitrator/wasm-libraries/soft-float/SoftFloat/source/include -target wasm32-wasi -Wconversion -c -o $@
+mtitrator/wasm-libraries/soft-float/bindings64.o: $(DEP_PREDICATE) mtitrator/wasm-libraries/soft-float/bindings64.c
+	clang mtitrator/wasm-libraries/soft-float/bindings64.c --sysroot $(WASI_SYSROOT) -I mtitrator/wasm-libraries/soft-float/SoftFloat/source/include -target wasm32-wasi -Wconversion -c -o $@
 
 $(output_root)/machines/latest/soft-float.wasm: $(DEP_PREDICATE) \
-		arbitrator/wasm-libraries/soft-float/bindings32.o \
-		arbitrator/wasm-libraries/soft-float/bindings64.o \
-		arbitrator/wasm-libraries/soft-float/SoftFloat/build/Wasm-Clang/softfloat.a
+		mtitrator/wasm-libraries/soft-float/bindings32.o \
+		mtitrator/wasm-libraries/soft-float/bindings64.o \
+		mtitrator/wasm-libraries/soft-float/SoftFloat/build/Wasm-Clang/softfloat.a
 	mkdir -p $(output_root)/machines/latest
 	wasm-ld \
-		arbitrator/wasm-libraries/soft-float/bindings32.o \
-		arbitrator/wasm-libraries/soft-float/bindings64.o \
-		arbitrator/wasm-libraries/soft-float/SoftFloat/build/Wasm-Clang/*.o \
+		mtitrator/wasm-libraries/soft-float/bindings32.o \
+		mtitrator/wasm-libraries/soft-float/bindings64.o \
+		mtitrator/wasm-libraries/soft-float/SoftFloat/build/Wasm-Clang/*.o \
 		--no-entry -o $@ \
 		$(patsubst %,--export wavm__f32_%, abs neg ceil floor trunc nearest sqrt add sub mul div min max) \
 		$(patsubst %,--export wavm__f32_%, copysign eq ne lt le gt ge) \
@@ -248,45 +248,45 @@ $(output_root)/machines/latest/soft-float.wasm: $(DEP_PREDICATE) \
 		--export wavm__f32_demote_f64 \
 		--export wavm__f64_promote_f32
 
-$(output_root)/machines/latest/go_stub.wasm: $(DEP_PREDICATE) $(wildcard arbitrator/wasm-libraries/go-stub/src/*/*)
+$(output_root)/machines/latest/go_stub.wasm: $(DEP_PREDICATE) $(wildcard mtitrator/wasm-libraries/go-stub/src/*/*)
 	mkdir -p $(output_root)/machines/latest
-	cargo build --manifest-path arbitrator/wasm-libraries/Cargo.toml --release --target wasm32-wasi --package go-stub
-	install arbitrator/wasm-libraries/target/wasm32-wasi/release/go_stub.wasm $@
+	cargo build --manifest-path mtitrator/wasm-libraries/Cargo.toml --release --target wasm32-wasi --package go-stub
+	install mtitrator/wasm-libraries/target/wasm32-wasi/release/go_stub.wasm $@
 
-$(output_root)/machines/latest/host_io.wasm: $(DEP_PREDICATE) $(wildcard arbitrator/wasm-libraries/host-io/src/*/*)
+$(output_root)/machines/latest/host_io.wasm: $(DEP_PREDICATE) $(wildcard mtitrator/wasm-libraries/host-io/src/*/*)
 	mkdir -p $(output_root)/machines/latest
-	cargo build --manifest-path arbitrator/wasm-libraries/Cargo.toml --release --target wasm32-wasi --package host-io
-	install arbitrator/wasm-libraries/target/wasm32-wasi/release/host_io.wasm $@
+	cargo build --manifest-path mtitrator/wasm-libraries/Cargo.toml --release --target wasm32-wasi --package host-io
+	install mtitrator/wasm-libraries/target/wasm32-wasi/release/host_io.wasm $@
 
-$(output_root)/machines/latest/brotli.wasm: $(DEP_PREDICATE) $(wildcard arbitrator/wasm-libraries/brotli/src/*/*) .make/cbrotli-wasm
+$(output_root)/machines/latest/brotli.wasm: $(DEP_PREDICATE) $(wildcard mtitrator/wasm-libraries/brotli/src/*/*) .make/cbrotli-wasm
 	mkdir -p $(output_root)/machines/latest
-	cargo build --manifest-path arbitrator/wasm-libraries/Cargo.toml --release --target wasm32-wasi --package brotli
-	install arbitrator/wasm-libraries/target/wasm32-wasi/release/brotli.wasm $@
+	cargo build --manifest-path mtitrator/wasm-libraries/Cargo.toml --release --target wasm32-wasi --package brotli
+	install mtitrator/wasm-libraries/target/wasm32-wasi/release/brotli.wasm $@
 
-$(output_root)/machines/latest/machine.wavm.br: $(DEP_PREDICATE) $(arbitrator_prover_bin) $(arbitrator_wasm_libs) $(replay_wasm)
-	$(arbitrator_prover_bin) $(replay_wasm) --generate-binaries $(output_root)/machines/latest -l $(output_root)/machines/latest/soft-float.wasm -l $(output_root)/machines/latest/wasi_stub.wasm -l $(output_root)/machines/latest/go_stub.wasm -l $(output_root)/machines/latest/host_io.wasm -l $(output_root)/machines/latest/brotli.wasm
+$(output_root)/machines/latest/machine.wavm.br: $(DEP_PREDICATE) $(mtitrator_prover_bin) $(mtitrator_wasm_libs) $(replay_wasm)
+	$(mtitrator_prover_bin) $(replay_wasm) --generate-binaries $(output_root)/machines/latest -l $(output_root)/machines/latest/soft-float.wasm -l $(output_root)/machines/latest/wasi_stub.wasm -l $(output_root)/machines/latest/go_stub.wasm -l $(output_root)/machines/latest/host_io.wasm -l $(output_root)/machines/latest/brotli.wasm
 
-$(arbitrator_cases)/%.wasm: $(arbitrator_cases)/%.wat
+$(mtitrator_cases)/%.wasm: $(mtitrator_cases)/%.wat
 	wat2wasm $< -o $@
 
-contracts/test/prover/proofs/float%.json: $(arbitrator_cases)/float%.wasm $(arbitrator_prover_bin) $(output_root)/machines/latest/soft-float.wasm
-	$(arbitrator_prover_bin) $< -l $(output_root)/machines/latest/soft-float.wasm -o $@ -b --allow-hostapi --require-success --always-merkleize
+contracts/test/prover/proofs/float%.json: $(mtitrator_cases)/float%.wasm $(mtitrator_prover_bin) $(output_root)/machines/latest/soft-float.wasm
+	$(mtitrator_prover_bin) $< -l $(output_root)/machines/latest/soft-float.wasm -o $@ -b --allow-hostapi --require-success --always-merkleize
 
-contracts/test/prover/proofs/no-stack-pollution.json: $(arbitrator_cases)/no-stack-pollution.wasm $(arbitrator_prover_bin)
-	$(arbitrator_prover_bin) $< -o $@ --allow-hostapi --require-success --always-merkleize
+contracts/test/prover/proofs/no-stack-pollution.json: $(mtitrator_cases)/no-stack-pollution.wasm $(mtitrator_prover_bin)
+	$(mtitrator_prover_bin) $< -o $@ --allow-hostapi --require-success --always-merkleize
 
-contracts/test/prover/proofs/rust-%.json: $(arbitrator_cases)/rust/target/wasm32-wasi/release/%.wasm $(arbitrator_prover_bin) $(arbitrator_wasm_libs_nogo)
-	$(arbitrator_prover_bin) $< $(arbitrator_wasm_lib_flags_nogo) -o $@ -b --allow-hostapi --require-success --inbox-add-stub-headers --inbox $(arbitrator_cases)/rust/data/msg0.bin --inbox $(arbitrator_cases)/rust/data/msg1.bin --delayed-inbox $(arbitrator_cases)/rust/data/msg0.bin --delayed-inbox $(arbitrator_cases)/rust/data/msg1.bin --preimages $(arbitrator_cases)/rust/data/preimages.bin
+contracts/test/prover/proofs/rust-%.json: $(mtitrator_cases)/rust/target/wasm32-wasi/release/%.wasm $(mtitrator_prover_bin) $(mtitrator_wasm_libs_nogo)
+	$(mtitrator_prover_bin) $< $(mtitrator_wasm_lib_flags_nogo) -o $@ -b --allow-hostapi --require-success --inbox-add-stub-headers --inbox $(mtitrator_cases)/rust/data/msg0.bin --inbox $(mtitrator_cases)/rust/data/msg1.bin --delayed-inbox $(mtitrator_cases)/rust/data/msg0.bin --delayed-inbox $(mtitrator_cases)/rust/data/msg1.bin --preimages $(mtitrator_cases)/rust/data/preimages.bin
 
-contracts/test/prover/proofs/go.json: $(arbitrator_cases)/go/main $(arbitrator_prover_bin) $(arbitrator_wasm_libs)
-	$(arbitrator_prover_bin) $< $(arbitrator_wasm_lib_flags) -o $@ -i 5000000 --require-success
+contracts/test/prover/proofs/go.json: $(mtitrator_cases)/go/main $(mtitrator_prover_bin) $(mtitrator_wasm_libs)
+	$(mtitrator_prover_bin) $< $(mtitrator_wasm_lib_flags) -o $@ -i 5000000 --require-success
 
 # avoid testing read-inboxmsg-10 in onestepproofs. It's used for go challenge testing.
 contracts/test/prover/proofs/read-inboxmsg-10.json:
 	echo "[]" > $@
 
-contracts/test/prover/proofs/%.json: $(arbitrator_cases)/%.wasm $(arbitrator_prover_bin)
-	$(arbitrator_prover_bin) $< -o $@ --allow-hostapi --always-merkleize
+contracts/test/prover/proofs/%.json: $(mtitrator_cases)/%.wasm $(mtitrator_prover_bin)
+	$(mtitrator_prover_bin) $< -o $@ --allow-hostapi --always-merkleize
 
 # strategic rules to minimize dependency building
 
@@ -297,8 +297,8 @@ contracts/test/prover/proofs/%.json: $(arbitrator_cases)/%.wasm $(arbitrator_pro
 
 .make/fmt: $(DEP_PREDICATE) build-node-deps .make/yarndeps $(ORDER_ONLY_PREDICATE) .make
 	golangci-lint run --disable-all -E gofmt --fix
-	cargo fmt --all --manifest-path arbitrator/Cargo.toml -- --check
-	cargo fmt --all --manifest-path arbitrator/wasm-testsuite/Cargo.toml -- --check
+	cargo fmt --all --manifest-path mtitrator/Cargo.toml -- --check
+	cargo fmt --all --manifest-path mtitrator/wasm-testsuite/Cargo.toml -- --check
 	yarn --cwd contracts prettier:solidity
 	@touch $@
 

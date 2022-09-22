@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package validator
 
@@ -8,9 +8,10 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/offchainlabs/nitro/arbutil"
+	"github.com/mantlenetworkio/mantle/mtos"
+	"github.com/mantlenetworkio/mantle/mtstate"
+	"github.com/mantlenetworkio/mantle/mtutil"
 
-	"github.com/ethereum/go-ethereum/arbitrum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/rawdb"
@@ -18,21 +19,20 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/log"
+	"github.com/ethereum/go-ethereum/mantle"
 	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/offchainlabs/nitro/arbos"
-	"github.com/offchainlabs/nitro/arbos/arbosState"
-	"github.com/offchainlabs/nitro/arbstate"
+	"github.com/mantlenetworkio/mantle/mtos/mtosState"
 	"github.com/pkg/errors"
 )
 
 type StatelessBlockValidator struct {
-	MachineLoader   *NitroMachineLoader
+	MachineLoader   *MantleMachineLoader
 	inboxReader     InboxReaderInterface
 	inboxTracker    InboxTrackerInterface
 	streamer        TransactionStreamerInterface
 	blockchain      *core.BlockChain
 	db              ethdb.Database
-	daService       arbstate.DataAvailabilityReader
+	daService       mtstate.DataAvailabilityReader
 	genesisBlockNum uint64
 
 	moduleMutex           sync.Mutex
@@ -48,14 +48,14 @@ type BlockValidatorRegistrer interface {
 type InboxTrackerInterface interface {
 	BlockValidatorRegistrer
 	GetDelayedMessageBytes(uint64) ([]byte, error)
-	GetBatchMessageCount(seqNum uint64) (arbutil.MessageIndex, error)
+	GetBatchMessageCount(seqNum uint64) (mtutil.MessageIndex, error)
 	GetBatchAcc(seqNum uint64) (common.Hash, error)
 	GetBatchCount() (uint64, error)
 }
 
 type TransactionStreamerInterface interface {
 	BlockValidatorRegistrer
-	GetMessage(seqNum arbutil.MessageIndex) (arbstate.MessageWithMetadata, error)
+	GetMessage(seqNum mtutil.MessageIndex) (*mtstate.MessageWithMetadata, error)
 	GetGenesisBlockNumber() (uint64, error)
 	PauseReorgs()
 	ResumeReorgs()
@@ -66,7 +66,7 @@ type InboxReaderInterface interface {
 }
 
 type L1ReaderInterface interface {
-	Client() arbutil.L1Interface
+	Client() mtutil.L1Interface
 	Subscribe(bool) (<-chan *types.Header, func())
 	WaitForTxApproval(ctx context.Context, tx *types.Transaction) (*types.Receipt, error)
 }
@@ -78,14 +78,14 @@ type GlobalStatePosition struct {
 
 func GlobalStatePositionsFor(
 	tracker InboxTrackerInterface,
-	pos arbutil.MessageIndex,
+	pos mtutil.MessageIndex,
 	batch uint64,
 ) (GlobalStatePosition, GlobalStatePosition, error) {
 	msgCountInBatch, err := tracker.GetBatchMessageCount(batch)
 	if err != nil {
 		return GlobalStatePosition{}, GlobalStatePosition{}, err
 	}
-	var firstInBatch arbutil.MessageIndex
+	var firstInBatch mtutil.MessageIndex
 	if batch > 0 {
 		firstInBatch, err = tracker.GetBatchMessageCount(batch - 1)
 		if err != nil {
@@ -106,7 +106,7 @@ func GlobalStatePositionsFor(
 }
 
 func FindBatchContainingMessageIndex(
-	tracker InboxTrackerInterface, pos arbutil.MessageIndex, high uint64,
+	tracker InboxTrackerInterface, pos mtutil.MessageIndex, high uint64,
 ) (uint64, error) {
 	var low uint64
 	// Iteration preconditions:
@@ -204,13 +204,13 @@ func newValidationEntry(
 }
 
 func NewStatelessBlockValidator(
-	machineLoader *NitroMachineLoader,
+	machineLoader *MantleMachineLoader,
 	inboxReader InboxReaderInterface,
 	inbox InboxTrackerInterface,
 	streamer TransactionStreamerInterface,
 	blockchain *core.BlockChain,
 	db ethdb.Database,
-	das arbstate.DataAvailabilityReader,
+	das mtstate.DataAvailabilityReader,
 	config *BlockValidatorConfig,
 	fatalErrChan chan error,
 ) (*StatelessBlockValidator, error) {
@@ -244,7 +244,7 @@ func NewStatelessBlockValidator(
 		}
 
 		// the machine will be lazily created if need be later otherwise
-		if config.ArbitratorValidator {
+		if config.MtitratorValidator {
 			if err := machineLoader.CreateMachine(validator.pendingWasmModuleRoot, true, false); err != nil {
 				return nil, err
 			}
@@ -280,15 +280,15 @@ func RecordBlockCreation(
 	blockchain *core.BlockChain,
 	inboxReader InboxReaderInterface,
 	prevHeader *types.Header,
-	msg *arbstate.MessageWithMetadata,
+	msg *mtstate.MessageWithMetadata,
 	producePreimages bool,
 ) (common.Hash, map[common.Hash][]byte, []BatchInfo, error) {
 	var recordingdb *state.StateDB
 	var chaincontext core.ChainContext
-	var recordingKV *arbitrum.RecordingKV
+	var recordingKV *mantle.RecordingKV
 	var err error
 	if producePreimages {
-		recordingdb, chaincontext, recordingKV, err = arbitrum.PrepareRecording(blockchain, prevHeader)
+		recordingdb, chaincontext, recordingKV, err = mantle.PrepareRecording(blockchain, prevHeader)
 		if err != nil {
 			return common.Hash{}, nil, nil, err
 		}
@@ -309,16 +309,16 @@ func RecordBlockCreation(
 	// Get the chain ID, both to validate and because the replay binary also gets the chain ID,
 	// so we need to populate the recordingdb with preimages for retrieving the chain ID.
 	if prevHeader != nil {
-		initialArbosState, err := arbosState.OpenSystemArbosState(recordingdb, nil, true)
+		initialMtosState, err := mtosState.OpenSystemMtosState(recordingdb, nil, true)
 		if err != nil {
-			return common.Hash{}, nil, nil, fmt.Errorf("error opening initial ArbOS state: %w", err)
+			return common.Hash{}, nil, nil, fmt.Errorf("error opening initial MtOS state: %w", err)
 		}
-		chainId, err := initialArbosState.ChainId()
+		chainId, err := initialMtosState.ChainId()
 		if err != nil {
-			return common.Hash{}, nil, nil, fmt.Errorf("error getting chain ID from initial ArbOS state: %w", err)
+			return common.Hash{}, nil, nil, fmt.Errorf("error getting chain ID from initial MtOS state: %w", err)
 		}
 		if chainId.Cmp(chainConfig.ChainID) != 0 {
-			return common.Hash{}, nil, nil, fmt.Errorf("unexpected chain ID %v in ArbOS state, expected %v", chainId, chainConfig.ChainID)
+			return common.Hash{}, nil, nil, fmt.Errorf("unexpected chain ID %v in MtOS state, expected %v", chainId, chainConfig.ChainID)
 		}
 	}
 
@@ -336,7 +336,7 @@ func RecordBlockCreation(
 			})
 			return data, nil
 		}
-		block, _, err := arbos.ProduceBlock(
+		block, _, err := mtos.ProduceBlock(
 			msg.Message,
 			msg.DelayedMessagesRead,
 			prevHeader,
@@ -353,7 +353,7 @@ func RecordBlockCreation(
 
 	var preimages map[common.Hash][]byte
 	if recordingKV != nil {
-		preimages, err = arbitrum.PreimagesFromRecording(chaincontext, recordingKV)
+		preimages, err = mantle.PreimagesFromRecording(chaincontext, recordingKV)
 		if err != nil {
 			return common.Hash{}, nil, nil, err
 		}
@@ -366,7 +366,7 @@ func BlockDataForValidation(
 	blockchain *core.BlockChain,
 	inboxReader InboxReaderInterface,
 	header, prevHeader *types.Header,
-	msg arbstate.MessageWithMetadata,
+	msg mtstate.MessageWithMetadata,
 	producePreimages bool,
 ) (
 	preimages map[common.Hash][]byte, readBatchInfo []BatchInfo,
@@ -410,7 +410,7 @@ func NewMachinePreimageResolver(
 	preimages map[common.Hash][]byte,
 	batchInfo []BatchInfo,
 	bc *core.BlockChain,
-	das arbstate.DataAvailabilityReader,
+	das mtstate.DataAvailabilityReader,
 ) (GoPreimageResolver, error) {
 	recordNewPreimages := true
 	if preimages == nil {
@@ -419,15 +419,15 @@ func NewMachinePreimageResolver(
 	}
 
 	for _, batch := range batchInfo {
-		if len(batch.Data) >= 41 && arbstate.IsDASMessageHeaderByte(batch.Data[40]) {
+		if len(batch.Data) >= 41 && mtstate.IsDASMessageHeaderByte(batch.Data[40]) {
 			if das == nil {
 				log.Error("No DAS configured, but sequencer message found with DAS header")
-				if bc.Config().ArbitrumChainParams.DataAvailabilityCommittee {
+				if bc.Config().MantleChainParams.DataAvailabilityCommittee {
 					return nil, errors.New("processing data availability chain without DAS configured")
 				}
 			} else {
-				_, err := arbstate.RecoverPayloadFromDasBatch(
-					ctx, batch.Number, batch.Data, das, preimages, arbstate.KeysetValidate,
+				_, err := mtstate.RecoverPayloadFromDasBatch(
+					ctx, batch.Number, batch.Data, das, preimages, mtstate.KeysetValidate,
 				)
 				if err != nil {
 					return nil, err
@@ -574,7 +574,7 @@ func (v *StatelessBlockValidator) ValidateBlock(
 		return false, errors.New("header not found")
 	}
 	blockNum := header.Number.Uint64()
-	msgIndex := arbutil.BlockNumberToMessageCount(blockNum, v.genesisBlockNum) - 1
+	msgIndex := mtutil.BlockNumberToMessageCount(blockNum, v.genesisBlockNum) - 1
 	prevHeader := v.blockchain.GetHeaderByNumber(blockNum - 1)
 	if prevHeader == nil {
 		return false, errors.New("prev header not found")
@@ -584,7 +584,7 @@ func (v *StatelessBlockValidator) ValidateBlock(
 		return false, err
 	}
 	preimages, readBatchInfo, hasDelayedMessage, delayedMsgToRead, err := BlockDataForValidation(
-		ctx, v.blockchain, v.inboxReader, header, prevHeader, msg, false,
+		ctx, v.blockchain, v.inboxReader, header, prevHeader, *msg, false,
 	)
 	if err != nil {
 		return false, fmt.Errorf("failed to get block data to validate: %w", err)

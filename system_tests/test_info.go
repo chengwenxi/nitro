@@ -1,7 +1,7 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantlenetworkio/mantle/blob/main/LICENSE
 
-package arbtest
+package mttest
 
 import (
 	"bytes"
@@ -11,8 +11,8 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/offchainlabs/nitro/arbos/l2pricing"
-	"github.com/offchainlabs/nitro/util"
+	"github.com/mantlenetworkio/mantle/mtos/l2pricing"
+	"github.com/mantlenetworkio/mantle/util"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -21,7 +21,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
-	"github.com/offchainlabs/nitro/statetransfer"
+	"github.com/mantlenetworkio/mantle/statetransfer"
 )
 
 var simulatedChainID = big.NewInt(1337)
@@ -33,11 +33,11 @@ type AccountInfo struct {
 }
 
 type BlockchainTestInfo struct {
-	T           *testing.T
-	Signer      types.Signer
-	Accounts    map[string]*AccountInfo
-	ArbInitData statetransfer.ArbosInitializationInfo
-	GasPrice    *big.Int
+	T          *testing.T
+	Signer     types.Signer
+	Accounts   map[string]*AccountInfo
+	MtInitData statetransfer.MtosInitializationInfo
+	GasPrice   *big.Int
 	// The amount of gas needed for a simple transfer tx.
 	TransferGas uint64
 }
@@ -52,16 +52,16 @@ func NewBlockChainTestInfo(t *testing.T, signer types.Signer, gasPrice *big.Int,
 	}
 }
 
-func NewArbTestInfo(t *testing.T, chainId *big.Int) *BlockchainTestInfo {
+func NewMtTestInfo(t *testing.T, chainId *big.Int) *BlockchainTestInfo {
 	var transferGas uint64 = util.NormalizeL2GasForL1GasInitial(800_000, params.GWei) // include room for aggregator L1 costs
-	arbinfo := NewBlockChainTestInfo(
+	mtinfo := NewBlockChainTestInfo(
 		t,
-		types.NewArbitrumSigner(types.NewLondonSigner(chainId)), big.NewInt(l2pricing.InitialBaseFeeWei*2),
+		types.NewMantleSigner(types.NewLondonSigner(chainId)), big.NewInt(l2pricing.InitialBaseFeeWei*2),
 		transferGas,
 	)
-	arbinfo.GenerateGenesysAccount("Owner", new(big.Int).Sub(new(big.Int).Lsh(big.NewInt(1), 256), big.NewInt(9)))
-	arbinfo.GenerateGenesysAccount("Faucet", new(big.Int).Sub(new(big.Int).Lsh(big.NewInt(1), 256), big.NewInt(9)))
-	return arbinfo
+	mtinfo.GenerateGenesysAccount("Owner", new(big.Int).Sub(new(big.Int).Lsh(big.NewInt(1), 256), big.NewInt(9)))
+	mtinfo.GenerateGenesysAccount("Faucet", new(big.Int).Sub(new(big.Int).Lsh(big.NewInt(1), 256), big.NewInt(9)))
+	return mtinfo
 }
 
 func NewL1TestInfo(t *testing.T) *BlockchainTestInfo {
@@ -108,7 +108,7 @@ func (b *BlockchainTestInfo) HasAccount(name string) bool {
 
 func (b *BlockchainTestInfo) GenerateGenesysAccount(name string, balance *big.Int) {
 	b.GenerateAccount(name)
-	b.ArbInitData.Accounts = append(b.ArbInitData.Accounts, statetransfer.AccountInitializationInfo{
+	b.MtInitData.Accounts = append(b.MtInitData.Accounts, statetransfer.AccountInitializationInfo{
 		Addr:       b.Accounts[name].Address,
 		EthBalance: new(big.Int).Set(balance),
 	})
@@ -116,7 +116,7 @@ func (b *BlockchainTestInfo) GenerateGenesysAccount(name string, balance *big.In
 
 func (b *BlockchainTestInfo) GetGenesysAlloc() core.GenesisAlloc {
 	alloc := make(core.GenesisAlloc)
-	for _, info := range b.ArbInitData.Accounts {
+	for _, info := range b.MtInitData.Accounts {
 		var contractCode []byte
 		contractStorage := make(map[common.Hash]common.Hash)
 		if info.ContractInfo != nil {

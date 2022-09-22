@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package main
 
@@ -12,13 +12,14 @@ import (
 	"syscall"
 
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/offchainlabs/nitro/cmd/util"
+	"github.com/ethereum/go-ethereum/metrics"
+	"github.com/ethereum/go-ethereum/metrics/exp"
+	"github.com/mantlenetworkio/mantle/cmd/util"
 	flag "github.com/spf13/pflag"
 
-	"github.com/offchainlabs/nitro/broadcastclient"
-	"github.com/offchainlabs/nitro/cmd/genericconf"
-	"github.com/offchainlabs/nitro/relay"
-	"github.com/offchainlabs/nitro/wsbroadcastserver"
+	"github.com/mantlenetworkio/mantle/broadcastclient"
+	"github.com/mantlenetworkio/mantle/cmd/genericconf"
+	"github.com/mantlenetworkio/mantle/relay"
 )
 
 func init() {
@@ -56,36 +57,28 @@ func startup() error {
 	log.Root().SetHandler(glogger)
 
 	vcsRevision, vcsTime := util.GetVersion()
-	log.Info("Running Arbitrum nitro relay", "revision", vcsRevision, "vcs.time", vcsTime)
-
-	serverConf := wsbroadcastserver.BroadcasterConfig{
-		Addr:          relayConfig.Node.Feed.Output.Addr,
-		IOTimeout:     relayConfig.Node.Feed.Output.IOTimeout,
-		Port:          relayConfig.Node.Feed.Output.Port,
-		Ping:          relayConfig.Node.Feed.Output.Ping,
-		ClientTimeout: relayConfig.Node.Feed.Output.ClientTimeout,
-		Queue:         relayConfig.Node.Feed.Output.Queue,
-		Workers:       relayConfig.Node.Feed.Output.Workers,
-		MaxSendQueue:  relayConfig.Node.Feed.Output.MaxSendQueue,
-	}
-
-	clientConf := broadcastclient.BroadcastClientConfig{
-		Timeout: relayConfig.Node.Feed.Input.Timeout,
-		URLs:    relayConfig.Node.Feed.Input.URLs,
-	}
+	log.Info("Running Mantle relay", "revision", vcsRevision, "vcs.time", vcsTime)
 
 	defer log.Info("Cleanly shutting down relay")
 
 	sigint := make(chan os.Signal, 1)
 	signal.Notify(sigint, os.Interrupt, syscall.SIGTERM)
 
-	// Start up an arbitrum sequencer relay
+	// Start up an mantle sequencer relay
 	feedErrChan := make(chan error, 10)
-	newRelay := relay.NewRelay(serverConf, clientConf, relayConfig.L2.ChainId, feedErrChan)
+	newRelay := relay.NewRelay(relayConfig.Node.Feed, relayConfig.L2.ChainId, feedErrChan)
 	err = newRelay.Start(ctx)
 	if err != nil {
 		return err
 	}
+
+	if relayConfig.Metrics && relayConfig.MetricsServer.Addr != "" {
+		go metrics.CollectProcessMetrics(relayConfig.MetricsServer.UpdateInterval)
+
+		address := fmt.Sprintf("%v:%v", relayConfig.MetricsServer.Addr, relayConfig.MetricsServer.Port)
+		exp.Setup(address)
+	}
+
 	select {
 	case <-sigint:
 		log.Info("shutting down because of sigint")
@@ -101,19 +94,23 @@ func startup() error {
 }
 
 type RelayConfig struct {
-	Conf     genericconf.ConfConfig `koanf:"conf"`
-	L2       L2Config               `koanf:"l2"`
-	LogLevel int                    `koanf:"log-level"`
-	LogType  string                 `koanf:"log-type"`
-	Node     RelayNodeConfig        `koanf:"node"`
+	Conf          genericconf.ConfConfig          `koanf:"conf"`
+	L2            L2Config                        `koanf:"l2"`
+	LogLevel      int                             `koanf:"log-level"`
+	LogType       string                          `koanf:"log-type"`
+	Metrics       bool                            `koanf:"metrics"`
+	MetricsServer genericconf.MetricsServerConfig `koanf:"metrics-server"`
+	Node          RelayNodeConfig                 `koanf:"node"`
 }
 
 var RelayConfigDefault = RelayConfig{
-	Conf:     genericconf.ConfConfigDefault,
-	L2:       L2ConfigDefault,
-	LogLevel: int(log.LvlInfo),
-	LogType:  "plaintext",
-	Node:     RelayNodeConfigDefault,
+	Conf:          genericconf.ConfConfigDefault,
+	L2:            L2ConfigDefault,
+	LogLevel:      int(log.LvlInfo),
+	LogType:       "plaintext",
+	Metrics:       false,
+	MetricsServer: genericconf.MetricsServerConfigDefault,
+	Node:          RelayNodeConfigDefault,
 }
 
 func RelayConfigAddOptions(f *flag.FlagSet) {
@@ -121,6 +118,8 @@ func RelayConfigAddOptions(f *flag.FlagSet) {
 	L2ConfigAddOptions("l2", f)
 	f.Int("log-level", RelayConfigDefault.LogLevel, "log level")
 	f.String("log-type", RelayConfigDefault.LogType, "log type")
+	f.Bool("metrics", RelayConfigDefault.Metrics, "enable metrics")
+	genericconf.MetricsServerAddOptions("metrics-server", f)
 	RelayNodeConfigAddOptions("node", f)
 }
 

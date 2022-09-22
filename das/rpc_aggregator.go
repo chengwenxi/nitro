@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package das
 
@@ -7,12 +7,12 @@ import (
 	"context"
 	"encoding/json"
 	"net/url"
-	"strings"
+	"regexp"
 
-	"github.com/offchainlabs/nitro/solgen/go/bridgegen"
+	"github.com/mantlenetworkio/mantle/mtutil"
+	"github.com/mantlenetworkio/mantle/solgen/go/bridgegen"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/offchainlabs/nitro/arbutil"
 )
 
 type BackendConfig struct {
@@ -29,7 +29,7 @@ func NewRPCAggregator(ctx context.Context, config DataAvailabilityConfig) (*Aggr
 	return NewAggregator(ctx, config, services)
 }
 
-func NewRPCAggregatorWithL1Info(config DataAvailabilityConfig, l1client arbutil.L1Interface, seqInboxAddress common.Address) (*Aggregator, error) {
+func NewRPCAggregatorWithL1Info(config DataAvailabilityConfig, l1client mtutil.L1Interface, seqInboxAddress common.Address) (*Aggregator, error) {
 	services, err := setUpServices(config)
 	if err != nil {
 		return nil, err
@@ -60,7 +60,8 @@ func setUpServices(config DataAvailabilityConfig) ([]ServiceDetails, error) {
 			return nil, err
 		}
 		// Prometheus metric names must contain only chars [a-zA-Z0-9:_]
-		metricName := strings.ReplaceAll(url.Hostname(), ".", "_")
+		invalidPromCharRegex := regexp.MustCompile(`[^a-zA-Z0-9:_]+`)
+		metricName := invalidPromCharRegex.ReplaceAllString(url.Hostname(), "_")
 
 		service, err := NewDASRPCClient(b.URL)
 		if err != nil {

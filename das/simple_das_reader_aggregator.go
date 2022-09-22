@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package das
 
@@ -14,10 +14,10 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/das/dastree"
-	"github.com/offchainlabs/nitro/util/pretty"
-	"github.com/offchainlabs/nitro/util/stopwaiter"
+	"github.com/mantlenetworkio/mantle/das/dastree"
+	"github.com/mantlenetworkio/mantle/mtstate"
+	"github.com/mantlenetworkio/mantle/util/pretty"
+	"github.com/mantlenetworkio/mantle/util/stopwaiter"
 	flag "github.com/spf13/pflag"
 )
 
@@ -80,7 +80,7 @@ func SimpleExploreExploitStrategyConfigAddOptions(prefix string, f *flag.FlagSet
 func NewRestfulClientAggregator(ctx context.Context, config *RestfulClientAggregatorConfig) (*SimpleDASReaderAggregator, error) {
 	a := SimpleDASReaderAggregator{
 		config: config,
-		stats:  make(map[arbstate.DataAvailabilityReader]readerStats),
+		stats:  make(map[mtstate.DataAvailabilityReader]readerStats),
 	}
 
 	combinedUrls := make(map[string]bool)
@@ -160,7 +160,7 @@ type readerStat struct {
 
 type readerStatMessage struct {
 	readerStat
-	reader arbstate.DataAvailabilityReader
+	reader mtstate.DataAvailabilityReader
 }
 
 type SimpleDASReaderAggregator struct {
@@ -170,8 +170,8 @@ type SimpleDASReaderAggregator struct {
 
 	readersMutex sync.RWMutex
 	// readers and stats are only to be updated by the stats goroutine
-	readers []arbstate.DataAvailabilityReader
-	stats   map[arbstate.DataAvailabilityReader]readerStats
+	readers []mtstate.DataAvailabilityReader
+	stats   map[mtstate.DataAvailabilityReader]readerStats
 
 	strategy aggregatorStrategy
 
@@ -199,7 +199,7 @@ func (a *SimpleDASReaderAggregator) GetByHash(ctx context.Context, hash common.H
 			waitChan := make(chan interface{})
 			for _, reader := range readers {
 				wg.Add(1)
-				go func(reader arbstate.DataAvailabilityReader) {
+				go func(reader mtstate.DataAvailabilityReader) {
 					defer wg.Done()
 					data, err := a.tryGetByHash(subCtx, hash, reader)
 					if err != nil && errors.Is(ctx.Err(), context.Canceled) {
@@ -243,7 +243,7 @@ func (a *SimpleDASReaderAggregator) GetByHash(ctx context.Context, hash common.H
 }
 
 func (a *SimpleDASReaderAggregator) tryGetByHash(
-	ctx context.Context, hash common.Hash, reader arbstate.DataAvailabilityReader,
+	ctx context.Context, hash common.Hash, reader mtstate.DataAvailabilityReader,
 ) ([]byte, error) {
 	stat := readerStatMessage{reader: reader}
 	stat.success = false
@@ -270,7 +270,7 @@ func (a *SimpleDASReaderAggregator) tryGetByHash(
 }
 
 func (a *SimpleDASReaderAggregator) Start(ctx context.Context) {
-	a.StopWaiter.Start(ctx)
+	a.StopWaiter.Start(ctx, a)
 	onlineUrlsChan := StartRestfulServerListFetchDaemon(a.StopWaiter.GetContext(), a.config.OnlineUrlList, a.config.OnlineUrlListFetchInterval)
 
 	updateRestfulDasClients := func(urls []string) {
@@ -278,7 +278,7 @@ func (a *SimpleDASReaderAggregator) Start(ctx context.Context) {
 		defer a.readersMutex.Unlock()
 		combinedUrls := a.config.Urls
 		combinedUrls = append(combinedUrls, urls...)
-		combinedReaders := make(map[arbstate.DataAvailabilityReader]bool)
+		combinedReaders := make(map[mtstate.DataAvailabilityReader]bool)
 		for _, url := range combinedUrls {
 			reader, err := NewRestfulDasClientFromURL(url)
 			if err != nil {
@@ -286,7 +286,7 @@ func (a *SimpleDASReaderAggregator) Start(ctx context.Context) {
 			}
 			combinedReaders[reader] = true
 		}
-		a.readers = make([]arbstate.DataAvailabilityReader, 0, len(combinedUrls))
+		a.readers = make([]mtstate.DataAvailabilityReader, 0, len(combinedUrls))
 		// Update reader and add newly added stats
 		for reader := range combinedReaders {
 			a.readers = append(a.readers, reader)
@@ -350,7 +350,7 @@ func (a *SimpleDASReaderAggregator) HealthCheck(ctx context.Context) error {
 	return nil
 }
 
-func (a *SimpleDASReaderAggregator) ExpirationPolicy(ctx context.Context) (arbstate.ExpirationPolicy, error) {
+func (a *SimpleDASReaderAggregator) ExpirationPolicy(ctx context.Context) (mtstate.ExpirationPolicy, error) {
 	a.readersMutex.RLock()
 	defer a.readersMutex.RUnlock()
 	if len(a.readers) == 0 {
@@ -368,7 +368,7 @@ func (a *SimpleDASReaderAggregator) ExpirationPolicy(ctx context.Context) (arbst
 			return -1, err
 		}
 		if ep != expectedExpirationPolicy {
-			return arbstate.MixedTimeout, nil
+			return mtstate.MixedTimeout, nil
 		}
 	}
 	return expectedExpirationPolicy, nil

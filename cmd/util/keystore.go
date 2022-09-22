@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package util
 
@@ -17,10 +17,11 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	"github.com/offchainlabs/nitro/cmd/genericconf"
+	"github.com/mantlenetworkio/mantle/cmd/genericconf"
+	"github.com/mantlenetworkio/mantle/util/signature"
 )
 
-func OpenWallet(description string, walletConfig *genericconf.WalletConfig, chainId *big.Int) (*bind.TransactOpts, func([]byte) ([]byte, error), error) {
+func OpenWallet(description string, walletConfig *genericconf.WalletConfig, chainId *big.Int) (*bind.TransactOpts, signature.DataSignerFunc, error) {
 	if walletConfig.PrivateKey != "" {
 		privateKey, err := crypto.HexToECDSA(walletConfig.PrivateKey)
 		if err != nil {

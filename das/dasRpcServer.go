@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package das
 
@@ -16,20 +16,20 @@ import (
 
 	"github.com/ethereum/go-ethereum/rpc"
 
-	"github.com/offchainlabs/nitro/blsSignatures"
-	"github.com/offchainlabs/nitro/cmd/genericconf"
-	"github.com/offchainlabs/nitro/util/pretty"
+	"github.com/mantlenetworkio/mantle/blsSignatures"
+	"github.com/mantlenetworkio/mantle/cmd/genericconf"
+	"github.com/mantlenetworkio/mantle/util/pretty"
 )
 
 var (
-	rpcStoreRequestGauge     = metrics.NewRegisteredGauge("arb/das/rpc/store/requests", nil)
-	rpcStoreSuccessGauge     = metrics.NewRegisteredGauge("arb/das/rpc/store/success", nil)
-	rpcStoreFailureGauge     = metrics.NewRegisteredGauge("arb/das/rpc/store/failure", nil)
-	rpcStoreStoredBytesGauge = metrics.NewRegisteredGauge("arb/das/rpc/store/bytes", nil)
+	rpcStoreRequestGauge     = metrics.NewRegisteredGauge("mt/das/rpc/store/requests", nil)
+	rpcStoreSuccessGauge     = metrics.NewRegisteredGauge("mt/das/rpc/store/success", nil)
+	rpcStoreFailureGauge     = metrics.NewRegisteredGauge("mt/das/rpc/store/failure", nil)
+	rpcStoreStoredBytesGauge = metrics.NewRegisteredGauge("mt/das/rpc/store/bytes", nil)
 
 	// Lower reservoir size for stores since they typically will be every 30 minutes,
 	// and at most several times per minute.
-	rpcStoreDurationHistogram = metrics.NewRegisteredHistogram("arb/das/rpc/store/duration", nil, metrics.NewExpDecaySample(32, 0.015))
+	rpcStoreDurationHistogram = metrics.NewRegisteredHistogram("mt/das/rpc/store/duration", nil, metrics.NewExpDecaySample(32, 0.015))
 )
 
 type DASRPCServer struct {

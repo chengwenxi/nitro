@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package validator
 
@@ -12,7 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/offchainlabs/nitro/arbutil"
+	"github.com/mantlenetworkio/mantle/mtutil"
 	"github.com/pkg/errors"
 )
 
@@ -22,7 +22,7 @@ import (
 // This inherits from an eth client so it can be used as an L1Interface,
 // where it transparently intercepts calls to SendTransaction and queues them for the next batch.
 type ValidatorTxBuilder struct {
-	arbutil.L1Interface
+	mtutil.L1Interface
 	transactions []*types.Transaction
 	builderAuth  *bind.TransactOpts
 	realSender   common.Address

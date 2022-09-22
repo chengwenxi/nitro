@@ -86,20 +86,20 @@ module.exports = {
       url: "https://rinkeby.infura.io/v3/" + process.env["INFURA_KEY"],
       accounts: process.env["DEVNET_PRIVKEY"] ? [process.env["DEVNET_PRIVKEY"]] : [],
     },
-    arbRinkeby: {
-      url: "https://rinkeby.arbitrum.io/rpc",
+    mtRinkeby: {
+      url: "https://rinkeby.mantle.io/rpc",
       accounts: process.env["DEVNET_PRIVKEY"] ? [process.env["DEVNET_PRIVKEY"]] : [],
     },
-    arbGoerliRollup: {
-      url: "https://goerli-rollup.arbitrum.io/rpc",
+    mtGoerliRollup: {
+      url: "https://goerli-rollup.mantle.io/rpc",
       accounts: process.env["DEVNET_PRIVKEY"] ? [process.env["DEVNET_PRIVKEY"]] : [],
     },
-    arb1: {
-      url: "https://arb1.arbitrum.io/rpc",
+    mt1: {
+      url: "https://mt1.mantle.io/rpc",
       accounts: process.env["MAINNET_PRIVKEY"] ? [process.env["MAINNET_PRIVKEY"]] : [],
     },
     nova: {
-      url: "https://nova.arbitrum.io/rpc",
+      url: "https://nova.mantle.io/rpc",
       accounts: process.env["MAINNET_PRIVKEY"] ? [process.env["MAINNET_PRIVKEY"]] : [],
     },
     geth: {
@@ -111,26 +111,26 @@ module.exports = {
       mainnet: process.env["ETHERSCAN_API_KEY"],
       goerli: process.env["ETHERSCAN_API_KEY"],
       rinkeby: process.env["ETHERSCAN_API_KEY"],
-      arbitrumOne: process.env["ARBISCAN_API_KEY"],
-      arbitrumTestnet: process.env["ARBISCAN_API_KEY"],
+      mantleOne: process.env["MTISCAN_API_KEY"],
+      mantleTestnet: process.env["MTISCAN_API_KEY"],
       nova: "0",
-      arbGoerliRollup: "0",
+      mtGoerliRollup: "0",
     },
     customChains: [
       {
         network: "nova",
         chainId: 42170,
         urls: {
-          apiURL: "https://nova-explorer.arbitrum.io/api",
-          browserURL: "https://nova-explorer.arbitrum.io/",
+          apiURL: "https://nova-explorer.mantle.io/api",
+          browserURL: "https://nova-explorer.mantle.io/",
         },
       },
       {
-        network: "arbGoerliRollup",
+        network: "mtGoerliRollup",
         chainId: 421613,
         urls: {
-          apiURL: "https://goerli-rollup-explorer.arbitrum.io/api",
-          browserURL: "https://goerli-rollup-explorer.arbitrum.io/",
+          apiURL: "https://goerli-rollup-explorer.mantle.io/api",
+          browserURL: "https://goerli-rollup-explorer.mantle.io/",
         },
       },
     ],

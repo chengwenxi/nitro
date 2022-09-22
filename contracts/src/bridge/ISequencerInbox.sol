@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 // SPDX-License-Identifier: BUSL-1.1
 
 // solhint-disable-next-line compiler-version
@@ -77,6 +77,9 @@ interface ISequencerInbox is IDelayedMessageProvider {
     // https://github.com/ethereum/solidity/issues/11826
     // function maxTimeVariation() external view returns (MaxTimeVariation calldata);
     // function dasKeySetInfo(bytes32) external view returns (DasKeySetInfo calldata);
+
+    /// @notice Remove force inclusion delay after a L1 chainId fork
+    function removeDelayAfterFork() external;
 
     /// @notice Force messages from the delayed inbox to be included in the chain
     ///         Callable by any address, but message can only be force-included after maxTimeVariation.delayBlocks and

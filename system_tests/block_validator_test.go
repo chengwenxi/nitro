@@ -1,11 +1,11 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantlenetworkio/mantle/blob/main/LICENSE
 
 // race detection makes things slow and miss timeouts
 //go:build !race
 // +build !race
 
-package arbtest
+package mttest
 
 import (
 	"context"
@@ -15,8 +15,8 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/offchainlabs/nitro/arbnode"
-	"github.com/offchainlabs/nitro/arbos/l2pricing"
+	"github.com/mantlenetworkio/mantle/mtnode"
+	"github.com/mantlenetworkio/mantle/mtos/l2pricing"
 )
 
 func testBlockValidatorSimple(t *testing.T, dasModeString string, expensiveTx bool) {
@@ -33,12 +33,12 @@ func testBlockValidatorSimple(t *testing.T, dasModeString string, expensiveTx bo
 
 	authorizeDASKeyset(t, ctx, dasSignerKey, l1info, l1client)
 
-	validatorConfig := arbnode.ConfigDefaultL1NonSequencerTest()
+	validatorConfig := mtnode.ConfigDefaultL1NonSequencerTest()
 	validatorConfig.BlockValidator.Enable = true
-	validatorConfig.BlockValidator.ArbitratorValidator = true
+	validatorConfig.BlockValidator.MtitratorValidator = true
 	validatorConfig.DataAvailability = l1NodeConfigA.DataAvailability
 	validatorConfig.DataAvailability.AggregatorConfig.Enable = false
-	l2clientB, nodeB, l2stackB := Create2ndNodeWithConfig(t, ctx, nodeA, l1stack, &l2info.ArbInitData, validatorConfig)
+	l2clientB, nodeB, l2stackB := Create2ndNodeWithConfig(t, ctx, nodeA, l1stack, &l2info.MtInitData, validatorConfig)
 	defer requireClose(t, l2stackB)
 	l2info.GenerateAccount("User2")
 
@@ -101,7 +101,7 @@ func testBlockValidatorSimple(t *testing.T, dasModeString string, expensiveTx bo
 	for {
 		usefulBlock := false
 		for _, tx := range lastBlock.Transactions() {
-			if tx.Type() != types.ArbitrumInternalTxType {
+			if tx.Type() != types.MantleInternalTxType {
 				usefulBlock = true
 				break
 			}

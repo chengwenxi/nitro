@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package precompiles
 
@@ -7,8 +7,8 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/offchainlabs/nitro/arbos/arbosState"
-	"github.com/offchainlabs/nitro/arbos/util"
+	"github.com/mantlenetworkio/mantle/mtos/mtosState"
+	"github.com/mantlenetworkio/mantle/mtos/util"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
@@ -17,11 +17,11 @@ import (
 
 // A precompile wrapper for those not allowed in production
 type DebugPrecompile struct {
-	precompile ArbosPrecompile
+	precompile MtosPrecompile
 }
 
 // create a debug-only precompile wrapper
-func debugOnly(address addr, impl ArbosPrecompile) (addr, ArbosPrecompile) {
+func debugOnly(address addr, impl MtosPrecompile) (addr, MtosPrecompile) {
 	return address, &DebugPrecompile{impl}
 }
 
@@ -53,11 +53,11 @@ func (wrapper *DebugPrecompile) Precompile() Precompile {
 
 // A precompile wrapper for those only chain owners may use
 type OwnerPrecompile struct {
-	precompile  ArbosPrecompile
+	precompile  MtosPrecompile
 	emitSuccess func(mech, bytes4, addr, []byte) error
 }
 
-func ownerOnly(address addr, impl ArbosPrecompile, emit func(mech, bytes4, addr, []byte) error) (addr, ArbosPrecompile) {
+func ownerOnly(address addr, impl MtosPrecompile, emit func(mech, bytes4, addr, []byte) error) (addr, MtosPrecompile) {
 	return address, &OwnerPrecompile{
 		precompile:  impl,
 		emitSuccess: emit,
@@ -81,7 +81,7 @@ func (wrapper *OwnerPrecompile) Call(
 		gasLeft:     gasSupplied,
 		tracingInfo: util.NewTracingInfo(evm, caller, precompileAddress, util.TracingDuringEVM),
 	}
-	state, err := arbosState.OpenArbosState(evm.StateDB, burner)
+	state, err := mtosState.OpenMtosState(evm.StateDB, burner)
 	if err != nil {
 		return nil, burner.gasLeft, err
 	}

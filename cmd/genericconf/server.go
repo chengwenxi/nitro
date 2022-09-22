@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package genericconf
 
@@ -24,7 +24,7 @@ type HTTPConfig struct {
 var HTTPConfigDefault = HTTPConfig{
 	Addr:           node.DefaultConfig.HTTPHost,
 	Port:           8547,
-	API:            append(node.DefaultConfig.HTTPModules, "eth", "arb"),
+	API:            append(node.DefaultConfig.HTTPModules, "eth", "mt"),
 	RPCPrefix:      node.DefaultConfig.HTTPPathPrefix,
 	CORSDomain:     node.DefaultConfig.HTTPCors,
 	VHosts:         node.DefaultConfig.HTTPVirtualHosts,
@@ -89,7 +89,7 @@ type WSConfig struct {
 var WSConfigDefault = WSConfig{
 	Addr:      node.DefaultConfig.WSHost,
 	Port:      8548,
-	API:       append(node.DefaultConfig.WSModules, "eth", "arb"),
+	API:       append(node.DefaultConfig.WSModules, "eth", "mt"),
 	RPCPrefix: node.DefaultConfig.WSPathPrefix,
 	Origins:   node.DefaultConfig.WSOrigins,
 	ExposeAll: node.DefaultConfig.WSExposeAll,

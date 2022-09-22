@@ -1,5 +1,5 @@
-// Copyright 2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package das
 
@@ -12,10 +12,10 @@ import (
 	badger "github.com/dgraph-io/badger/v3"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/das/dastree"
-	"github.com/offchainlabs/nitro/util/pretty"
-	"github.com/offchainlabs/nitro/util/stopwaiter"
+	"github.com/mantlenetworkio/mantle/das/dastree"
+	"github.com/mantlenetworkio/mantle/mtstate"
+	"github.com/mantlenetworkio/mantle/util/pretty"
+	"github.com/mantlenetworkio/mantle/util/stopwaiter"
 	flag "github.com/spf13/pflag"
 )
 
@@ -51,14 +51,16 @@ func NewDBStorageService(ctx context.Context, dirPath string, discardAfterTimeou
 		discardAfterTimeout: discardAfterTimeout,
 		dirPath:             dirPath,
 	}
-	if err := ret.stopWaiter.Start(ctx); err != nil {
+	if err := ret.stopWaiter.Start(ctx, ret); err != nil {
 		return nil, err
 	}
 	err = ret.stopWaiter.LaunchThread(func(myCtx context.Context) {
 		ticker := time.NewTicker(5 * time.Minute)
 		defer ticker.Stop()
 		defer func() {
-			_ = ret.db.Close()
+			if err := ret.db.Close(); err != nil {
+				log.Error("Failed to close DB", "err", err)
+			}
 		}()
 		for {
 			select {
@@ -119,15 +121,14 @@ func (dbs *DBStorageService) Sync(ctx context.Context) error {
 }
 
 func (dbs *DBStorageService) Close(ctx context.Context) error {
-	dbs.stopWaiter.StopAndWait()
-	return nil
+	return dbs.stopWaiter.StopAndWait()
 }
 
-func (dbs *DBStorageService) ExpirationPolicy(ctx context.Context) (arbstate.ExpirationPolicy, error) {
+func (dbs *DBStorageService) ExpirationPolicy(ctx context.Context) (mtstate.ExpirationPolicy, error) {
 	if dbs.discardAfterTimeout {
-		return arbstate.DiscardAfterDataTimeout, nil
+		return mtstate.DiscardAfterDataTimeout, nil
 	} else {
-		return arbstate.KeepForever, nil
+		return mtstate.KeepForever, nil
 	}
 }
 

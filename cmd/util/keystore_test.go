@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package util
 
@@ -11,7 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 
-	"github.com/offchainlabs/nitro/cmd/genericconf"
+	"github.com/mantlenetworkio/mantle/cmd/genericconf"
 )
 
 func openTestKeystore(description string, walletConfig *genericconf.WalletConfig, getPassword func() (string, error)) (*keystore.KeyStore, *accounts.Account, error) {

@@ -1,11 +1,11 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package validator
 
 /*
 #cgo CFLAGS: -g -Wall -I../target/include/
-#include "arbitrator.h"
+#include "mtitrator.h"
 #include <stdlib.h>
 */
 import "C"
@@ -24,7 +24,7 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 )
 
-type NitroMachineConfig struct {
+type MantleMachineConfig struct {
 	RootPath             string // a folder with various machines in it
 	WavmBinaryPath       string
 	UntilHostIoStatePath string
@@ -37,7 +37,7 @@ type NitroMachineConfig struct {
 	LibraryPaths []string
 }
 
-var DefaultNitroMachineConfig = NitroMachineConfig{
+var DefaultMantleMachineConfig = MantleMachineConfig{
 	RootPath:             "./target/machines/",
 	WavmBinaryPath:       "machine.wavm.br",
 	UntilHostIoStatePath: "until-host-io-state.bin",
@@ -50,10 +50,10 @@ var DefaultNitroMachineConfig = NitroMachineConfig{
 func init() {
 	_, thisfile, _, _ := runtime.Caller(0)
 	projectDir := filepath.Dir(filepath.Dir(thisfile))
-	DefaultNitroMachineConfig.RootPath = filepath.Join(projectDir, "target", "machines")
+	DefaultMantleMachineConfig.RootPath = filepath.Join(projectDir, "target", "machines")
 }
 
-func (c NitroMachineConfig) getMachinePath(moduleRoot common.Hash) string {
+func (c MantleMachineConfig) getMachinePath(moduleRoot common.Hash) string {
 	if moduleRoot == (common.Hash{}) {
 		return filepath.Join(c.RootPath, "latest")
 	} else {
@@ -61,7 +61,7 @@ func (c NitroMachineConfig) getMachinePath(moduleRoot common.Hash) string {
 	}
 }
 
-func (c NitroMachineConfig) ReadLatestWasmModuleRoot() (common.Hash, error) {
+func (c MantleMachineConfig) ReadLatestWasmModuleRoot() (common.Hash, error) {
 	fileToRead := filepath.Join(c.getMachinePath(common.Hash{}), "module-root.txt")
 	fileBytes, err := os.ReadFile(fileToRead)
 	if err != nil {
@@ -72,7 +72,7 @@ func (c NitroMachineConfig) ReadLatestWasmModuleRoot() (common.Hash, error) {
 }
 
 type loaderMachineStatus struct {
-	machine    *ArbitratorMachine
+	machine    *MtitratorMachine
 	jitMachine *JitMachine
 	chanSignal chan struct{}
 	jit        bool
@@ -83,30 +83,30 @@ func (s *loaderMachineStatus) signalReady() {
 	close(s.chanSignal)
 }
 
-func (s *loaderMachineStatus) createZeroStepMachineInternal(config NitroMachineConfig, moduleRoot common.Hash, realModuleRoot common.Hash) {
+func (s *loaderMachineStatus) createZeroStepMachineInternal(config MantleMachineConfig, moduleRoot common.Hash, realModuleRoot common.Hash) {
 	defer s.signalReady()
 	binPath := filepath.Join(config.getMachinePath(moduleRoot), config.WavmBinaryPath)
 	cBinPath := C.CString(binPath)
 	defer C.free(unsafe.Pointer(cBinPath))
-	log.Info("creating nitro machine", "binpath", binPath)
-	baseMachine := C.arbitrator_load_wavm_binary(cBinPath)
+	log.Info("creating mantle machine", "binpath", binPath)
+	baseMachine := C.mtitrator_load_wavm_binary(cBinPath)
 	if baseMachine == nil {
 		s.err = errors.New("failed to load base machine")
 		return
 	}
-	nitroMachine := machineFromPointer(baseMachine)
-	machineModuleRoot := nitroMachine.GetModuleRoot()
+	mantleMachine := machineFromPointer(baseMachine)
+	machineModuleRoot := mantleMachine.GetModuleRoot()
 	if machineModuleRoot != realModuleRoot {
 		s.err = fmt.Errorf("attempting to load module root %v got machine with module root %v", realModuleRoot, machineModuleRoot)
 		return
 	}
-	s.machine = nitroMachine
+	s.machine = mantleMachine
 	s.machine.Freeze()
 }
 
 // We try to store/load state before first host_io to a file.
 // We will chicken out of that if something fails, but still try to calculate the machine
-func (s *loaderMachineStatus) createHostIoMachineInternal(config NitroMachineConfig, moduleRoot common.Hash, zerostep *ArbitratorMachine) {
+func (s *loaderMachineStatus) createHostIoMachineInternal(config MantleMachineConfig, moduleRoot common.Hash, zerostep *MtitratorMachine) {
 	defer s.signalReady()
 	ctx := context.Background()
 	machine := zerostep.Clone()
@@ -145,28 +145,28 @@ func (s *loaderMachineStatus) createHostIoMachineInternal(config NitroMachineCon
 	s.machine.Freeze()
 }
 
-type nitroMachineRequest struct {
+type mantleMachineRequest struct {
 	moduleRoot  common.Hash
 	untilHostIo bool
 	jit         bool
 }
 
-type NitroMachineLoader struct {
-	config       NitroMachineConfig
+type MantleMachineLoader struct {
+	config       MantleMachineConfig
 	machinesLock sync.Mutex
-	machines     map[nitroMachineRequest]*loaderMachineStatus
+	machines     map[mantleMachineRequest]*loaderMachineStatus
 	fatalErrChan chan error
 }
 
-func NewNitroMachineLoader(config NitroMachineConfig, fatalErrChan chan error) *NitroMachineLoader {
-	return &NitroMachineLoader{
+func NewMantleMachineLoader(config MantleMachineConfig, fatalErrChan chan error) *MantleMachineLoader {
+	return &MantleMachineLoader{
 		config:       config,
-		machines:     make(map[nitroMachineRequest]*loaderMachineStatus),
+		machines:     make(map[mantleMachineRequest]*loaderMachineStatus),
 		fatalErrChan: fatalErrChan,
 	}
 }
 
-func (s *loaderMachineStatus) waitForMachine(ctx context.Context) (*ArbitratorMachine, *JitMachine, error) {
+func (s *loaderMachineStatus) waitForMachine(ctx context.Context) (*MtitratorMachine, *JitMachine, error) {
 	select {
 	case <-s.chanSignal:
 	case <-ctx.Done():
@@ -176,7 +176,7 @@ func (s *loaderMachineStatus) waitForMachine(ctx context.Context) (*ArbitratorMa
 		return nil, nil, s.err
 	}
 	if !s.jit && s.machine == nil {
-		return nil, nil, errors.New("nitro machine is nil")
+		return nil, nil, errors.New("mantle machine is nil")
 	}
 	if s.jit && s.jitMachine == nil {
 		return nil, nil, errors.New("jit machine is nil")
@@ -184,10 +184,10 @@ func (s *loaderMachineStatus) waitForMachine(ctx context.Context) (*ArbitratorMa
 	return s.machine, s.jitMachine, nil
 }
 
-func (l *NitroMachineLoader) createMachineImpl(
+func (l *MantleMachineLoader) createMachineImpl(
 	moduleRoot common.Hash, untilHostIo, jit bool,
 ) (*loaderMachineStatus, error) {
-	machineRequest := nitroMachineRequest{
+	machineRequest := mantleMachineRequest{
 		moduleRoot:  moduleRoot,
 		untilHostIo: untilHostIo,
 		jit:         jit,
@@ -242,7 +242,7 @@ func (l *NitroMachineLoader) createMachineImpl(
 	l.machinesLock.Lock()
 	defer l.machinesLock.Unlock()
 
-	realMachineRequest := nitroMachineRequest{
+	realMachineRequest := mantleMachineRequest{
 		moduleRoot:  realModuleRoot,
 		untilHostIo: untilHostIo,
 		jit:         jit,
@@ -287,16 +287,16 @@ func (l *NitroMachineLoader) createMachineImpl(
 
 // Starts work on creating the machine in a separate goroutine
 // Returns immediately. Can be called multiple times.
-func (l *NitroMachineLoader) CreateMachine(moduleRoot common.Hash, untilHostIo, jit bool) error {
+func (l *MantleMachineLoader) CreateMachine(moduleRoot common.Hash, untilHostIo, jit bool) error {
 	_, err := l.createMachineImpl(moduleRoot, untilHostIo, jit)
 	return err
 }
 
 // Gets machine when one is ready
 // Returns with proper error if context aborts
-func (l *NitroMachineLoader) GetMachine(
+func (l *MantleMachineLoader) GetMachine(
 	ctx context.Context, moduleRoot common.Hash, untilHostIo bool,
-) (*ArbitratorMachine, error) {
+) (*MtitratorMachine, error) {
 	loader, err := l.createMachineImpl(moduleRoot, untilHostIo, false)
 	if err != nil {
 		return nil, err
@@ -305,7 +305,7 @@ func (l *NitroMachineLoader) GetMachine(
 	return machine, err
 }
 
-func (l *NitroMachineLoader) GetJitMachine(
+func (l *MantleMachineLoader) GetJitMachine(
 	ctx context.Context, moduleRoot common.Hash, untilHostIo bool,
 ) (*JitMachine, error) {
 	loader, err := l.createMachineImpl(moduleRoot, untilHostIo, true)
@@ -317,6 +317,6 @@ func (l *NitroMachineLoader) GetJitMachine(
 
 }
 
-func (l *NitroMachineLoader) GetConfig() NitroMachineConfig {
+func (l *MantleMachineLoader) GetConfig() MantleMachineConfig {
 	return l.config
 }

@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package das
 
@@ -17,32 +17,32 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/metrics"
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/cmd/genericconf"
-	"github.com/offchainlabs/nitro/util/pretty"
+	"github.com/mantlenetworkio/mantle/cmd/genericconf"
+	"github.com/mantlenetworkio/mantle/mtstate"
+	"github.com/mantlenetworkio/mantle/util/pretty"
 )
 
 var (
-	restGetByHashRequestGauge       = metrics.NewRegisteredGauge("arb/das/rest/getbyhash/requests", nil)
-	restGetByHashSuccessGauge       = metrics.NewRegisteredGauge("arb/das/rest/getbyhash/success", nil)
-	restGetByHashFailureGauge       = metrics.NewRegisteredGauge("arb/das/rest/getbyhash/failure", nil)
-	restGetByHashReturnedBytesGauge = metrics.NewRegisteredGauge("arb/das/rest/getbyhash/bytes", nil)
+	restGetByHashRequestGauge       = metrics.NewRegisteredGauge("mt/das/rest/getbyhash/requests", nil)
+	restGetByHashSuccessGauge       = metrics.NewRegisteredGauge("mt/das/rest/getbyhash/success", nil)
+	restGetByHashFailureGauge       = metrics.NewRegisteredGauge("mt/das/rest/getbyhash/failure", nil)
+	restGetByHashReturnedBytesGauge = metrics.NewRegisteredGauge("mt/das/rest/getbyhash/bytes", nil)
 
 	// This histogram is set with the default parameters of go-ethereum/metrics/Timer.
 	// If requests are infrequent, then the reservoir size parameter can be adjusted
 	// downwards to make a smaller window of samples that are included. The alpha parameter
 	// can be adjusted to downweight the importance of older samples.
-	restGetByHashDurationHistogram = metrics.NewRegisteredHistogram("arb/das/rest/getbyhash/duration", nil, metrics.NewExpDecaySample(1028, 0.015))
+	restGetByHashDurationHistogram = metrics.NewRegisteredHistogram("mt/das/rest/getbyhash/duration", nil, metrics.NewExpDecaySample(1028, 0.015))
 )
 
 type RestfulDasServer struct {
 	server               *http.Server
-	storage              arbstate.DataAvailabilityReader
+	storage              mtstate.DataAvailabilityReader
 	httpServerExitedChan chan interface{}
 	httpServerError      error
 }
 
-func NewRestfulDasServer(address string, port uint64, restServerTimeouts genericconf.HTTPServerTimeoutConfig, storageService arbstate.DataAvailabilityReader) (*RestfulDasServer, error) {
+func NewRestfulDasServer(address string, port uint64, restServerTimeouts genericconf.HTTPServerTimeoutConfig, storageService mtstate.DataAvailabilityReader) (*RestfulDasServer, error) {
 	listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", address, port))
 	if err != nil {
 		return nil, err
@@ -50,7 +50,7 @@ func NewRestfulDasServer(address string, port uint64, restServerTimeouts generic
 	return NewRestfulDasServerOnListener(listener, restServerTimeouts, storageService)
 }
 
-func NewRestfulDasServerOnListener(listener net.Listener, restServerTimeouts genericconf.HTTPServerTimeoutConfig, storageService arbstate.DataAvailabilityReader) (*RestfulDasServer, error) {
+func NewRestfulDasServerOnListener(listener net.Listener, restServerTimeouts genericconf.HTTPServerTimeoutConfig, storageService mtstate.DataAvailabilityReader) (*RestfulDasServer, error) {
 
 	ret := &RestfulDasServer{
 		storage:              storageService,

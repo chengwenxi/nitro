@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 // SPDX-License-Identifier: BUSL-1.1
 
 pragma solidity ^0.8.0;
@@ -76,6 +76,8 @@ interface IRollupCore {
     function minimumAssertionPeriod() external view returns (uint256);
 
     function isValidator(address) external view returns (bool);
+
+    function validatorWhitelistDisabled() external view returns (bool);
 
     /**
      * @notice Get the Node for the given index.

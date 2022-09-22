@@ -1,7 +1,7 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantlenetworkio/mantle/blob/main/LICENSE
 
-package arbtest
+package mttest
 
 import (
 	"context"
@@ -12,9 +12,9 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/offchainlabs/nitro/arbos/util"
-	"github.com/offchainlabs/nitro/solgen/go/mocksgen"
-	"github.com/offchainlabs/nitro/solgen/go/precompilesgen"
+	"github.com/mantlenetworkio/mantle/mtos/util"
+	"github.com/mantlenetworkio/mantle/solgen/go/mocksgen"
+	"github.com/mantlenetworkio/mantle/solgen/go/precompilesgen"
 )
 
 func TestAliasing(t *testing.T) {
@@ -35,13 +35,13 @@ func TestAliasing(t *testing.T) {
 	Require(t, err)
 
 	// Test direct calls
-	arbsys, err := precompilesgen.NewArbSys(types.ArbSysAddress, l2client)
+	mtsys, err := precompilesgen.NewMtSys(types.MtSysAddress, l2client)
 	Require(t, err)
-	top, err := arbsys.IsTopLevelCall(nil)
+	top, err := mtsys.IsTopLevelCall(nil)
 	Require(t, err)
-	was, err := arbsys.WasMyCallersAddressAliased(nil)
+	was, err := mtsys.WasMyCallersAddressAliased(nil)
 	Require(t, err)
-	alias, err := arbsys.MyCallersAddressWithoutAliasing(nil)
+	alias, err := mtsys.MyCallersAddressWithoutAliasing(nil)
 	Require(t, err)
 	if !top {
 		Fail(t, "direct call is not top level")

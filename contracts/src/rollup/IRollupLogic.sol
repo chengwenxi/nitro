@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 // SPDX-License-Identifier: BUSL-1.1
 
 pragma solidity ^0.8.0;
@@ -14,6 +14,10 @@ interface IRollupUserAbs is IRollupCore, IOwnable {
     /// @dev the user logic just validated configuration and shouldn't write to state during init
     /// this allows the admin logic to ensure consistency on parameters.
     function initialize(address stakeToken) external view;
+
+    function removeWhitelistAfterFork() external;
+
+    function removeWhitelistAfterValidatorAfk() external;
 
     function isERC20Enabled() external view returns (bool);
 
@@ -215,4 +219,10 @@ interface IRollupAdmin {
      * @param _sequencerInbox new address of sequencer inbox
      */
     function setSequencerInbox(address _sequencerInbox) external;
+
+    /**
+     * @notice set the validatorWhitelistDisabled flag
+     * @param _validatorWhitelistDisabled new value of validatorWhitelistDisabled, i.e. true = disabled
+     */
+    function setValidatorWhitelistDisabled(bool _validatorWhitelistDisabled) external;
 }

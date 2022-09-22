@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package broadcaster
 
@@ -10,8 +10,8 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/offchainlabs/nitro/arbos"
-	"github.com/offchainlabs/nitro/arbstate"
+	"github.com/mantlenetworkio/mantle/mtos"
+	"github.com/mantlenetworkio/mantle/mtstate"
 )
 
 func ExampleBroadcastMessage_broadcastfeedmessage() {
@@ -21,9 +21,9 @@ func ExampleBroadcastMessage_broadcastfeedmessage() {
 		Messages: []*BroadcastFeedMessage{
 			{
 				SequenceNumber: 12345,
-				Message: arbstate.MessageWithMetadata{
-					Message: &arbos.L1IncomingMessage{
-						Header: &arbos.L1IncomingMessageHeader{
+				Message: mtstate.MessageWithMetadata{
+					Message: &mtos.L1IncomingMessage{
+						Header: &mtos.L1IncomingMessageHeader{
 							Kind:        0,
 							Poster:      [20]byte{},
 							BlockNumber: 0,
@@ -35,6 +35,7 @@ func ExampleBroadcastMessage_broadcastfeedmessage() {
 					},
 					DelayedMessagesRead: 3333,
 				},
+				Signature: nil,
 			},
 		},
 	}
@@ -42,7 +43,7 @@ func ExampleBroadcastMessage_broadcastfeedmessage() {
 	encoder := json.NewEncoder(&buf)
 	_ = encoder.Encode(msg)
 	fmt.Println(buf.String())
-	// Output: {"version":1,"messages":[{"sequenceNumber":12345,"message":{"message":{"header":{"kind":0,"sender":"0x0000000000000000000000000000000000000000","blockNumber":0,"timestamp":0,"requestId":"0x0000000000000000000000000000000000000000000000000000000000000000","baseFeeL1":0},"l2Msg":"3q2+7w=="},"delayedMessagesRead":3333}}]}
+	// Output: {"version":1,"messages":[{"sequenceNumber":12345,"message":{"message":{"header":{"kind":0,"sender":"0x0000000000000000000000000000000000000000","blockNumber":0,"timestamp":0,"requestId":"0x0000000000000000000000000000000000000000000000000000000000000000","baseFeeL1":0},"l2Msg":"3q2+7w=="},"delayedMessagesRead":3333},"signature":null}]}
 }
 
 func ExampleBroadcastMessage_emptymessage() {

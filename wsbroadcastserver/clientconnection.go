@@ -1,12 +1,11 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package wsbroadcastserver
 
 import (
 	"context"
 	"encoding/json"
-	"github.com/offchainlabs/nitro/arbutil"
 	"math/rand"
 	"net"
 	"strconv"
@@ -17,7 +16,9 @@ import (
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
 	"github.com/mailru/easygo/netpoll"
-	"github.com/offchainlabs/nitro/util/stopwaiter"
+
+	"github.com/mantlenetworkio/mantle/mtutil"
+	"github.com/mantlenetworkio/mantle/util/stopwaiter"
 )
 
 // ClientConnection represents client connection.
@@ -30,13 +31,13 @@ type ClientConnection struct {
 	desc            *netpoll.Desc
 	Name            string
 	clientManager   *ClientManager
-	requestedSeqNum arbutil.MessageIndex
+	requestedSeqNum mtutil.MessageIndex
 
 	lastHeardUnix int64
 	out           chan []byte
 }
 
-func NewClientConnection(conn net.Conn, desc *netpoll.Desc, clientManager *ClientManager, requestedSeqNum arbutil.MessageIndex) *ClientConnection {
+func NewClientConnection(conn net.Conn, desc *netpoll.Desc, clientManager *ClientManager, requestedSeqNum mtutil.MessageIndex) *ClientConnection {
 	return &ClientConnection{
 		conn:            conn,
 		desc:            desc,
@@ -44,12 +45,12 @@ func NewClientConnection(conn net.Conn, desc *netpoll.Desc, clientManager *Clien
 		clientManager:   clientManager,
 		requestedSeqNum: requestedSeqNum,
 		lastHeardUnix:   time.Now().Unix(),
-		out:             make(chan []byte, clientManager.settings.MaxSendQueue),
+		out:             make(chan []byte, clientManager.config().MaxSendQueue),
 	}
 }
 
 func (cc *ClientConnection) Start(parentCtx context.Context) {
-	cc.StopWaiter.Start(parentCtx)
+	cc.StopWaiter.Start(parentCtx, cc)
 	cc.LaunchThread(func(ctx context.Context) {
 		defer close(cc.out)
 		for {
@@ -83,7 +84,7 @@ func (cc *ClientConnection) StopAndWait() {
 	cc.StopWaiter.StopAndWait()
 }
 
-func (cc *ClientConnection) RequestedSeqNum() arbutil.MessageIndex {
+func (cc *ClientConnection) RequestedSeqNum() mtutil.MessageIndex {
 	return cc.requestedSeqNum
 }
 

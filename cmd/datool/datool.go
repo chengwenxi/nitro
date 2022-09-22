@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package main
 
@@ -16,16 +16,18 @@ import (
 	"strings"
 	"time"
 
+	flag "github.com/spf13/pflag"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/cmd/genericconf"
+	"github.com/mantlenetworkio/mantle/cmd/genericconf"
+	"github.com/mantlenetworkio/mantle/mtstate"
 
-	"github.com/offchainlabs/nitro/cmd/util"
-	"github.com/offchainlabs/nitro/das"
-	"github.com/offchainlabs/nitro/das/dastree"
-	flag "github.com/spf13/pflag"
+	"github.com/mantlenetworkio/mantle/cmd/util"
+	"github.com/mantlenetworkio/mantle/das"
+	"github.com/mantlenetworkio/mantle/das/dastree"
+	"github.com/mantlenetworkio/mantle/util/signature"
 )
 
 func main() {
@@ -136,7 +138,7 @@ func startClientStore(args []string) error {
 				return err
 			}
 		}
-		signer := das.DasSignerFromPrivateKey(privateKey)
+		signer := signature.DataSignerFromPrivateKey(privateKey)
 
 		dasClient, err = das.NewStoreSigningDAS(dasClient, signer)
 		if err != nil {
@@ -161,7 +163,7 @@ func startClientStore(args []string) error {
 	}
 
 	ctx := context.Background()
-	var cert *arbstate.DataAvailabilityCertificate
+	var cert *mtstate.DataAvailabilityCertificate
 
 	if config.RandomMessageSize > 0 {
 		message := make([]byte, config.RandomMessageSize)
@@ -181,8 +183,8 @@ func startClientStore(args []string) error {
 	}
 
 	serializedCert := das.Serialize(cert)
-	fmt.Printf("Hex Encoded Cert: %s\n", string(hexutil.Encode(serializedCert)))
-	fmt.Printf("Hex Encoded Data Hash: %s\n", string(hexutil.Encode(cert.DataHash[:])))
+	fmt.Printf("Hex Encoded Cert: %s\n", hexutil.Encode(serializedCert))
+	fmt.Printf("Hex Encoded Data Hash: %s\n", hexutil.Encode(cert.DataHash[:]))
 
 	return nil
 }
