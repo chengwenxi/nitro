@@ -141,7 +141,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --all --manifest-path mtitrator/Cargo.toml -- -D warnings
+          args: --all --manifest-path mtitrator/Cargo.toml
 
       - name: Run rust tests
         uses: actions-rs/cargo@v1
