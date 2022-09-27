@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package broadcaster
 
@@ -11,8 +11,8 @@ import (
 
 	"github.com/ethereum/go-ethereum/log"
 
-	"github.com/offchainlabs/nitro/arbutil"
-	"github.com/offchainlabs/nitro/wsbroadcastserver"
+	"github.com/mantlenetworkio/mantle/mtutil"
+	"github.com/mantlenetworkio/mantle/wsbroadcastserver"
 )
 
 type SequenceNumberCatchupBuffer struct {
@@ -24,7 +24,7 @@ func NewSequenceNumberCatchupBuffer() *SequenceNumberCatchupBuffer {
 	return &SequenceNumberCatchupBuffer{}
 }
 
-func (b *SequenceNumberCatchupBuffer) getCacheMessages(requestedSeqNum arbutil.MessageIndex) *BroadcastMessage {
+func (b *SequenceNumberCatchupBuffer) getCacheMessages(requestedSeqNum mtutil.MessageIndex) *BroadcastMessage {
 	if b.messageCount == 0 {
 		return nil
 	}
@@ -73,7 +73,7 @@ func (b *SequenceNumberCatchupBuffer) OnRegisterClient(ctx context.Context, clie
 	return nil
 }
 
-func (b *SequenceNumberCatchupBuffer) deleteConfirmed(confirmedSequenceNumber arbutil.MessageIndex) {
+func (b *SequenceNumberCatchupBuffer) deleteConfirmed(confirmedSequenceNumber mtutil.MessageIndex) {
 	if len(b.messages) == 0 {
 		return
 	}

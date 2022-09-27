@@ -1,7 +1,7 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
-package arbtest
+package mttest
 
 import (
 	"math/big"
@@ -14,16 +14,16 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/params"
-	"github.com/offchainlabs/nitro/arbos/arbosState"
-	"github.com/offchainlabs/nitro/arbos/burn"
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/precompiles"
+	"github.com/mantlenetworkio/mantle/mtos/burn"
+	"github.com/mantlenetworkio/mantle/mtos/mtosState"
+	"github.com/mantlenetworkio/mantle/mtstate"
+	"github.com/mantlenetworkio/mantle/precompiles"
 )
 
 const fuzzGas uint64 = 1200000
 
 func FuzzPrecompiles(f *testing.F) {
-	arbstate.RequireHookedGeth()
+	mtstate.RequireHookedGeth()
 
 	f.Fuzz(func(t *testing.T, precompileSelector byte, methodSelector byte, input []byte) {
 		// Create a StateDB
@@ -32,7 +32,7 @@ func FuzzPrecompiles(f *testing.F) {
 			panic(err)
 		}
 		burner := burn.NewSystemBurner(nil, false)
-		_, err = arbosState.InitializeArbosState(sdb, burner, params.ArbitrumDevTestChainConfig())
+		_, err = mtosState.InitializeMtosState(sdb, burner, params.MantleDevTestChainConfig())
 		if err != nil {
 			panic(err)
 		}
@@ -53,7 +53,7 @@ func FuzzPrecompiles(f *testing.F) {
 			GasLimit:    fuzzGas,
 			BaseFee:     common.Big1,
 		}
-		evm := vm.NewEVM(blockContext, txContext, sdb, params.ArbitrumDevTestChainConfig(), vm.Config{})
+		evm := vm.NewEVM(blockContext, txContext, sdb, params.MantleDevTestChainConfig(), vm.Config{})
 
 		// Pick a precompile address based on the first byte of the input
 		var addr common.Address

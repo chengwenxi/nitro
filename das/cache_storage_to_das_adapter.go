@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package das
 
@@ -10,8 +10,8 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/util/pretty"
+	"github.com/mantlenetworkio/mantle/mtstate"
+	"github.com/mantlenetworkio/mantle/util/pretty"
 )
 
 type CacheStorageToDASAdapter struct {
@@ -49,7 +49,7 @@ func (a *CacheStorageToDASAdapter) GetByHash(ctx context.Context, hash common.Ha
 
 func (a *CacheStorageToDASAdapter) Store(
 	ctx context.Context, message []byte, timeout uint64, sig []byte,
-) (*arbstate.DataAvailabilityCertificate, error) {
+) (*mtstate.DataAvailabilityCertificate, error) {
 	log.Trace("das.CacheStorageToDASAdapter.Store", "message", pretty.FirstFewBytes(message), "timeout", time.Unix(int64(timeout), 0), "sig", pretty.FirstFewBytes(sig), "this", a)
 	cert, err := a.DataAvailabilityService.Store(ctx, message, timeout, sig)
 	if err != nil {
@@ -91,8 +91,8 @@ func (s *emptyStorageService) Close(ctx context.Context) error {
 	return nil
 }
 
-func (s *emptyStorageService) ExpirationPolicy(ctx context.Context) (arbstate.ExpirationPolicy, error) {
-	return arbstate.DiscardImmediately, nil
+func (s *emptyStorageService) ExpirationPolicy(ctx context.Context) (mtstate.ExpirationPolicy, error) {
+	return mtstate.DiscardImmediately, nil
 }
 
 func (s *emptyStorageService) String() string {

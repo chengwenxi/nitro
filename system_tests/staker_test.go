@@ -1,11 +1,11 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 // race detection makes things slow and miss timeouts
 //go:build !race
 // +build !race
 
-package arbtest
+package mttest
 
 import (
 	"context"
@@ -19,13 +19,13 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/params"
-	"github.com/offchainlabs/nitro/arbutil"
-	"github.com/offchainlabs/nitro/solgen/go/rollupgen"
-	"github.com/offchainlabs/nitro/util/colors"
-	"github.com/offchainlabs/nitro/validator"
+	"github.com/mantlenetworkio/mantle/mtutil"
+	"github.com/mantlenetworkio/mantle/solgen/go/rollupgen"
+	"github.com/mantlenetworkio/mantle/util/colors"
+	"github.com/mantlenetworkio/mantle/validator"
 )
 
-func makeBackgroundTxs(ctx context.Context, l2info *BlockchainTestInfo, l2clientA arbutil.L1Interface, l2clientB arbutil.L1Interface, faultyStaker bool) error {
+func makeBackgroundTxs(ctx context.Context, l2info *BlockchainTestInfo, l2clientA mtutil.L1Interface, l2clientB mtutil.L1Interface, faultyStaker bool) error {
 	for i := uint64(0); ctx.Err() == nil; i++ {
 		l2info.Accounts["BackgroundUser"].Nonce = i
 		tx := l2info.PrepareTx("BackgroundUser", "BackgroundUser", l2info.TransferGas, common.Big0, nil)
@@ -128,19 +128,19 @@ func stakerTestImpl(t *testing.T, faultyStaker bool, honestStakerInactive bool) 
 	} else {
 		valConfig.Strategy = "MakeNodes"
 	}
-	nitroMachineLoader := validator.NewNitroMachineLoader(validator.DefaultNitroMachineConfig, nil)
+	mantleMachineLoader := validator.NewMantleMachineLoader(validator.DefaultMantleMachineConfig, nil)
 	stakerA, err := validator.NewStaker(
 		l2nodeA.L1Reader,
 		valWalletA,
 		bind.CallOpts{},
 		valConfig,
-		l2nodeA.ArbInterface.BlockChain(),
+		l2nodeA.MtInterface.BlockChain(),
 		nil,
 		l2nodeA.InboxReader,
 		l2nodeA.InboxTracker,
 		l2nodeA.TxStreamer,
 		l2nodeA.BlockValidator,
-		nitroMachineLoader,
+		mantleMachineLoader,
 		l2nodeA.DeployInfo.ValidatorUtils,
 	)
 	Require(t, err)
@@ -155,13 +155,13 @@ func stakerTestImpl(t *testing.T, faultyStaker bool, honestStakerInactive bool) 
 		valWalletB,
 		bind.CallOpts{},
 		valConfig,
-		l2nodeB.ArbInterface.BlockChain(),
+		l2nodeB.MtInterface.BlockChain(),
 		nil,
 		l2nodeB.InboxReader,
 		l2nodeB.InboxTracker,
 		l2nodeB.TxStreamer,
 		l2nodeB.BlockValidator,
-		nitroMachineLoader,
+		mantleMachineLoader,
 		l2nodeB.DeployInfo.ValidatorUtils,
 	)
 	Require(t, err)
@@ -176,13 +176,13 @@ func stakerTestImpl(t *testing.T, faultyStaker bool, honestStakerInactive bool) 
 		valWalletC,
 		bind.CallOpts{},
 		valConfig,
-		l2nodeA.ArbInterface.BlockChain(),
+		l2nodeA.MtInterface.BlockChain(),
 		nil,
 		l2nodeA.InboxReader,
 		l2nodeA.InboxTracker,
 		l2nodeA.TxStreamer,
 		l2nodeA.BlockValidator,
-		nitroMachineLoader,
+		mantleMachineLoader,
 		l2nodeA.DeployInfo.ValidatorUtils,
 	)
 	Require(t, err)

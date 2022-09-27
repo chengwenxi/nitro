@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package validator
 
@@ -11,8 +11,8 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/offchainlabs/nitro/arbutil"
-	"github.com/offchainlabs/nitro/solgen/go/rollupgen"
+	"github.com/mantlenetworkio/mantle/mtutil"
+	"github.com/mantlenetworkio/mantle/solgen/go/rollupgen"
 	"github.com/pkg/errors"
 
 	"github.com/ethereum/go-ethereum"
@@ -44,11 +44,11 @@ type RollupWatcher struct {
 	*rollupgen.RollupUserLogic
 	address      common.Address
 	fromBlock    uint64
-	client       arbutil.L1Interface
+	client       mtutil.L1Interface
 	baseCallOpts bind.CallOpts
 }
 
-func NewRollupWatcher(address common.Address, client arbutil.L1Interface, callOpts bind.CallOpts) (*RollupWatcher, error) {
+func NewRollupWatcher(address common.Address, client mtutil.L1Interface, callOpts bind.CallOpts) (*RollupWatcher, error) {
 	con, err := rollupgen.NewRollupUserLogic(address, client)
 	if err != nil {
 		return nil, errors.WithStack(err)

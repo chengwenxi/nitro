@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package merkletree
 
@@ -8,9 +8,9 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/offchainlabs/nitro/arbos/burn"
-	"github.com/offchainlabs/nitro/arbos/merkleAccumulator"
-	"github.com/offchainlabs/nitro/arbos/storage"
+	"github.com/mantlenetworkio/mantle/mtos/burn"
+	"github.com/mantlenetworkio/mantle/mtos/merkleAccumulator"
+	"github.com/mantlenetworkio/mantle/mtos/storage"
 )
 
 func initializedMerkleAccumulatorForTesting() *merkleAccumulator.MerkleAccumulator {

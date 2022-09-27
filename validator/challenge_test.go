@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package validator
 
@@ -19,8 +19,8 @@ import (
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/offchainlabs/nitro/solgen/go/mocksgen"
-	"github.com/offchainlabs/nitro/solgen/go/ospgen"
+	"github.com/mantlenetworkio/mantle/solgen/go/mocksgen"
+	"github.com/mantlenetworkio/mantle/solgen/go/ospgen"
 )
 
 func DeployOneStepProofEntry(t *testing.T, auth *bind.TransactOpts, client bind.ContractBackend) common.Address {
@@ -108,7 +108,7 @@ func createGenesisAlloc(accts ...*bind.TransactOpts) core.GenesisAlloc {
 
 func runChallengeTest(
 	t *testing.T,
-	baseMachine *ArbitratorMachine,
+	baseMachine *MtitratorMachine,
 	incorrectMachine MachineInterface,
 	asserterIsCorrect bool,
 	testTimeout bool,
@@ -227,9 +227,9 @@ func runChallengeTest(
 	t.Fatal("challenge timed out without winner")
 }
 
-func createBaseMachine(t *testing.T, wasmname string, wasmModules []string) *ArbitratorMachine {
+func createBaseMachine(t *testing.T, wasmname string, wasmModules []string) *MtitratorMachine {
 	_, filename, _, _ := runtime.Caller(0)
-	wasmDir := path.Join(path.Dir(filename), "../arbitrator/prover/test-cases/")
+	wasmDir := path.Join(path.Dir(filename), "../mtitrator/prover/test-cases/")
 
 	wasmPath := path.Join(wasmDir, wasmname)
 

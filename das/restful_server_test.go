@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package das
 
@@ -13,14 +13,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/cmd/genericconf"
-	"github.com/offchainlabs/nitro/das/dastree"
+	"github.com/mantlenetworkio/mantle/cmd/genericconf"
+	"github.com/mantlenetworkio/mantle/das/dastree"
+	"github.com/mantlenetworkio/mantle/mtstate"
 )
 
 const LocalServerAddressForTest = "localhost"
 
-func NewRestfulDasServerOnRandomPort(address string, storageService arbstate.DataAvailabilityReader) (*RestfulDasServer, int, error) {
+func NewRestfulDasServerOnRandomPort(address string, storageService mtstate.DataAvailabilityReader) (*RestfulDasServer, int, error) {
 	listener, err := net.Listen("tcp", fmt.Sprintf("%s:0", address))
 	if err != nil {
 		return nil, 0, err

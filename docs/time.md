@@ -1,47 +1,47 @@
 # Block Numbers and Time
 
-As in Ethereum, Arbitrum clients submit transactions, and the system (usually) executes those transactions at some later time.
-In Arbitrum Rollup, clients submit transactions by posting messages to the Ethereum chain, either [through the Sequencer](./sequencer.md) or via the chain's [delayed inbox](./sequencer.md).
+As in Ethereum, Mantle clients submit transactions, and the system (usually) executes those transactions at some later time.
+In Mantle Rollup, clients submit transactions by posting messages to the Ethereum chain, either [through the Sequencer](./sequencer.md) or via the chain's [delayed inbox](./sequencer.md).
 
 Once in the chain's core inbox contract, transactions are processed in order. Generally, some time will elapse between the time when a message is put into the inbox (and timestamped) and the time when the contract processes the message and carries out the transaction requested by the message.
 
-## Block Numbers: Arbitrum vs. Ethereum
+## Block Numbers: Mantle vs. Ethereum
 
-Arbitrum blocks are assigned their own L2 block numbers, distinct from Ethereum's L1 block numbers.
+Mantle blocks are assigned their own L2 block numbers, distinct from Ethereum's L1 block numbers.
 
-A single Ethereum block could include within it multiple Arbitrum blocks (if, say, the Arbitrum chain is getting heavy activity); however, an Arbitrum block cannot span across multiple Ethereum blocks. Thus, any given Arbitrum transaction is associated with exactly one Ethereum block and one Arbitrum block.
+A single Ethereum block could include within it multiple Mantle blocks (if, say, the Mantle chain is getting heavy activity); however, an Mantle block cannot span across multiple Ethereum blocks. Thus, any given Mantle transaction is associated with exactly one Ethereum block and one Mantle block.
 
-## Ethereum Block Numbers Within Arbitrum
+## Ethereum Block Numbers Within Mantle
 
-Accessing block numbers within an Arbitrum smart contract (i.e., `block.number` in Solidity) will return a value _close to_ (but not necessarily exactly) the L1 block number at which the Sequencer received the transaction.
+Accessing block numbers within an Mantle smart contract (i.e., `block.number` in Solidity) will return a value _close to_ (but not necessarily exactly) the L1 block number at which the Sequencer received the transaction.
 
 ```sol
-// some Arbitrum contract:
+// some Mantle contract:
 block.number // => returns L1 block number ("ish")
 ```
 
 As a general rule, any timing assumptions a contract makes about block numbers and timestamps should be considered generally reliable in the longer term (i.e., on the order of at least several hours) but unreliable in the shorter term (minutes). (It so happens these are generally the same assumptions one should operate under when using block numbers directly on Ethereum!)
 
-## Arbitrum Block Numbers
+## Mantle Block Numbers
 
-Arbitrum blocks have their own block numbers, starting at 0 at the Arbitrum genesis block and updating sequentially.
+Mantle blocks have their own block numbers, starting at 0 at the Mantle genesis block and updating sequentially.
 
-ArbOS and the Sequencer are responsible for delineating when one Arbitrum block ends and the next one begins; one should expect to see Arbitrum blocks produced at a relatively steady rate.
+MtOS and the Sequencer are responsible for delineating when one Mantle block ends and the next one begins; one should expect to see Mantle blocks produced at a relatively steady rate.
 
-A client that queries an Arbitrum node's RPC interface (for, ie., transaction receipts) will receive the transaction's Arbitrum block number as the standard block number field. The L1 block number will also be included in the added `l1BlockNumber field`.
+A client that queries an Mantle node's RPC interface (for, ie., transaction receipts) will receive the transaction's Mantle block number as the standard block number field. The L1 block number will also be included in the added `l1BlockNumber field`.
 
 ```ts
-const txnReceipt = await arbitrumProvider.getTransactionReceipt('0x...')
+const txnReceipt = await mantleProvider.getTransactionReceipt('0x...')
 /** 
-    txnReceipt.blockNumber => Arbitrum block number
+    txnReceipt.blockNumber => Mantle block number
     txnReceipt.l1BlockNumber => L1 block number ("ish")
 */
 ```
 
-The Arbitrum block number can also be retrieved within an Arbitrum contract via [ArbSys](./arbos/precompiles.md#ArbSys):
+The Mantle block number can also be retrieved within an Mantle contract via [MtSys](./mtos/precompiles.md#MtSys):
 
 ```sol
- ArbSys(100).arbBlockNumber() // returns Arbitrum block number
+ MtSys(100).arbBlockNumber() // returns Mantle block number
 ```
 
 ## Example
@@ -50,10 +50,10 @@ The Arbitrum block number can also be retrieved within an Arbitrum contract via 
 |-----------------------------|----------|----------|----------|----------|---------|---------|
 | L1 `block.number`             | 1000     | 1001     | 1002     | 1003     | 1004    | 1005    |
 | L2 `block.number`             | 1000     | 1000     | 1000     | 1000     | 1004    | 1004    |
-| Arbitrum Block number (from RPCs) | 370000   | 370005   | 370006   | 370008   | 370012  | 370015  |
+| Mantle Block number (from RPCs) | 370000   | 370005   | 370006   | 370008   | 370012  | 370015  |
 
 _**L2 `block.number`:** updated to sync with L1 `block.number` ~ every minute; thus over time, it will, like the L1 `block.number`, average to ~15 seconds per block._
-_**Arbitrum Block number from RPCs:** note that this can be updated multiple times per L1 block (this lets the sequencer give sub-L1-block-time tx receipts.)_
+_**Mantle Block number from RPCs:** note that this can be updated multiple times per L1 block (this lets the sequencer give sub-L1-block-time tx receipts.)_
 
 
 

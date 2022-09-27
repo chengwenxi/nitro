@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package zeroheavy
 
@@ -12,9 +12,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/offchainlabs/nitro/arbcompress"
-	"github.com/offchainlabs/nitro/util/colors"
-	"github.com/offchainlabs/nitro/util/testhelpers"
+	"github.com/mantlenetworkio/mantle/mtcompress"
+	"github.com/mantlenetworkio/mantle/util/colors"
+	"github.com/mantlenetworkio/mantle/util/testhelpers"
 )
 
 func TestZeroheavyNullInput(t *testing.T) {
@@ -123,7 +123,7 @@ func TestZeroHeavyRandomDataBrotli(t *testing.T) {
 				randomBytes[i] = 0
 			}
 		}
-		input, err := arbcompress.CompressWell(randomBytes)
+		input, err := mtcompress.CompressWell(randomBytes)
 		Require(t, err)
 
 		ShowError(t, err)
@@ -160,13 +160,13 @@ func TestZeroHeavyAndBrotli(t *testing.T) {
 	inData, err := os.ReadFile("../go.sum")
 	ShowError(t, err)
 
-	bout, err := arbcompress.CompressWell(inData)
+	bout, err := mtcompress.CompressWell(inData)
 	ShowError(t, err)
 
 	zhout, err := io.ReadAll(NewZeroheavyDecoder(NewZeroheavyEncoder(bytes.NewReader(bout))))
 	ShowError(t, err)
 
-	res, err := arbcompress.Decompress(zhout, len(inData))
+	res, err := mtcompress.Decompress(zhout, len(inData))
 	ShowError(t, err)
 
 	if !bytes.Equal(inData, res) {

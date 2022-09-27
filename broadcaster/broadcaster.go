@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package broadcaster
 
@@ -9,9 +9,9 @@ import (
 
 	"github.com/ethereum/go-ethereum/log"
 
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/arbutil"
-	"github.com/offchainlabs/nitro/wsbroadcastserver"
+	"github.com/mantlenetworkio/mantle/mtstate"
+	"github.com/mantlenetworkio/mantle/mtutil"
+	"github.com/mantlenetworkio/mantle/wsbroadcastserver"
 )
 
 type Broadcaster struct {
@@ -43,12 +43,12 @@ type BroadcastMessage struct {
 }
 
 type BroadcastFeedMessage struct {
-	SequenceNumber arbutil.MessageIndex         `json:"sequenceNumber"`
-	Message        arbstate.MessageWithMetadata `json:"message"`
+	SequenceNumber mtutil.MessageIndex         `json:"sequenceNumber"`
+	Message        mtstate.MessageWithMetadata `json:"message"`
 }
 
 type ConfirmedSequenceNumberMessage struct {
-	SequenceNumber arbutil.MessageIndex `json:"sequenceNumber"`
+	SequenceNumber mtutil.MessageIndex `json:"sequenceNumber"`
 }
 
 func NewBroadcaster(settings wsbroadcastserver.BroadcasterConfig, chainId uint64, feedErrChan chan error) *Broadcaster {
@@ -59,7 +59,7 @@ func NewBroadcaster(settings wsbroadcastserver.BroadcasterConfig, chainId uint64
 	}
 }
 
-func (b *Broadcaster) BroadcastSingle(msg arbstate.MessageWithMetadata, seq arbutil.MessageIndex) {
+func (b *Broadcaster) BroadcastSingle(msg mtstate.MessageWithMetadata, seq mtutil.MessageIndex) {
 	var broadcastMessages []*BroadcastFeedMessage
 
 	bfm := BroadcastFeedMessage{SequenceNumber: seq, Message: msg}
@@ -77,7 +77,7 @@ func (b *Broadcaster) Broadcast(msg BroadcastMessage) {
 	b.server.Broadcast(msg)
 }
 
-func (b *Broadcaster) Confirm(seq arbutil.MessageIndex) {
+func (b *Broadcaster) Confirm(seq mtutil.MessageIndex) {
 	log.Debug("confirming sequence number", "sequenceNumber", seq)
 	b.server.Broadcast(BroadcastMessage{
 		Version:                        1,

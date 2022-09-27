@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package das
 
@@ -7,7 +7,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/offchainlabs/nitro/arbstate"
+	"github.com/mantlenetworkio/mantle/mtstate"
 )
 
 // These classes are wrappers implementing das.StorageService and das.DataAvailabilityService.
@@ -16,12 +16,12 @@ import (
 // it is a programming error in the code setting up the node or daserver if a non-writeable object
 // is used in a writeable context.
 
-func NewReadLimitedStorageService(reader arbstate.DataAvailabilityReader) *readLimitedStorageService {
+func NewReadLimitedStorageService(reader mtstate.DataAvailabilityReader) *readLimitedStorageService {
 	return &readLimitedStorageService{reader}
 }
 
 type readLimitedStorageService struct {
-	arbstate.DataAvailabilityReader
+	mtstate.DataAvailabilityReader
 }
 
 func (s *readLimitedStorageService) Put(ctx context.Context, data []byte, expiration uint64) error {
@@ -42,14 +42,14 @@ func (s *readLimitedStorageService) String() string {
 }
 
 type readLimitedDataAvailabilityService struct {
-	arbstate.DataAvailabilityReader
+	mtstate.DataAvailabilityReader
 }
 
-func NewReadLimitedDataAvailabilityService(da arbstate.DataAvailabilityReader) *readLimitedDataAvailabilityService {
+func NewReadLimitedDataAvailabilityService(da mtstate.DataAvailabilityReader) *readLimitedDataAvailabilityService {
 	return &readLimitedDataAvailabilityService{da}
 }
 
-func (*readLimitedDataAvailabilityService) Store(ctx context.Context, message []byte, timeout uint64, sig []byte) (*arbstate.DataAvailabilityCertificate, error) {
+func (*readLimitedDataAvailabilityService) Store(ctx context.Context, message []byte, timeout uint64, sig []byte) (*mtstate.DataAvailabilityCertificate, error) {
 	panic("Logic error: readLimitedDataAvailabilityService.Store shouldn't be called.")
 }
 

@@ -1,9 +1,9 @@
 {
-  "name": "nitro-testnode-scripts",
+  "name": "mantle-testnode-scripts",
   "version": "1.0.0",
-  "description": "testing environment Arbitrum Nitro",
+  "description": "testing environment Mantle",
   "main": "index.js",
-  "author": "Offchain Labs, Inc.",
+  "author": "Mantlenetwork, Inc.",
   "license": "Apache-2.0",
   "dependencies": {
     "@node-redis/client": "^1.0.4",

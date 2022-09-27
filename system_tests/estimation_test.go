@@ -1,7 +1,7 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
-package arbtest
+package mttest
 
 import (
 	"context"
@@ -13,13 +13,13 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/params"
-	"github.com/offchainlabs/nitro/arbos/l1pricing"
-	"github.com/offchainlabs/nitro/solgen/go/mocksgen"
-	"github.com/offchainlabs/nitro/solgen/go/node_interfacegen"
-	"github.com/offchainlabs/nitro/solgen/go/precompilesgen"
-	"github.com/offchainlabs/nitro/util/arbmath"
-	"github.com/offchainlabs/nitro/util/colors"
-	"github.com/offchainlabs/nitro/util/testhelpers"
+	"github.com/mantlenetworkio/mantle/mtos/l1pricing"
+	"github.com/mantlenetworkio/mantle/solgen/go/mocksgen"
+	"github.com/mantlenetworkio/mantle/solgen/go/node_interfacegen"
+	"github.com/mantlenetworkio/mantle/solgen/go/precompilesgen"
+	"github.com/mantlenetworkio/mantle/util/colors"
+	"github.com/mantlenetworkio/mantle/util/mtmath"
+	"github.com/mantlenetworkio/mantle/util/testhelpers"
 )
 
 func TestDeploy(t *testing.T) {
@@ -60,15 +60,15 @@ func TestEstimate(t *testing.T) {
 	gasPrice := big.NewInt(params.GWei / 10)
 
 	// set the gas price
-	arbOwner, err := precompilesgen.NewArbOwner(common.HexToAddress("0x70"), client)
-	Require(t, err, "could not deploy ArbOwner contract")
+	arbOwner, err := precompilesgen.NewMtOwner(common.HexToAddress("0x70"), client)
+	Require(t, err, "could not deploy MtOwner contract")
 	tx, err := arbOwner.SetMinimumL2BaseFee(&auth, gasPrice)
 	Require(t, err, "could not set L2 gas price")
 	_, err = EnsureTxSucceeded(ctx, client, tx)
 	Require(t, err)
 
 	// connect to arbGasInfo precompile
-	arbGasInfo, err := precompilesgen.NewArbGasInfo(common.HexToAddress("0x6c"), client)
+	arbGasInfo, err := precompilesgen.NewMtGasInfo(common.HexToAddress("0x6c"), client)
 	Require(t, err, "could not deploy contract")
 
 	// wait for price to come to equilibrium
@@ -142,7 +142,7 @@ func TestComponentEstimate(t *testing.T) {
 
 	userBalance := big.NewInt(1e16)
 	maxPriorityFeePerGas := big.NewInt(0)
-	maxFeePerGas := arbmath.BigMulByUfrac(l2BaseFee, 3, 2)
+	maxFeePerGas := mtmath.BigMulByUfrac(l2BaseFee, 3, 2)
 
 	l2info.GenerateAccount("User")
 	TransferBalance(t, "Owner", "User", userBalance, l2info, client, ctx)
@@ -186,7 +186,7 @@ func TestComponentEstimate(t *testing.T) {
 	l1BaseFeeEstimate, _ := outputs[3].(*big.Int)
 
 	tx := l2info.SignTxAs("User", &types.DynamicFeeTx{
-		ChainID:   node.ArbInterface.BlockChain().Config().ChainID,
+		ChainID:   node.MtInterface.BlockChain().Config().ChainID,
 		Nonce:     0,
 		GasTipCap: maxPriorityFeePerGas,
 		GasFeeCap: maxFeePerGas,
@@ -200,10 +200,10 @@ func TestComponentEstimate(t *testing.T) {
 
 	colors.PrintBlue("Est. ", gasEstimate, " - ", gasEstimateForL1, " = ", l2Estimate)
 
-	if !arbmath.BigEquals(l1BaseFeeEstimate, l1BaseFee) {
+	if !mtmath.BigEquals(l1BaseFeeEstimate, l1BaseFee) {
 		Fail(t, l1BaseFeeEstimate, l1BaseFee)
 	}
-	if !arbmath.BigEquals(baseFee, l2BaseFee) {
+	if !mtmath.BigEquals(baseFee, l2BaseFee) {
 		Fail(t, baseFee, l2BaseFee.Uint64())
 	}
 

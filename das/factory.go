@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package das
 
@@ -8,7 +8,7 @@ import (
 	"errors"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/offchainlabs/nitro/arbutil"
+	"github.com/mantlenetworkio/mantle/mtutil"
 )
 
 // Create any storage services that persist to files, database, cloud storage,
@@ -64,7 +64,7 @@ func CreateBatchPosterDAS(
 	ctx context.Context,
 	config *DataAvailabilityConfig,
 	daSigner DasSigner,
-	l1Reader arbutil.L1Interface,
+	l1Reader mtutil.L1Interface,
 	sequencerInboxAddr common.Address,
 ) (DataAvailabilityServiceWriter, DataAvailabilityServiceReader, *LifecycleManager, error) {
 	if !config.Enable {

@@ -1,7 +1,7 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
-package arbtest
+package mttest
 
 import (
 	"context"
@@ -11,10 +11,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/offchainlabs/nitro/arbnode"
-	"github.com/offchainlabs/nitro/broadcastclient"
-	"github.com/offchainlabs/nitro/relay"
-	"github.com/offchainlabs/nitro/wsbroadcastserver"
+	"github.com/mantlenetworkio/mantle/broadcastclient"
+	"github.com/mantlenetworkio/mantle/mtnode"
+	"github.com/mantlenetworkio/mantle/relay"
+	"github.com/mantlenetworkio/mantle/wsbroadcastserver"
 )
 
 func newBroadcasterConfigTest() *wsbroadcastserver.BroadcasterConfig {
@@ -36,11 +36,11 @@ func TestSequencerFeed(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	seqNodeConfig := arbnode.ConfigDefaultL2Test()
+	seqNodeConfig := mtnode.ConfigDefaultL2Test()
 	seqNodeConfig.Feed.Output = *newBroadcasterConfigTest()
 	l2info1, nodeA, client1, l2stackA := CreateTestL2WithConfig(t, ctx, nil, seqNodeConfig, true)
 	defer requireClose(t, l2stackA)
-	clientNodeConfig := arbnode.ConfigDefaultL2Test()
+	clientNodeConfig := mtnode.ConfigDefaultL2Test()
 	port := nodeA.BroadcastServer.ListenerAddr().(*net.TCPAddr).Port
 	clientNodeConfig.Feed.Input = *newBroadcastClientConfigTest(port)
 
@@ -71,7 +71,7 @@ func TestRelayedSequencerFeed(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	seqNodeConfig := arbnode.ConfigDefaultL2Test()
+	seqNodeConfig := mtnode.ConfigDefaultL2Test()
 	seqNodeConfig.Feed.Output = *newBroadcasterConfigTest()
 	l2info1, nodeA, client1, l2stackA := CreateTestL2WithConfig(t, ctx, nil, seqNodeConfig, true)
 	defer requireClose(t, l2stackA)
@@ -90,7 +90,7 @@ func TestRelayedSequencerFeed(t *testing.T) {
 	Require(t, err)
 	defer currentRelay.StopAndWait()
 
-	clientNodeConfig := arbnode.ConfigDefaultL2Test()
+	clientNodeConfig := mtnode.ConfigDefaultL2Test()
 	port = currentRelay.GetListenerAddr().(*net.TCPAddr).Port
 	clientNodeConfig.Feed.Input = *newBroadcastClientConfigTest(port)
 	_, _, client3, l2stackC := CreateTestL2WithConfig(t, ctx, nil, clientNodeConfig, false)
@@ -134,7 +134,7 @@ func testLyingSequencer(t *testing.T, dasModeStr string) {
 	authorizeDASKeyset(t, ctx, dasSignerKey, l1info, l1client)
 
 	// The lying sequencer
-	nodeConfigC := arbnode.ConfigDefaultL1Test()
+	nodeConfigC := mtnode.ConfigDefaultL1Test()
 	nodeConfigC.BatchPoster.Enable = false
 	nodeConfigC.DataAvailability = nodeConfigA.DataAvailability
 	nodeConfigC.DataAvailability.AggregatorConfig.Enable = false
@@ -145,7 +145,7 @@ func testLyingSequencer(t *testing.T, dasModeStr string) {
 	port := nodeC.BroadcastServer.ListenerAddr().(*net.TCPAddr).Port
 
 	// The client node, connects to lying sequencer's feed
-	nodeConfigB := arbnode.ConfigDefaultL1NonSequencerTest()
+	nodeConfigB := mtnode.ConfigDefaultL1NonSequencerTest()
 	nodeConfigB.Feed.Output.Enable = false
 	nodeConfigB.Feed.Input = *newBroadcastClientConfigTest(port)
 	nodeConfigB.DataAvailability = nodeConfigA.DataAvailability

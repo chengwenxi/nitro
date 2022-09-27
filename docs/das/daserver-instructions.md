@@ -1,7 +1,7 @@
 # Data Availability Server Instructions
 
 ## Description
-The Data Availability Server, `daserver`, allows storage and retrieval of transaction data batches for Arbitrum AnyTrust chains. It can be run in two modes: either committee member or mirror. Commitee members accept time-limited requests to store data batches from an Arbitrum AnyTrust sequencer, and if they store the data then they return a signed certificate promising to store that data. Commitee members and mirrors both respond to requests to retrieve the data batches. Mirrors exist to replicate and serve the data so that committee members to provide resiliency to the network in the case committee members going down, and to make it so committee members don't need to serve requests for the data directly. The data batches are addressed by a keccak256 hash of their contents. This document gives sample configurations for `daserver` in committee member and mirror mode.
+The Data Availability Server, `daserver`, allows storage and retrieval of transaction data batches for Mantle AnyTrust chains. It can be run in two modes: either committee member or mirror. Commitee members accept time-limited requests to store data batches from an Mantle AnyTrust sequencer, and if they store the data then they return a signed certificate promising to store that data. Commitee members and mirrors both respond to requests to retrieve the data batches. Mirrors exist to replicate and serve the data so that committee members to provide resiliency to the network in the case committee members going down, and to make it so committee members don't need to serve requests for the data directly. The data batches are addressed by a keccak256 hash of their contents. This document gives sample configurations for `daserver` in committee member and mirror mode.
 
 ### Interfaces
 There are two interfaces, a REST interface supporting only GET operations and intended for public use, and an RPC interface intended for use only by the AnyTrust sequencer. Mirrors listen on the REST inferface only and respond to queries on `/get-by-hash/<hex encoded data hash>`. The response is always the same for a given hash so it is cacheable; it contains a `cache-control` header specifying the object is immutable and to cache for up to 28 days. The REST interface has a health check on `/health` which will return 200 if the underling storage is working, otherwise 503.
@@ -18,7 +18,7 @@ An in-memory cache can be enabled to avoid needing to access underlying storage 
 `daserver` also has an optional REST aggregator which, in the case that a data batch is not found in cache or storage, queries for that batch from a list other of REST servers, and then stores that batch locally. This is how committee members that miss storing a batch (not all committee members are required by the AnyTrust protocol to report success in order to post the batch's certificate to L1) can automatically repair gaps in data they store, and how mirrors can sync (a sync mode that eagerly syncs all batches is planned for a future release). A public list of REST endpoints is published online, which  `daserver` can be configured to download and use, and addititional endpoints can be specified in configuration.
 
 ## Image:
-`offchainlabs/nitro-node:v2.0.0-beta.8-5ed2c72`
+`mantlenetwork/mantle-node:v2.0.0-beta.8-5ed2c72`
 
 ## Usage of daserver
 
@@ -146,7 +146,7 @@ spec:
           mkdir -p /home/user/data/keys
           /usr/local/bin/datool keygen --dir /home/user/data/keys
           sleep infinity
-        image: offchainlabs/nitro-node:v2.0.0-beta.8-5ed2c72
+        image: mantlenetwork/mantle-node:v2.0.0-beta.8-5ed2c72
         imagePullPolicy: Always
         resources:
           limits:
@@ -169,9 +169,9 @@ spec:
 
 #### Create DAS deployment
 
-This deployment sets up a DAS server using the Arbitrum Nova Mainnet. It uses the L1 inbox contract at 0x211e1c4c7f1bf5351ac850ed10fd68cffcf6c21b. For the Arbitrum Nova Mainnet you must specify a Mainnet Ethereum L1 RPC endpoint.
+This deployment sets up a DAS server using the Mantle Nova Mainnet. It uses the L1 inbox contract at 0x211e1c4c7f1bf5351ac850ed10fd68cffcf6c21b. For the Mantle Nova Mainnet you must specify a Mainnet Ethereum L1 RPC endpoint.
 
-This configuration sets up all three storage types. To disable any of them, remove the --data-availability.(local-file-storage|local-disk-storage|s3-storage).enable option, and the other options for that storage type can also be removed. If updating an existing deployment from `offchainlabs/nitro-node:v2.0.0-alpha.4` that is using the local files on disk storage type, you should use at least `local-file-storage`.
+This configuration sets up all three storage types. To disable any of them, remove the --data-availability.(local-file-storage|local-disk-storage|s3-storage).enable option, and the other options for that storage type can also be removed. If updating an existing deployment from `mantlenetwork/mantle-node:v2.0.0-alpha.4` that is using the local files on disk storage type, you should use at least `local-file-storage`.
 
 ```
 apiVersion: apps/v1
@@ -201,8 +201,8 @@ spec:
           mkdir -p /home/user/data/db
 		  mkdir -p /home/user/data/badgerdb
           /usr/local/bin/daserver --data-availability.l1-node-url <YOUR ETHEREUM L1 RPC ENDPOINT>
---enable-rpc --rpc-addr '0.0.0.0' --enable-rest --rest-addr '0.0.0.0' --log-level 3 --data-availability.local-file-storage.enable --data-availability.local-file-storage.data-dir /home/user/data/db  --data-availability.local-db-storage.enable --data-availability.local-db-storage.data-dir /home/user/data/badgerdb --data-availability.s3-storage.enable --data-availability.s3-storage.access-key "<YOUR ACCESS KEY>" --data-availability.s3-storage.bucket <YOUR BUCKET> --data-availability.s3-storage.region <YOUR REGION> --data-availability.s3-storage.secret-key "<YOUR SECRET KEY>" --data-availability.s3-storage.object-prefix "YOUR OBJECT KEY PREFIX/" --data-availability.key.key-dir /home/user/data/keys --data-availability.local-cache.enable --data-availability.rest-aggregator.enable --data-availability.rest-aggregator.online-url-list "https://nova.arbitrum.io/das-servers" --data-availability.sequencer-inbox-address '0x211e1c4c7f1bf5351ac850ed10fd68cffcf6c21b'
-        image: offchainlabs/nitro-node:v2.0.0-beta.8-5ed2c72
+--enable-rpc --rpc-addr '0.0.0.0' --enable-rest --rest-addr '0.0.0.0' --log-level 3 --data-availability.local-file-storage.enable --data-availability.local-file-storage.data-dir /home/user/data/db  --data-availability.local-db-storage.enable --data-availability.local-db-storage.data-dir /home/user/data/badgerdb --data-availability.s3-storage.enable --data-availability.s3-storage.access-key "<YOUR ACCESS KEY>" --data-availability.s3-storage.bucket <YOUR BUCKET> --data-availability.s3-storage.region <YOUR REGION> --data-availability.s3-storage.secret-key "<YOUR SECRET KEY>" --data-availability.s3-storage.object-prefix "YOUR OBJECT KEY PREFIX/" --data-availability.key.key-dir /home/user/data/keys --data-availability.local-cache.enable --data-availability.rest-aggregator.enable --data-availability.rest-aggregator.online-url-list "https://nova.mantle.io/das-servers" --data-availability.sequencer-inbox-address '0x211e1c4c7f1bf5351ac850ed10fd68cffcf6c21b'
+        image: mantlenetwork/mantle-node:v2.0.0-beta.8-5ed2c72
         imagePullPolicy: Always
         resources:
           limits:
@@ -270,7 +270,7 @@ spec:
 
 #### Create DAS deployment
 
-This deployment sets up a DAS server using the Arbitrum Nova Mainnet. It uses the L1 inbox contract at 0x211e1c4c7f1bf5351ac850ed10fd68cffcf6c21b. For the Arbitrum Nova Mainnet you must specify a Mainnet Ethereum L1 RPC endpoint.
+This deployment sets up a DAS server using the Mantle Nova Mainnet. It uses the L1 inbox contract at 0x211e1c4c7f1bf5351ac850ed10fd68cffcf6c21b. For the Mantle Nova Mainnet you must specify a Mainnet Ethereum L1 RPC endpoint.
 
 This configuration sets up all three storage types. To disable any of them, remove the --data-availability.(local-file-storage|local-disk-storage|s3-storage).enable option, and the other options for that storage type can also be removed.
 
@@ -302,8 +302,8 @@ spec:
           mkdir -p /home/user/data/db
 		  mkdir -p /home/user/data/badgerdb
           /usr/local/bin/daserver --data-availability.l1-node-url <YOUR ETHEREUM L1 RPC ENDPOINT>
---enable-rest --rest-addr '0.0.0.0' --log-level 3 --data-availability.local-file-storage.enable --data-availability.local-file-storage.data-dir /home/user/data/db  --data-availability.local-db-storage.enable --data-availability.local-db-storage.data-dir /home/user/data/badgerdb --data-availability.s3-storage.enable --data-availability.s3-storage.access-key "<YOUR ACCESS KEY>" --data-availability.s3-storage.bucket <YOUR BUCKET> --data-availability.s3-storage.region <YOUR REGION> --data-availability.s3-storage.secret-key "<YOUR SECRET KEY>" --data-availability.s3-storage.object-prefix "YOUR OBJECT KEY PREFIX/" --data-availability.local-cache.enable --data-availability.rest-aggregator.enable --data-availability.rest-aggregator.urls "http://your-committee-member.svc.cluster.local:9877" --data-availability.rest-aggregator.online-url-list "https://nova.arbitrum.io/das-servers" --data-availability.rest-aggregator.sync-to-storage.eager --data-availability.rest-aggregator.sync-to-storage.eager-lower-bound-block 15025611 --data-availability.sequencer-inbox-address '0x211e1c4c7f1bf5351ac850ed10fd68cffcf6c21b'
-        image: offchainlabs/nitro-node:v2.0.0-beta.8-5ed2c72
+--enable-rest --rest-addr '0.0.0.0' --log-level 3 --data-availability.local-file-storage.enable --data-availability.local-file-storage.data-dir /home/user/data/db  --data-availability.local-db-storage.enable --data-availability.local-db-storage.data-dir /home/user/data/badgerdb --data-availability.s3-storage.enable --data-availability.s3-storage.access-key "<YOUR ACCESS KEY>" --data-availability.s3-storage.bucket <YOUR BUCKET> --data-availability.s3-storage.region <YOUR REGION> --data-availability.s3-storage.secret-key "<YOUR SECRET KEY>" --data-availability.s3-storage.object-prefix "YOUR OBJECT KEY PREFIX/" --data-availability.local-cache.enable --data-availability.rest-aggregator.enable --data-availability.rest-aggregator.urls "http://your-committee-member.svc.cluster.local:9877" --data-availability.rest-aggregator.online-url-list "https://nova.mantle.io/das-servers" --data-availability.rest-aggregator.sync-to-storage.eager --data-availability.rest-aggregator.sync-to-storage.eager-lower-bound-block 15025611 --data-availability.sequencer-inbox-address '0x211e1c4c7f1bf5351ac850ed10fd68cffcf6c21b'
+        image: mantlenetwork/mantle-node:v2.0.0-beta.8-5ed2c72
         imagePullPolicy: Always
         resources:
           limits:

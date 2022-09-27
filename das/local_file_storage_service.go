@@ -1,5 +1,5 @@
-// Copyright 2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package das
 
@@ -14,9 +14,9 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/das/dastree"
-	"github.com/offchainlabs/nitro/util/pretty"
+	"github.com/mantlenetworkio/mantle/das/dastree"
+	"github.com/mantlenetworkio/mantle/mtstate"
+	"github.com/mantlenetworkio/mantle/util/pretty"
 	flag "github.com/spf13/pflag"
 	"golang.org/x/sys/unix"
 )
@@ -100,8 +100,8 @@ func (s *LocalFileStorageService) Close(ctx context.Context) error {
 	return nil
 }
 
-func (s *LocalFileStorageService) ExpirationPolicy(ctx context.Context) (arbstate.ExpirationPolicy, error) {
-	return arbstate.KeepForever, nil
+func (s *LocalFileStorageService) ExpirationPolicy(ctx context.Context) (mtstate.ExpirationPolicy, error) {
+	return mtstate.KeepForever, nil
 }
 
 func (s *LocalFileStorageService) String() string {

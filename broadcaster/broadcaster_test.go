@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package broadcaster
 
@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/util/testhelpers"
-	"github.com/offchainlabs/nitro/wsbroadcastserver"
+	"github.com/mantlenetworkio/mantle/mtstate"
+	"github.com/mantlenetworkio/mantle/util/testhelpers"
+	"github.com/mantlenetworkio/mantle/wsbroadcastserver"
 )
 
 type predicate interface {
@@ -65,7 +65,7 @@ func TestBroadcasterMessagesRemovedOnConfirmation(t *testing.T) {
 	Require(t, b.Start(ctx))
 	defer b.StopAndWait()
 
-	dummyMessage := arbstate.MessageWithMetadata{}
+	dummyMessage := mtstate.MessageWithMetadata{}
 	expectMessageCount := func(count int, contextMessage string) predicate {
 		return &messageCountPredicate{b, count, contextMessage, 0}
 	}

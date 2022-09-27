@@ -1,11 +1,11 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 // race detection makes things slow and miss timeouts
 //go:build !race
 // +build !race
 
-package arbtest
+package mttest
 
 import (
 	"context"
@@ -17,15 +17,15 @@ import (
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/offchainlabs/nitro/arbnode"
-	"github.com/offchainlabs/nitro/solgen/go/mocksgen"
+	"github.com/mantlenetworkio/mantle/mtnode"
+	"github.com/mantlenetworkio/mantle/solgen/go/mocksgen"
 )
 
 func TestBloom(t *testing.T) {
 	t.Parallel()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	nodeconfig := arbnode.ConfigDefaultL2Test()
+	nodeconfig := mtnode.ConfigDefaultL2Test()
 	nodeconfig.RPC.BloomBitsBlocks = 256
 	nodeconfig.RPC.BloomConfirms = 1
 	l2info, node, client, stack := CreateTestL2WithConfig(t, ctx, nil, nodeconfig, false)

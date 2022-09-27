@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package das
 
@@ -11,9 +11,9 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/util/arbmath"
-	"github.com/offchainlabs/nitro/util/pretty"
+	"github.com/mantlenetworkio/mantle/mtstate"
+	"github.com/mantlenetworkio/mantle/util/mtmath"
+	"github.com/mantlenetworkio/mantle/util/pretty"
 )
 
 var ErrArchiveTimeout = errors.New("Archiver timed out")
@@ -57,7 +57,7 @@ func NewArchivingStorageService(
 					// we successfully archived everything, and our input chan is closed, so shut down cleanly
 					return
 				}
-				expiration := arbmath.SaturatingUAdd(uint64(time.Now().Unix()), archiveExpirationSeconds)
+				expiration := mtmath.SaturatingUAdd(uint64(time.Now().Unix()), archiveExpirationSeconds)
 				err := archiveTo.Put(hardStopCtx, data, expiration)
 				if err != nil {
 					// we hit an error writing to the archive; record the error and keep going
@@ -134,8 +134,8 @@ func (serv *ArchivingStorageService) Close(ctx context.Context) error {
 	}
 }
 
-func (serv *ArchivingStorageService) ExpirationPolicy(ctx context.Context) (arbstate.ExpirationPolicy, error) {
-	return arbstate.DiscardAfterArchiveTimeout, nil
+func (serv *ArchivingStorageService) ExpirationPolicy(ctx context.Context) (mtstate.ExpirationPolicy, error) {
+	return mtstate.DiscardAfterArchiveTimeout, nil
 }
 
 func (serv *ArchivingStorageService) GetArchiverErrorSignalChan() <-chan interface{} {
@@ -164,7 +164,7 @@ type ArchivingSimpleDASReader struct {
 
 func NewArchivingSimpleDASReader(
 	ctx context.Context,
-	inner arbstate.DataAvailabilityReader,
+	inner mtstate.DataAvailabilityReader,
 	archiveTo StorageService,
 	archiveExpirationSeconds uint64,
 ) (*ArchivingSimpleDASReader, error) {
@@ -195,6 +195,6 @@ func (asdr *ArchivingSimpleDASReader) HealthCheck(ctx context.Context) error {
 	return asdr.wrapped.HealthCheck(ctx)
 }
 
-func (asdr *ArchivingSimpleDASReader) ExpirationPolicy(ctx context.Context) (arbstate.ExpirationPolicy, error) {
+func (asdr *ArchivingSimpleDASReader) ExpirationPolicy(ctx context.Context) (mtstate.ExpirationPolicy, error) {
 	return asdr.wrapped.ExpirationPolicy(ctx)
 }

@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package validator
 
@@ -10,8 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/offchainlabs/nitro/arbstate"
-
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
@@ -20,7 +18,8 @@ import (
 	"github.com/pkg/errors"
 	flag "github.com/spf13/pflag"
 
-	"github.com/offchainlabs/nitro/util/stopwaiter"
+	"github.com/mantlenetworkio/mantle/mtstate"
+	"github.com/mantlenetworkio/mantle/util/stopwaiter"
 )
 
 type StakerStrategy uint8
@@ -123,7 +122,7 @@ type Staker struct {
 	inactiveLastCheckedNode *nodeAndHash
 	bringActiveUntilNode    uint64
 	inboxReader             InboxReaderInterface
-	nitroMachineLoader      *NitroMachineLoader
+	mantleMachineLoader     *MantleMachineLoader
 }
 
 func stakerStrategyFromString(s string) (StakerStrategy, error) {
@@ -146,12 +145,12 @@ func NewStaker(
 	callOpts bind.CallOpts,
 	config L1ValidatorConfig,
 	l2Blockchain *core.BlockChain,
-	das arbstate.DataAvailabilityReader,
+	das mtstate.DataAvailabilityReader,
 	inboxReader InboxReaderInterface,
 	inboxTracker InboxTrackerInterface,
 	txStreamer TransactionStreamerInterface,
 	blockValidator *BlockValidator,
-	nitroMachineLoader *NitroMachineLoader,
+	mantleMachineLoader *MantleMachineLoader,
 	validatorUtilsAddress common.Address,
 ) (*Staker, error) {
 	strategy, err := stakerStrategyFromString(config.Strategy)
@@ -175,7 +174,7 @@ func NewStaker(
 		highGasBlocksBuffer: big.NewInt(config.L1PostingStrategy.HighGasDelayBlocks),
 		lastActCalledBlock:  nil,
 		inboxReader:         inboxReader,
-		nitroMachineLoader:  nitroMachineLoader,
+		mantleMachineLoader: mantleMachineLoader,
 	}, nil
 }
 
@@ -482,7 +481,7 @@ func (s *Staker) handleConflict(ctx context.Context, info *StakerInfo) error {
 			s.inboxReader,
 			s.inboxTracker,
 			s.txStreamer,
-			s.nitroMachineLoader,
+			s.mantleMachineLoader,
 			latestConfirmedCreated,
 			s.config.TargetMachineCount,
 			s.config.ConfirmationBlocks,

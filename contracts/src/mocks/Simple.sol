@@ -1,11 +1,11 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 // SPDX-License-Identifier: BUSL-1.1
 
 pragma solidity ^0.8.0;
 
-import "../precompiles/ArbRetryableTx.sol";
-import "../precompiles/ArbSys.sol";
+import "../precompiles/MtRetryableTx.sol";
+import "../precompiles/MtSys.sol";
 
 contract Simple {
     uint64 public counter;
@@ -25,7 +25,7 @@ contract Simple {
 
     function incrementRedeem() external {
         counter++;
-        emit RedeemedEvent(msg.sender, ArbRetryableTx(address(110)).getCurrentRedeemer());
+        emit RedeemedEvent(msg.sender, MtRetryableTx(address(110)).getCurrentRedeemer());
     }
 
     function emitNullEvent() external {
@@ -45,10 +45,10 @@ contract Simple {
 
     function checkIsTopLevelOrWasAliased(bool useTopLevel, bool expected) public view {
         if (useTopLevel) {
-            require(ArbSys(address(100)).isTopLevelCall() == expected, "UNEXPECTED_RESULT");
+            require(MtSys(address(100)).isTopLevelCall() == expected, "UNEXPECTED_RESULT");
         } else {
             require(
-                ArbSys(address(100)).wasMyCallersAddressAliased() == expected,
+                MtSys(address(100)).wasMyCallersAddressAliased() == expected,
                 "UNEXPECTED_RESULT"
             );
         }
@@ -64,10 +64,10 @@ contract Simple {
     ) public {
         // DIRECT CALL
         if (useTopLevel) {
-            require(ArbSys(address(100)).isTopLevelCall() == directCase, "UNEXPECTED_RESULT");
+            require(MtSys(address(100)).isTopLevelCall() == directCase, "UNEXPECTED_RESULT");
         } else {
             require(
-                ArbSys(address(100)).wasMyCallersAddressAliased() == directCase,
+                MtSys(address(100)).wasMyCallersAddressAliased() == directCase,
                 "UNEXPECTED_RESULT"
             );
         }

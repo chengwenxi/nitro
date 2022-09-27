@@ -1,0 +1,19 @@
+name: CI
+
+on:
+  pull_request:
+    paths-ignore:
+      - 'mtitrator/**'
+      - 'contracts/src/osp/**'
+      - 'contracts/src/mock/**'
+      - 'contracts/test/**'
+      - 'contracts/hardhat.config.ts'
+      - 'Makefile'
+
+jobs:
+  coverage:
+    name: Run Mtitrator tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Do nothing
+        run: echo "doing nothing"

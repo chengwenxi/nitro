@@ -1,5 +1,5 @@
 //
-// Copyright 2021-2022, Offchain Labs, Inc. All rights reserved.
+// Copyright 2021-2022, Mantlenetwork, Inc. All rights reserved.
 //
 
 package main
@@ -10,8 +10,8 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/offchainlabs/nitro/arbnode"
-	"github.com/offchainlabs/nitro/arbutil"
+	"github.com/mantlenetworkio/mantle/mtnode"
+	"github.com/mantlenetworkio/mantle/mtutil"
 )
 
 func main() {
@@ -25,7 +25,7 @@ func main() {
 	if err != nil {
 		panic("Failed to parse msg index: " + err.Error())
 	}
-	err = arbnode.StandaloneSeqCoordinatorInvalidateMsgIndex(context.Background(), redisUrl, signingKey, arbutil.MessageIndex(msgIndex))
+	err = mtnode.StandaloneSeqCoordinatorInvalidateMsgIndex(context.Background(), redisUrl, signingKey, mtutil.MessageIndex(msgIndex))
 	if err != nil {
 		panic(err)
 	}

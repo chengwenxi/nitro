@@ -1,7 +1,7 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
-package arbtest
+package mttest
 
 import (
 	"bytes"
@@ -19,13 +19,13 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/rpc"
 
-	"github.com/offchainlabs/nitro/arbcompress"
-	"github.com/offchainlabs/nitro/arbnode"
-	"github.com/offchainlabs/nitro/arbos"
-	"github.com/offchainlabs/nitro/arbos/l2pricing"
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/solgen/go/bridgegen"
-	"github.com/offchainlabs/nitro/util"
+	"github.com/mantlenetworkio/mantle/mtcompress"
+	"github.com/mantlenetworkio/mantle/mtnode"
+	"github.com/mantlenetworkio/mantle/mtos"
+	"github.com/mantlenetworkio/mantle/mtos/l2pricing"
+	"github.com/mantlenetworkio/mantle/mtstate"
+	"github.com/mantlenetworkio/mantle/solgen/go/bridgegen"
+	"github.com/mantlenetworkio/mantle/util"
 )
 
 type blockTestState struct {
@@ -42,15 +42,15 @@ func testSequencerInboxReaderImpl(t *testing.T, validator bool) {
 	t.Parallel()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	conf := arbnode.ConfigDefaultL1Test()
+	conf := mtnode.ConfigDefaultL1Test()
 	conf.InboxReader.HardReorg = true
 	if validator {
 		conf.BlockValidator.Enable = true
-		conf.BlockValidator.ArbitratorValidator = true
+		conf.BlockValidator.MtitratorValidator = true
 		conf.BlockValidator.ConcurrentRunsLimit = 16
 	}
-	l2Info, arbNode, _, l2stack, l1Info, l1backend, l1Client, l1stack := createTestNodeOnL1WithConfig(t, ctx, false, conf, params.ArbitrumDevTestChainConfig())
-	l2Backend := arbNode.Backend
+	l2Info, mtNode, _, l2stack, l1Info, l1backend, l1Client, l1stack := createTestNodeOnL1WithConfig(t, ctx, false, conf, params.MantleDevTestChainConfig())
+	l2Backend := mtNode.Backend
 	defer requireClose(t, l1stack)
 	defer requireClose(t, l2stack)
 
@@ -191,8 +191,8 @@ func testSequencerInboxReaderImpl(t *testing.T, validator bool) {
 				txData, err := tx.MarshalBinary()
 				Require(t, err)
 				var segment []byte
-				segment = append(segment, arbstate.BatchSegmentKindL2Message)
-				segment = append(segment, arbos.L2MessageKind_SignedTx)
+				segment = append(segment, mtstate.BatchSegmentKindL2Message)
+				segment = append(segment, mtos.L2MessageKind_SignedTx)
 				segment = append(segment, txData...)
 				err = rlp.Encode(batchBuffer, segment)
 				Require(t, err)
@@ -201,7 +201,7 @@ func testSequencerInboxReaderImpl(t *testing.T, validator bool) {
 				state.balances[dest].Add(state.balances[dest], amount)
 			}
 
-			compressed, err := arbcompress.CompressWell(batchBuffer.Bytes())
+			compressed, err := mtcompress.CompressWell(batchBuffer.Bytes())
 			Require(t, err)
 			batchData := append([]byte{0}, compressed...)
 
@@ -270,7 +270,7 @@ func testSequencerInboxReaderImpl(t *testing.T, validator bool) {
 
 		if validator && i%15 == 0 {
 			for i := 0; ; i++ {
-				lastValidated := arbNode.BlockValidator.LastBlockValidated()
+				lastValidated := mtNode.BlockValidator.LastBlockValidated()
 				if lastValidated == expectedBlockNumber {
 					break
 				} else if i >= 1000 {

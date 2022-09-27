@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package das
 
@@ -19,11 +19,11 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/solgen/go/bridgegen"
-	"github.com/offchainlabs/nitro/util/arbmath"
-	"github.com/offchainlabs/nitro/util/headerreader"
-	"github.com/offchainlabs/nitro/util/stopwaiter"
+	"github.com/mantlenetworkio/mantle/mtstate"
+	"github.com/mantlenetworkio/mantle/solgen/go/bridgegen"
+	"github.com/mantlenetworkio/mantle/util/headerreader"
+	"github.com/mantlenetworkio/mantle/util/mtmath"
+	"github.com/mantlenetworkio/mantle/util/stopwaiter"
 	flag "github.com/spf13/pflag"
 )
 
@@ -86,7 +86,7 @@ type l1SyncService struct {
 
 	config     SyncToStorageConfig
 	syncTo     StorageService
-	dataSource arbstate.DataAvailabilityReader
+	dataSource mtstate.DataAvailabilityReader
 
 	l1Reader      *headerreader.HeaderReader
 	inboxContract *bridgegen.SequencerInbox
@@ -98,7 +98,7 @@ type l1SyncService struct {
 	lastBatchAcc   common.Hash
 }
 
-func newl1SyncService(config *SyncToStorageConfig, syncTo StorageService, dataSource arbstate.DataAvailabilityReader, l1Reader *headerreader.HeaderReader, inboxAddr common.Address) (*l1SyncService, error) {
+func newl1SyncService(config *SyncToStorageConfig, syncTo StorageService, dataSource mtstate.DataAvailabilityReader, l1Reader *headerreader.HeaderReader, inboxAddr common.Address) (*l1SyncService, error) {
 	l1Client := l1Reader.Client()
 	inboxContract, err := bridgegen.NewSequencerInbox(inboxAddr, l1Client)
 	if err != nil {
@@ -129,7 +129,7 @@ func (s *l1SyncService) processBatchDelivered(ctx context.Context, batchDelivere
 		return err
 	}
 	log.Info("BatchDelivered", "log", batchDeliveredLog, "event", deliveredEvent)
-	storeUntil := arbmath.SaturatingUAdd(deliveredEvent.TimeBounds.MaxTimestamp, uint64(s.config.RetentionPeriod.Seconds()))
+	storeUntil := mtmath.SaturatingUAdd(deliveredEvent.TimeBounds.MaxTimestamp, uint64(s.config.RetentionPeriod.Seconds()))
 	if storeUntil < uint64(time.Now().Unix()) {
 		// old batch - no need to store
 		return nil
@@ -173,7 +173,7 @@ func (s *l1SyncService) processBatchDelivered(ctx context.Context, batchDelivere
 		log.Warn("BatchDelivered - no data found", "data", data)
 		return nil
 	}
-	if !arbstate.IsDASMessageHeaderByte(data[0]) {
+	if !mtstate.IsDASMessageHeaderByte(data[0]) {
 		log.Warn("BatchDelivered - data not DAS")
 		return nil
 	}
@@ -187,7 +187,7 @@ func (s *l1SyncService) processBatchDelivered(ctx context.Context, batchDelivere
 
 	data = append(header, data...)
 	preimages := make(map[common.Hash][]byte)
-	if _, err = arbstate.RecoverPayloadFromDasBatch(ctx, deliveredEvent.BatchSequenceNumber.Uint64(), data, s.dataSource, preimages, arbstate.KeysetValidate); err != nil {
+	if _, err = mtstate.RecoverPayloadFromDasBatch(ctx, deliveredEvent.BatchSequenceNumber.Uint64(), data, s.dataSource, preimages, mtstate.KeysetValidate); err != nil {
 		log.Error("recover payload failed", "txhash", batchDeliveredLog.TxHash, "data", data)
 		return err
 	}
@@ -323,7 +323,7 @@ type SyncingFallbackStorageService struct {
 
 func NewSyncingFallbackStorageService(ctx context.Context,
 	primary StorageService,
-	backup arbstate.DataAvailabilityReader,
+	backup mtstate.DataAvailabilityReader,
 	l1Reader *headerreader.HeaderReader,
 	inboxAddr common.Address,
 	syncConf *SyncToStorageConfig) (*SyncingFallbackStorageService, error) {

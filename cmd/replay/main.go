@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package main
 
@@ -17,12 +17,12 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/offchainlabs/nitro/arbos"
-	"github.com/offchainlabs/nitro/arbos/arbosState"
-	"github.com/offchainlabs/nitro/arbos/burn"
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/das/dastree"
-	"github.com/offchainlabs/nitro/wavmio"
+	"github.com/mantlenetworkio/mantle/das/dastree"
+	"github.com/mantlenetworkio/mantle/mtos"
+	"github.com/mantlenetworkio/mantle/mtos/burn"
+	"github.com/mantlenetworkio/mantle/mtos/mtosState"
+	"github.com/mantlenetworkio/mantle/mtstate"
+	"github.com/mantlenetworkio/mantle/wavmio"
 )
 
 func getBlockHeaderByHash(hash common.Hash) *types.Header {
@@ -38,7 +38,7 @@ func getBlockHeaderByHash(hash common.Hash) *types.Header {
 type WavmChainContext struct{}
 
 func (c WavmChainContext) Engine() consensus.Engine {
-	return arbos.Engine{}
+	return mtos.Engine{}
 }
 
 func (c WavmChainContext) GetHeader(hash common.Hash, num uint64) *types.Header {
@@ -96,8 +96,8 @@ func (dasReader *PreimageDASReader) HealthCheck(ctx context.Context) error {
 	return nil
 }
 
-func (dasReader *PreimageDASReader) ExpirationPolicy(ctx context.Context) (arbstate.ExpirationPolicy, error) {
-	return arbstate.DiscardImmediately, nil
+func (dasReader *PreimageDASReader) ExpirationPolicy(ctx context.Context) (mtstate.ExpirationPolicy, error) {
+	return mtstate.DiscardImmediately, nil
 }
 
 // To generate:
@@ -148,21 +148,21 @@ func main() {
 		panic(fmt.Sprintf("Error opening state db: %v", err.Error()))
 	}
 
-	readMessage := func(dasEnabled bool) *arbstate.MessageWithMetadata {
+	readMessage := func(dasEnabled bool) *mtstate.MessageWithMetadata {
 		var delayedMessagesRead uint64
 		if lastBlockHeader != nil {
 			delayedMessagesRead = lastBlockHeader.Nonce.Uint64()
 		}
-		var dasReader arbstate.DataAvailabilityReader
+		var dasReader mtstate.DataAvailabilityReader
 		if dasEnabled {
 			dasReader = &PreimageDASReader{}
 		}
 		backend := WavmInbox{}
-		var keysetValidationMode = arbstate.KeysetPanicIfInvalid
+		var keysetValidationMode = mtstate.KeysetPanicIfInvalid
 		if backend.GetPositionWithinMessage() > 0 {
-			keysetValidationMode = arbstate.KeysetDontValidate
+			keysetValidationMode = mtstate.KeysetDontValidate
 		}
-		inboxMultiplexer := arbstate.NewInboxMultiplexer(backend, delayedMessagesRead, dasReader, keysetValidationMode)
+		inboxMultiplexer := mtstate.NewInboxMultiplexer(backend, delayedMessagesRead, dasReader, keysetValidationMode)
 		ctx := context.Background()
 		message, err := inboxMultiplexer.Pop(ctx)
 		if err != nil {
@@ -174,39 +174,39 @@ func main() {
 
 	var newBlock *types.Block
 	if lastBlockStateRoot != (common.Hash{}) {
-		// ArbOS has already been initialized.
+		// MtOS has already been initialized.
 		// Load the chain config and then produce a block normally.
 
-		initialArbosState, err := arbosState.OpenSystemArbosState(statedb, nil, true)
+		initialMtosState, err := mtosState.OpenSystemMtosState(statedb, nil, true)
 		if err != nil {
-			panic(fmt.Sprintf("Error opening initial ArbOS state: %v", err.Error()))
+			panic(fmt.Sprintf("Error opening initial MtOS state: %v", err.Error()))
 		}
-		chainId, err := initialArbosState.ChainId()
+		chainId, err := initialMtosState.ChainId()
 		if err != nil {
-			panic(fmt.Sprintf("Error getting chain ID from initial ArbOS state: %v", err.Error()))
+			panic(fmt.Sprintf("Error getting chain ID from initial MtOS state: %v", err.Error()))
 		}
-		genesisBlockNum, err := initialArbosState.GenesisBlockNum()
+		genesisBlockNum, err := initialMtosState.GenesisBlockNum()
 		if err != nil {
-			panic(fmt.Sprintf("Error getting chain ID from initial ArbOS state: %v", err.Error()))
+			panic(fmt.Sprintf("Error getting chain ID from initial MtOS state: %v", err.Error()))
 		}
-		chainConfig, err := arbos.GetChainConfig(chainId, genesisBlockNum)
+		chainConfig, err := mtos.GetChainConfig(chainId, genesisBlockNum)
 		if err != nil {
 			panic(err)
 		}
 
-		message := readMessage(chainConfig.ArbitrumChainParams.DataAvailabilityCommittee)
+		message := readMessage(chainConfig.MantleChainParams.DataAvailabilityCommittee)
 
 		chainContext := WavmChainContext{}
 		batchFetcher := func(batchNum uint64) ([]byte, error) {
 			return wavmio.ReadInboxMessage(batchNum), nil
 		}
-		newBlock, _, err = arbos.ProduceBlock(message.Message, message.DelayedMessagesRead, lastBlockHeader, statedb, chainContext, chainConfig, batchFetcher)
+		newBlock, _, err = mtos.ProduceBlock(message.Message, message.DelayedMessagesRead, lastBlockHeader, statedb, chainContext, chainConfig, batchFetcher)
 		if err != nil {
 			panic(err)
 		}
 
 	} else {
-		// Initialize ArbOS with this init message and create the genesis block.
+		// Initialize MtOS with this init message and create the genesis block.
 
 		message := readMessage(false)
 
@@ -214,16 +214,16 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		chainConfig, err := arbos.GetChainConfig(chainId, 0)
+		chainConfig, err := mtos.GetChainConfig(chainId, 0)
 		if err != nil {
 			panic(err)
 		}
-		_, err = arbosState.InitializeArbosState(statedb, burn.NewSystemBurner(nil, false), chainConfig)
+		_, err = mtosState.InitializeMtosState(statedb, burn.NewSystemBurner(nil, false), chainConfig)
 		if err != nil {
-			panic(fmt.Sprintf("Error initializing ArbOS: %v", err.Error()))
+			panic(fmt.Sprintf("Error initializing MtOS: %v", err.Error()))
 		}
 
-		newBlock = arbosState.MakeGenesisBlock(common.Hash{}, 0, 0, statedb.IntermediateRoot(true), chainConfig)
+		newBlock = mtosState.MakeGenesisBlock(common.Hash{}, 0, 0, statedb.IntermediateRoot(true), chainConfig)
 
 	}
 

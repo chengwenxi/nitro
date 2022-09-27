@@ -1,7 +1,7 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
-package arbtest
+package mttest
 
 import (
 	"bytes"
@@ -11,8 +11,8 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/offchainlabs/nitro/arbos/l2pricing"
-	"github.com/offchainlabs/nitro/util"
+	"github.com/mantlenetworkio/mantle/mtos/l2pricing"
+	"github.com/mantlenetworkio/mantle/util"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -21,7 +21,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
-	"github.com/offchainlabs/nitro/statetransfer"
+	"github.com/mantlenetworkio/mantle/statetransfer"
 )
 
 var simulatedChainID = big.NewInt(1337)
@@ -36,7 +36,7 @@ type BlockchainTestInfo struct {
 	T           *testing.T
 	Signer      types.Signer
 	Accounts    map[string]*AccountInfo
-	ArbInitData statetransfer.ArbosInitializationInfo
+	ArbInitData statetransfer.MtosInitializationInfo
 	GasPrice    *big.Int
 	// The amount of gas needed for a simple transfer tx.
 	TransferGas uint64
@@ -52,11 +52,11 @@ func NewBlockChainTestInfo(t *testing.T, signer types.Signer, gasPrice *big.Int,
 	}
 }
 
-func NewArbTestInfo(t *testing.T, chainId *big.Int) *BlockchainTestInfo {
+func NewmttestInfo(t *testing.T, chainId *big.Int) *BlockchainTestInfo {
 	var transferGas uint64 = util.NormalizeL2GasForL1GasInitial(800_000, params.GWei) // include room for aggregator L1 costs
 	arbinfo := NewBlockChainTestInfo(
 		t,
-		types.NewArbitrumSigner(types.NewLondonSigner(chainId)), big.NewInt(l2pricing.InitialBaseFeeWei*2),
+		types.NewMantleSigner(types.NewLondonSigner(chainId)), big.NewInt(l2pricing.InitialBaseFeeWei*2),
 		transferGas,
 	)
 	arbinfo.GenerateGenesysAccount("Owner", new(big.Int).Sub(new(big.Int).Lsh(big.NewInt(1), 256), big.NewInt(9)))

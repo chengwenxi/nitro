@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package das
 
@@ -16,23 +16,23 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 	flag "github.com/spf13/pflag"
 
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/blsSignatures"
+	"github.com/mantlenetworkio/mantle/blsSignatures"
+	"github.com/mantlenetworkio/mantle/mtstate"
 )
 
 type DataAvailabilityServiceWriter interface {
 	// Requests that the message be stored until timeout (UTC time in unix epoch seconds).
-	Store(ctx context.Context, message []byte, timeout uint64, sig []byte) (*arbstate.DataAvailabilityCertificate, error)
+	Store(ctx context.Context, message []byte, timeout uint64, sig []byte) (*mtstate.DataAvailabilityCertificate, error)
 	fmt.Stringer
 }
 
 type DataAvailabilityServiceReader interface {
-	arbstate.DataAvailabilityReader
+	mtstate.DataAvailabilityReader
 	fmt.Stringer
 }
 
 type DataAvailabilityService interface {
-	arbstate.DataAvailabilityReader
+	mtstate.DataAvailabilityReader
 	DataAvailabilityServiceWriter
 	fmt.Stringer
 }
@@ -114,11 +114,11 @@ func DataAvailabilityConfigAddOptions(prefix string, f *flag.FlagSet) {
 	f.String(prefix+".extra-signature-checking-public-key", DefaultDataAvailabilityConfig.ExtraSignatureCheckingPublicKey, "public key to use to validate Data Availability Store requests in addition to the Sequencer's public key determined using sequencer-inbox-address, can be a file or the hex-encoded public key beginning with 0x; useful for testing")
 }
 
-func Serialize(c *arbstate.DataAvailabilityCertificate) []byte {
+func Serialize(c *mtstate.DataAvailabilityCertificate) []byte {
 
-	flags := arbstate.DASMessageHeaderFlag
+	flags := mtstate.DASMessageHeaderFlag
 	if c.Version != 0 {
-		flags |= arbstate.TreeDASMessageHeaderFlag
+		flags |= mtstate.TreeDASMessageHeaderFlag
 	}
 
 	buf := make([]byte, 0)

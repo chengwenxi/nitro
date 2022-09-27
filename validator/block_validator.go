@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package validator
 
@@ -21,9 +21,9 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/arbutil"
-	"github.com/offchainlabs/nitro/util/stopwaiter"
+	"github.com/mantlenetworkio/mantle/mtstate"
+	"github.com/mantlenetworkio/mantle/mtutil"
+	"github.com/mantlenetworkio/mantle/util/stopwaiter"
 )
 
 type BlockValidator struct {
@@ -59,7 +59,7 @@ type BlockValidator struct {
 
 type BlockValidatorConfig struct {
 	Enable                   bool                          `koanf:"enable"`
-	ArbitratorValidator      bool                          `koanf:"arbitrator-validator"`
+	MtitratorValidator       bool                          `koanf:"mtitrator-validator"`
 	JitValidator             bool                          `koanf:"jit-validator"`
 	JitValidatorCranelift    bool                          `koanf:"jit-validator-cranelift"`
 	OutputPath               string                        `koanf:"output-path"`
@@ -76,7 +76,7 @@ type BlockValidatorDangerousConfig struct {
 
 func BlockValidatorConfigAddOptions(prefix string, f *flag.FlagSet) {
 	f.Bool(prefix+".enable", DefaultBlockValidatorConfig.Enable, "enable block-by-block validation")
-	f.Bool(prefix+".arbitrator-validator", DefaultBlockValidatorConfig.ArbitratorValidator, "enable the complete, arbitrator block validator")
+	f.Bool(prefix+".mtitrator-validator", DefaultBlockValidatorConfig.MtitratorValidator, "enable the complete, mtitrator block validator")
 	f.Bool(prefix+".jit-validator", DefaultBlockValidatorConfig.JitValidator, "enable the faster, jit-accelerated block validator")
 	f.Bool(prefix+".jit-validator-cranelift", DefaultBlockValidatorConfig.JitValidatorCranelift, "use Cranelift instead of LLVM when validating blocks using the jit-accelerated block validator")
 	f.String(prefix+".output-path", DefaultBlockValidatorConfig.OutputPath, "")
@@ -93,7 +93,7 @@ func BlockValidatorDangerousConfigAddOptions(prefix string, f *flag.FlagSet) {
 
 var DefaultBlockValidatorConfig = BlockValidatorConfig{
 	Enable:                   false,
-	ArbitratorValidator:      false,
+	MtitratorValidator:       false,
 	JitValidator:             true,
 	JitValidatorCranelift:    false,
 	OutputPath:               "./target/output",
@@ -106,7 +106,7 @@ var DefaultBlockValidatorConfig = BlockValidatorConfig{
 
 var TestBlockValidatorConfig = BlockValidatorConfig{
 	Enable:                   false,
-	ArbitratorValidator:      false,
+	MtitratorValidator:       false,
 	JitValidator:             false,
 	JitValidatorCranelift:    true,
 	OutputPath:               "./target/output",
@@ -136,7 +136,7 @@ func NewBlockValidator(
 	statelessBlockValidator *StatelessBlockValidator,
 	inbox InboxTrackerInterface,
 	streamer TransactionStreamerInterface,
-	machineLoader *NitroMachineLoader,
+	machineLoader *MantleMachineLoader,
 	reorgingToBlock *types.Block,
 	config *BlockValidatorConfig,
 ) (*BlockValidator, error) {
@@ -225,7 +225,7 @@ func (v *BlockValidator) readLastBlockValidatedDbInfo(reorgingToBlock *types.Blo
 	return nil
 }
 
-func (v *BlockValidator) prepareBlock(ctx context.Context, header *types.Header, prevHeader *types.Header, msg arbstate.MessageWithMetadata, validationStatus *validationStatus) {
+func (v *BlockValidator) prepareBlock(ctx context.Context, header *types.Header, prevHeader *types.Header, msg mtstate.MessageWithMetadata, validationStatus *validationStatus) {
 	preimages, readBatchInfo, hasDelayedMessage, delayedMsgToRead, err := BlockDataForValidation(ctx, v.blockchain, v.inboxReader, header, prevHeader, msg, v.config.StorePreimages)
 	if err != nil {
 		log.Error("failed to set up validation", "err", err, "header", header, "prevHeader", prevHeader)
@@ -244,7 +244,7 @@ func (v *BlockValidator) prepareBlock(ctx context.Context, header *types.Header,
 	}
 }
 
-func (v *BlockValidator) NewBlock(block *types.Block, prevHeader *types.Header, msg arbstate.MessageWithMetadata) {
+func (v *BlockValidator) NewBlock(block *types.Block, prevHeader *types.Header, msg mtstate.MessageWithMetadata) {
 	v.blockMutex.Lock()
 	defer v.blockMutex.Unlock()
 	blockNum := block.NumberU64()
@@ -464,7 +464,7 @@ func (v *BlockValidator) validate(ctx context.Context, validationStatus *validat
 		before := time.Now()
 		writeThisBlock := false // we write the block if either fail
 
-		if v.config.ArbitratorValidator {
+		if v.config.MtitratorValidator {
 			writeThisBlock = writeThisBlock || !validate(v.executeBlock, false)
 		}
 		if v.config.JitValidator {
@@ -527,7 +527,7 @@ func (v *BlockValidator) sendValidations(ctx context.Context) {
 		}
 		v.blockMutex.Lock()
 		if v.lastBlockValidatedUnknown {
-			firstMsgInBatch := arbutil.MessageIndex(0)
+			firstMsgInBatch := mtutil.MessageIndex(0)
 			if v.globalPosNextSend.BatchNumber > 0 {
 				var err error
 				firstMsgInBatch, err = v.inboxTracker.GetBatchMessageCount(v.globalPosNextSend.BatchNumber - 1)
@@ -537,13 +537,13 @@ func (v *BlockValidator) sendValidations(ctx context.Context) {
 					return
 				}
 			}
-			v.lastBlockValidated = uint64(arbutil.MessageCountToBlockNumber(firstMsgInBatch+arbutil.MessageIndex(v.globalPosNextSend.PosInBatch), v.genesisBlockNum))
+			v.lastBlockValidated = uint64(mtutil.MessageCountToBlockNumber(firstMsgInBatch+mtutil.MessageIndex(v.globalPosNextSend.PosInBatch), v.genesisBlockNum))
 			v.nextBlockToValidate = v.lastBlockValidated + 1
 			v.lastBlockValidatedUnknown = false
 			log.Info("Inbox caught up to staker", "blockNr", v.lastBlockValidated, "blockHash", v.lastBlockValidatedHash)
 		}
 		v.blockMutex.Unlock()
-		nextMsg := arbutil.BlockNumberToMessageCount(v.nextBlockToValidate, v.genesisBlockNum) - 1
+		nextMsg := mtutil.BlockNumberToMessageCount(v.nextBlockToValidate, v.genesisBlockNum) - 1
 		// valdationEntries is By blockNumber
 		entry, found := v.validationEntries.Load(v.nextBlockToValidate)
 		if !found {
@@ -804,7 +804,7 @@ func (v *BlockValidator) reorgToBlockImpl(blockNum uint64, blockHash common.Hash
 	if v.nextBlockToValidate <= blockNum+1 {
 		return nil
 	}
-	msgIndex := arbutil.BlockNumberToMessageCount(blockNum, v.genesisBlockNum) - 1
+	msgIndex := mtutil.BlockNumberToMessageCount(blockNum, v.genesisBlockNum) - 1
 	batchCount, err := v.inboxTracker.GetBatchCount()
 	if err != nil {
 		return err
@@ -824,7 +824,7 @@ func (v *BlockValidator) reorgToBlockImpl(blockNum uint64, blockHash common.Hash
 		if err != nil {
 			return err
 		}
-		nextBlockSigned := arbutil.MessageCountToBlockNumber(msgCount, v.genesisBlockNum) + 1
+		nextBlockSigned := mtutil.MessageCountToBlockNumber(msgCount, v.genesisBlockNum) + 1
 		if nextBlockSigned <= 0 {
 			return errors.New("reorg past genesis block")
 		}
@@ -883,7 +883,7 @@ func (v *BlockValidator) Initialize() error {
 			return errors.New("current-module-root config value illegal")
 		}
 	}
-	if v.config.ArbitratorValidator {
+	if v.config.MtitratorValidator {
 		if err := v.MachineLoader.CreateMachine(v.currentWasmModuleRoot, true, false); err != nil {
 			return err
 		}

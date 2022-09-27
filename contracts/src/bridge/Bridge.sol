@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 // SPDX-License-Identifier: BUSL-1.1
 
 pragma solidity ^0.8.4;
@@ -278,6 +278,6 @@ contract Bridge is Initializable, DelegateCallAware, IBridge {
         return sequencerInboxAccs.length;
     }
 
-    /// @dev For the classic -> nitro migration. TODO: remove post-migration.
+    /// @dev For the classic -> mantle migration. TODO: remove post-migration.
     function acceptFundsFromOldBridge() external payable {}
 }

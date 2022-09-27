@@ -1,6 +1,6 @@
 # L1 Pricing
 
-ArbOS dynamically prices L1 gas, with the price adjusting to ensure that the amount collected in L1 gas fees is as close as possible to the costs that must be covered, over time.
+MtOS dynamically prices L1 gas, with the price adjusting to ensure that the amount collected in L1 gas fees is as close as possible to the costs that must be covered, over time.
 
 ## L1 fee collection
 
@@ -14,15 +14,15 @@ L1 gas fee funds that are collected from transactions are transferred to a speci
 
 The L1 pricer also records the total number of "data units" (the sum of the estimated sizes, after multiplying by 16) that have been received.
 
-[L1PricerFundsPool_link]: https://github.com/OffchainLabs/nitro/blob/3f4939df1990320310e7f39e8abb32d5c4d8045f/arbos/l1pricing/l1pricing.go#L46
+[L1PricerFundsPool_link]: https://github.com/mantlenetworkio/mantle/blob/3f4939df1990320310e7f39e8abb32d5c4d8045f/mtos/l1pricing/l1pricing.go#L46
 
 ## L1 costs
 
 There are two types of L1 costs: batch posting costs, and rewards.
 
-Batch posting costs reflect the actual cost a batch poster pays to post batch data on L1. Whenever a batch is posted, the L1 contract that records the batch will send a special "batch posting report" message to L2 ArbOS, reporting who paid for the batch and what the L1 basefee was at the time. This message is placed in the chain's delayed inbox, so it will be delivered to L2 ArbOS after some delay.
+Batch posting costs reflect the actual cost a batch poster pays to post batch data on L1. Whenever a batch is posted, the L1 contract that records the batch will send a special "batch posting report" message to L2 MtOS, reporting who paid for the batch and what the L1 basefee was at the time. This message is placed in the chain's delayed inbox, so it will be delivered to L2 MtOS after some delay.
 
-When a batch posting report message arrives at L2, ArbOS computes the cost of the referenced batch by multiplying the reported basefee by the batch's data cost. (ArbOS retrieves the batch's data from its inbox state, and computes the L1 gas that the batch would have used by counting the number of zero bytes and non-zero bytes in the batch.) The resulting cost is recorded by the pricer as funds due to the party who is reported to have submitted the batch.
+When a batch posting report message arrives at L2, MtOS computes the cost of the referenced batch by multiplying the reported basefee by the batch's data cost. (MtOS retrieves the batch's data from its inbox state, and computes the L1 gas that the batch would have used by counting the number of zero bytes and non-zero bytes in the batch.) The resulting cost is recorded by the pricer as funds due to the party who is reported to have submitted the batch.
 
 The second type of L1 cost is an optional (per chain) per-unit reward for handling transaction calldata. In general the reward might be paid to the sequencer, or to members of the Data Availability Committee in an AnyTrust chain, or to anyone else who incurs per-calldata-byte costs on behalf of the chain. The reward is a fixed number of wei per data unit, and is paid to a single address.
 

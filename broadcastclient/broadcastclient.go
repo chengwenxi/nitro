@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package broadcastclient
 
@@ -21,11 +21,11 @@ import (
 	flag "github.com/spf13/pflag"
 
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/arbutil"
-	"github.com/offchainlabs/nitro/broadcaster"
-	"github.com/offchainlabs/nitro/util/stopwaiter"
-	"github.com/offchainlabs/nitro/wsbroadcastserver"
+	"github.com/mantlenetworkio/mantle/broadcaster"
+	"github.com/mantlenetworkio/mantle/mtstate"
+	"github.com/mantlenetworkio/mantle/mtutil"
+	"github.com/mantlenetworkio/mantle/util/stopwaiter"
+	"github.com/mantlenetworkio/mantle/wsbroadcastserver"
 )
 
 type FeedConfig struct {
@@ -70,14 +70,14 @@ var DefaultBroadcastClientConfig = BroadcastClientConfig{
 }
 
 type TransactionStreamerInterface interface {
-	AddBroadcastMessages(pos arbutil.MessageIndex, messages []arbstate.MessageWithMetadata) error
+	AddBroadcastMessages(pos mtutil.MessageIndex, messages []mtstate.MessageWithMetadata) error
 }
 
 type BroadcastClient struct {
 	stopwaiter.StopWaiter
 
 	websocketUrl string
-	nextSeqNum   arbutil.MessageIndex
+	nextSeqNum   mtutil.MessageIndex
 
 	chainId uint64
 
@@ -89,7 +89,7 @@ type BroadcastClient struct {
 
 	retrying                        bool
 	shuttingDown                    bool
-	ConfirmedSequenceNumberListener chan arbutil.MessageIndex
+	ConfirmedSequenceNumberListener chan mtutil.MessageIndex
 	idleTimeout                     time.Duration
 	txStreamer                      TransactionStreamerInterface
 	fatalErrChan                    chan error
@@ -101,7 +101,7 @@ var ErrIncorrectChainId = errors.New("incorrect chain id")
 func NewBroadcastClient(
 	websocketUrl string,
 	chainId uint64,
-	currentMessageCount arbutil.MessageIndex,
+	currentMessageCount mtutil.MessageIndex,
 	idleTimeout time.Duration,
 	txStreamer TransactionStreamerInterface,
 	fatalErrChan chan error,
@@ -141,7 +141,7 @@ func (bc *BroadcastClient) Start(ctxIn context.Context) {
 	})
 }
 
-func (bc *BroadcastClient) connect(ctx context.Context, nextSeqNum arbutil.MessageIndex) (io.Reader, error) {
+func (bc *BroadcastClient) connect(ctx context.Context, nextSeqNum mtutil.MessageIndex) (io.Reader, error) {
 	if len(bc.websocketUrl) == 0 {
 		// Nothing to do
 		return nil, nil
@@ -152,7 +152,7 @@ func (bc *BroadcastClient) connect(ctx context.Context, nextSeqNum arbutil.Messa
 		wsbroadcastserver.HTTPHeaderRequestedSequenceNumber: []string{strconv.FormatUint(uint64(nextSeqNum), 10)},
 	})
 
-	log.Info("connecting to arbitrum inbox message broadcaster", "url", bc.websocketUrl)
+	log.Info("connecting to mantle inbox message broadcaster", "url", bc.websocketUrl)
 	var chainId uint64
 	var feedServerVersion uint64
 	timeoutDialer := ws.Dialer{
@@ -273,7 +273,7 @@ func (bc *BroadcastClient) startBackgroundReader(earlyFrameData io.Reader) {
 
 				if res.Version == 1 {
 					if len(res.Messages) > 0 {
-						var messages []arbstate.MessageWithMetadata
+						var messages []mtstate.MessageWithMetadata
 						for _, message := range res.Messages {
 							if message == nil {
 								log.Warn("ignoring nil feed message")

@@ -1,5 +1,5 @@
-// Copyright 2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package das
 
@@ -12,9 +12,9 @@ import (
 	"golang.org/x/crypto/sha3"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/das/dastree"
-	"github.com/offchainlabs/nitro/util/pretty"
+	"github.com/mantlenetworkio/mantle/das/dastree"
+	"github.com/mantlenetworkio/mantle/mtstate"
+	"github.com/mantlenetworkio/mantle/util/pretty"
 	"github.com/pkg/errors"
 	flag "github.com/spf13/pflag"
 
@@ -146,7 +146,7 @@ func (rs *RedisStorageService) Close(ctx context.Context) error {
 	return rs.baseStorageService.Close(ctx)
 }
 
-func (rs *RedisStorageService) ExpirationPolicy(ctx context.Context) (arbstate.ExpirationPolicy, error) {
+func (rs *RedisStorageService) ExpirationPolicy(ctx context.Context) (mtstate.ExpirationPolicy, error) {
 	return rs.baseStorageService.ExpirationPolicy(ctx)
 }
 

@@ -1,5 +1,5 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
 package broadcastclient
 
@@ -11,11 +11,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/offchainlabs/nitro/arbstate"
-	"github.com/offchainlabs/nitro/arbutil"
-	"github.com/offchainlabs/nitro/broadcaster"
-	"github.com/offchainlabs/nitro/util/testhelpers"
-	"github.com/offchainlabs/nitro/wsbroadcastserver"
+	"github.com/mantlenetworkio/mantle/broadcaster"
+	"github.com/mantlenetworkio/mantle/mtstate"
+	"github.com/mantlenetworkio/mantle/mtutil"
+	"github.com/mantlenetworkio/mantle/util/testhelpers"
+	"github.com/mantlenetworkio/mantle/wsbroadcastserver"
 )
 
 func TestReceiveMessages(t *testing.T) {
@@ -43,7 +43,7 @@ func TestReceiveMessages(t *testing.T) {
 
 	go func() {
 		for i := 0; i < messageCount; i++ {
-			b.BroadcastSingle(arbstate.MessageWithMetadata{}, arbutil.MessageIndex(i))
+			b.BroadcastSingle(mtstate.MessageWithMetadata{}, mtutil.MessageIndex(i))
 		}
 	}()
 
@@ -61,17 +61,17 @@ func NewDummyTransactionStreamer() *dummyTransactionStreamer {
 	}
 }
 
-func (ts *dummyTransactionStreamer) AddBroadcastMessages(pos arbutil.MessageIndex, messages []arbstate.MessageWithMetadata) error {
+func (ts *dummyTransactionStreamer) AddBroadcastMessages(pos mtutil.MessageIndex, messages []mtstate.MessageWithMetadata) error {
 	for i, message := range messages {
 		ts.messageReceiver <- broadcaster.BroadcastFeedMessage{
-			SequenceNumber: pos + arbutil.MessageIndex(i),
+			SequenceNumber: pos + mtutil.MessageIndex(i),
 			Message:        message,
 		}
 	}
 	return nil
 }
 
-func newTestBroadcastClient(listenerAddress net.Addr, chainId uint64, currentMessageCount arbutil.MessageIndex, idleTimeout time.Duration, txStreamer TransactionStreamerInterface, feedErrChan chan error) *BroadcastClient {
+func newTestBroadcastClient(listenerAddress net.Addr, chainId uint64, currentMessageCount mtutil.MessageIndex, idleTimeout time.Duration, txStreamer TransactionStreamerInterface, feedErrChan chan error) *BroadcastClient {
 	port := listenerAddress.(*net.TCPAddr).Port
 	return NewBroadcastClient(fmt.Sprintf("ws://127.0.0.1:%d/", port), chainId, currentMessageCount, idleTimeout, txStreamer, feedErrChan)
 }
@@ -135,7 +135,7 @@ func TestServerClientDisconnect(t *testing.T) {
 	broadcastClient.Start(ctx)
 
 	t.Log("broadcasting seq 0 message")
-	b.BroadcastSingle(arbstate.MessageWithMetadata{}, 0)
+	b.BroadcastSingle(mtstate.MessageWithMetadata{}, 0)
 
 	// Wait for client to receive batch to ensure it is connected
 	timer := time.NewTimer(5 * time.Second)
@@ -247,8 +247,8 @@ func TestBroadcasterSendsCachedMessagesOnClientConnect(t *testing.T) {
 	Require(t, b.Start(ctx))
 	defer b.StopAndWait()
 
-	b.BroadcastSingle(arbstate.MessageWithMetadata{}, 0)
-	b.BroadcastSingle(arbstate.MessageWithMetadata{}, 1)
+	b.BroadcastSingle(mtstate.MessageWithMetadata{}, 0)
+	b.BroadcastSingle(mtstate.MessageWithMetadata{}, 1)
 
 	var wg sync.WaitGroup
 	for i := 0; i < 2; i++ {

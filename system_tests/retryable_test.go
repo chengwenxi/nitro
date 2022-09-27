@@ -1,7 +1,7 @@
-// Copyright 2021-2022, Offchain Labs, Inc.
-// For license information, see https://github.com/nitro/blob/master/LICENSE
+// Copyright 2021-2022, Mantlenetwork, Inc.
+// For license information, see https://github.com/mantle/blob/master/LICENSE
 
-package arbtest
+package mttest
 
 import (
 	"context"
@@ -14,17 +14,17 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/params"
-	"github.com/offchainlabs/nitro/arbnode"
-	"github.com/offchainlabs/nitro/arbos"
-	"github.com/offchainlabs/nitro/arbos/util"
+	"github.com/mantlenetworkio/mantle/mtnode"
+	"github.com/mantlenetworkio/mantle/mtos"
+	"github.com/mantlenetworkio/mantle/mtos/util"
 
-	"github.com/offchainlabs/nitro/arbos/l2pricing"
-	"github.com/offchainlabs/nitro/solgen/go/bridgegen"
-	"github.com/offchainlabs/nitro/solgen/go/mocksgen"
-	"github.com/offchainlabs/nitro/solgen/go/node_interfacegen"
-	"github.com/offchainlabs/nitro/solgen/go/precompilesgen"
-	"github.com/offchainlabs/nitro/util/arbmath"
-	"github.com/offchainlabs/nitro/util/colors"
+	"github.com/mantlenetworkio/mantle/mtos/l2pricing"
+	"github.com/mantlenetworkio/mantle/solgen/go/bridgegen"
+	"github.com/mantlenetworkio/mantle/solgen/go/mocksgen"
+	"github.com/mantlenetworkio/mantle/solgen/go/node_interfacegen"
+	"github.com/mantlenetworkio/mantle/solgen/go/precompilesgen"
+	"github.com/mantlenetworkio/mantle/util/colors"
+	"github.com/mantlenetworkio/mantle/util/mtmath"
 )
 
 func retryableSetup(t *testing.T) (
@@ -46,7 +46,7 @@ func retryableSetup(t *testing.T) (
 
 	delayedInbox, err := bridgegen.NewInbox(l1info.GetAddress("Inbox"), l1client)
 	Require(t, err)
-	delayedBridge, err := arbnode.NewDelayedBridge(l1client, l1info.GetAddress("Bridge"), 0)
+	delayedBridge, err := mtnode.NewDelayedBridge(l1client, l1info.GetAddress("Bridge"), 0)
 	Require(t, err)
 
 	lookupSubmitRetryableL2TxHash := func(l1Receipt *types.Receipt) common.Hash {
@@ -57,13 +57,13 @@ func retryableSetup(t *testing.T) (
 		}
 		var submissionTxs []*types.Transaction
 		for _, message := range messages {
-			if message.Message.Header.Kind != arbos.L1MessageType_SubmitRetryable {
+			if message.Message.Header.Kind != mtos.L1MessageType_SubmitRetryable {
 				continue
 			}
-			txs, err := message.Message.ParseL2Transactions(params.ArbitrumDevTestChainConfig().ChainID, nil)
+			txs, err := message.Message.ParseL2Transactions(params.MantleDevTestChainConfig().ChainID, nil)
 			Require(t, err)
 			for _, tx := range txs {
-				if tx.Type() == types.ArbitrumSubmitRetryableTxType {
+				if tx.Type() == types.MantleSubmitRetryableTxType {
 					submissionTxs = append(submissionTxs, tx)
 				}
 			}
@@ -76,7 +76,7 @@ func retryableSetup(t *testing.T) (
 	}
 
 	// burn some gas so that the faucet's Callvalue + Balance never exceeds a uint256
-	discard := arbmath.BigMul(big.NewInt(1e12), big.NewInt(1e12))
+	discard := mtmath.BigMul(big.NewInt(1e12), big.NewInt(1e12))
 	TransferBalance(t, "Faucet", "Burn", discard, l2info, l2client, ctx)
 
 	teardown := func() {
@@ -85,7 +85,7 @@ func retryableSetup(t *testing.T) (
 		blockNum, err := l2client.BlockNumber(ctx)
 		Require(t, err, "failed to get L2 block number")
 		for number := uint64(0); number < blockNum; number++ {
-			block, err := l2client.BlockByNumber(ctx, arbmath.UintToBig(number))
+			block, err := l2client.BlockByNumber(ctx, mtmath.UintToBig(number))
 			Require(t, err, "failed to get L2 block", number, "of", blockNum)
 			if block.Number().Uint64() != number {
 				Fail(t, "block number mismatch", number, block.Number().Uint64())
@@ -106,7 +106,7 @@ func TestRetryableNoExist(t *testing.T) {
 	_, _, l2client, l2stack := CreateTestL2(t, ctx)
 	defer requireClose(t, l2stack)
 
-	arbRetryableTx, err := precompilesgen.NewArbRetryableTx(common.HexToAddress("6e"), l2client)
+	arbRetryableTx, err := precompilesgen.NewMtRetryableTx(common.HexToAddress("6e"), l2client)
 	Require(t, err)
 	_, err = arbRetryableTx.GetTimeout(&bind.CallOpts{}, common.Hash{})
 	if err.Error() != "error NoTicketWithID()" {
@@ -122,7 +122,7 @@ func TestSubmitRetryableImmediateSuccess(t *testing.T) {
 	user2Address := l2info.GetAddress("User2")
 	beneficiaryAddress := l2info.GetAddress("Beneficiary")
 
-	deposit := arbmath.BigMul(big.NewInt(1e12), big.NewInt(1e12))
+	deposit := mtmath.BigMul(big.NewInt(1e12), big.NewInt(1e12))
 	callValue := big.NewInt(1e6)
 
 	nodeInterface, err := node_interfacegen.NewNodeInterface(types.NodeInterfaceAddress, l2client)
@@ -156,7 +156,7 @@ func TestSubmitRetryableImmediateSuccess(t *testing.T) {
 		big.NewInt(1e16),
 		beneficiaryAddress,
 		beneficiaryAddress,
-		arbmath.UintToBig(estimate),
+		mtmath.UintToBig(estimate),
 		big.NewInt(l2pricing.InitialBaseFeeWei*2),
 		[]byte{0x32, 0x42, 0x32, 0x88},
 	)
@@ -179,7 +179,7 @@ func TestSubmitRetryableImmediateSuccess(t *testing.T) {
 	l2balance, err := l2client.BalanceAt(ctx, l2info.GetAddress("User2"), nil)
 	Require(t, err)
 
-	if !arbmath.BigEquals(l2balance, big.NewInt(1e6)) {
+	if !mtmath.BigEquals(l2balance, big.NewInt(1e6)) {
 		Fail(t, "Unexpected balance:", l2balance)
 	}
 }
@@ -191,7 +191,7 @@ func TestSubmitRetryableFailThenRetry(t *testing.T) {
 
 	ownerTxOpts := l2info.GetDefaultTransactOpts("Owner", ctx)
 	usertxopts := l1info.GetDefaultTransactOpts("Faucet", ctx)
-	usertxopts.Value = arbmath.BigMul(big.NewInt(1e12), big.NewInt(1e12))
+	usertxopts.Value = mtmath.BigMul(big.NewInt(1e12), big.NewInt(1e12))
 
 	simpleAddr, simple := deploySimple(t, ctx, ownerTxOpts, l2client)
 	simpleABI, err := mocksgen.SimpleMetaData.GetAbi()
@@ -238,7 +238,7 @@ func TestSubmitRetryableFailThenRetry(t *testing.T) {
 		Fail(t, receipt.GasUsed)
 	}
 
-	arbRetryableTx, err := precompilesgen.NewArbRetryableTx(common.HexToAddress("6e"), l2client)
+	arbRetryableTx, err := precompilesgen.NewMtRetryableTx(common.HexToAddress("6e"), l2client)
 	Require(t, err)
 	tx, err := arbRetryableTx.Redeem(&ownerTxOpts, ticketId)
 	Require(t, err)
@@ -282,7 +282,7 @@ func TestSubmissionGasCosts(t *testing.T) {
 	defer teardown()
 
 	usertxopts := l1info.GetDefaultTransactOpts("Faucet", ctx)
-	usertxopts.Value = arbmath.BigMul(big.NewInt(1e12), big.NewInt(1e12))
+	usertxopts.Value = mtmath.BigMul(big.NewInt(1e12), big.NewInt(1e12))
 
 	l2info.GenerateAccount("Refund")
 	l2info.GenerateAccount("Receive")
@@ -303,7 +303,7 @@ func TestSubmissionGasCosts(t *testing.T) {
 	excessGasLimit := uint64(808)
 
 	maxSubmissionFee := big.NewInt(1e13)
-	retryableGas := arbmath.UintToBig(usefulGas + excessGasLimit) // will only burn the intrinsic cost
+	retryableGas := mtmath.UintToBig(usefulGas + excessGasLimit) // will only burn the intrinsic cost
 	retryableL2CallValue := big.NewInt(1e4)
 	retryableCallData := []byte{}
 	gasFeeCap := big.NewInt(l2pricing.InitialBaseFeeWei * 2)
@@ -328,9 +328,9 @@ func TestSubmissionGasCosts(t *testing.T) {
 
 	waitForL1DelayBlocks(t, ctx, l1client, l1info)
 	l2BaseFee := GetBaseFee(t, l2client, ctx)
-	excessGasPrice := arbmath.BigSub(gasFeeCap, l2BaseFee)
-	excessWei := arbmath.BigMulByUint(l2BaseFee, excessGasLimit)
-	excessWei.Add(excessWei, arbmath.BigMul(excessGasPrice, retryableGas))
+	excessGasPrice := mtmath.BigSub(gasFeeCap, l2BaseFee)
+	excessWei := mtmath.BigMulByUint(l2BaseFee, excessGasLimit)
+	excessWei.Add(excessWei, mtmath.BigMul(excessGasPrice, retryableGas))
 
 	fundsAfterSubmit, err := l2client.BalanceAt(ctx, faucetAddress, nil)
 	Require(t, err)
@@ -342,7 +342,7 @@ func TestSubmissionGasCosts(t *testing.T) {
 	Require(t, err)
 
 	colors.PrintBlue("CallGas    ", retryableGas)
-	colors.PrintMint("Gas cost   ", arbmath.BigMul(retryableGas, l2BaseFee))
+	colors.PrintMint("Gas cost   ", mtmath.BigMul(retryableGas, l2BaseFee))
 	colors.PrintBlue("Payment    ", usertxopts.Value)
 
 	colors.PrintMint("Faucet before ", fundsBeforeSubmit)
@@ -351,7 +351,7 @@ func TestSubmissionGasCosts(t *testing.T) {
 	// the retryable should pay the receiver the supplied callvalue
 	colors.PrintMint("Receive       ", receiveFunds)
 	colors.PrintBlue("L2 Call Value ", retryableL2CallValue)
-	if !arbmath.BigEquals(receiveFunds, retryableL2CallValue) {
+	if !mtmath.BigEquals(receiveFunds, retryableL2CallValue) {
 		Fail(t, "Recipient didn't receive the right funds")
 	}
 
@@ -367,21 +367,21 @@ func TestSubmissionGasCosts(t *testing.T) {
 	colors.PrintBlue("Excess Gas       ", excessGasLimit)
 	colors.PrintBlue("Excess Wei       ", excessWei)
 	colors.PrintMint("Fee Refund       ", refundFunds)
-	if !arbmath.BigEquals(refundFunds, arbmath.BigAdd(excessWei, maxSubmissionFee)) {
+	if !mtmath.BigEquals(refundFunds, mtmath.BigAdd(excessWei, maxSubmissionFee)) {
 		Fail(t, "The Fee Refund Address didn't receive the right funds")
 	}
 
 	// the faucet must pay for both the gas used and the call value supplied
-	expectedGasChange := arbmath.BigMul(gasFeeCap, retryableGas)
-	expectedGasChange = arbmath.BigSub(expectedGasChange, usertxopts.Value) // the user is credited this
-	expectedGasChange = arbmath.BigAdd(expectedGasChange, maxSubmissionFee)
-	expectedGasChange = arbmath.BigAdd(expectedGasChange, retryableL2CallValue)
+	expectedGasChange := mtmath.BigMul(gasFeeCap, retryableGas)
+	expectedGasChange = mtmath.BigSub(expectedGasChange, usertxopts.Value) // the user is credited this
+	expectedGasChange = mtmath.BigAdd(expectedGasChange, maxSubmissionFee)
+	expectedGasChange = mtmath.BigAdd(expectedGasChange, retryableL2CallValue)
 
-	if !arbmath.BigEquals(fundsBeforeSubmit, arbmath.BigAdd(fundsAfterSubmit, expectedGasChange)) {
-		diff := arbmath.BigSub(fundsBeforeSubmit, fundsAfterSubmit)
+	if !mtmath.BigEquals(fundsBeforeSubmit, mtmath.BigAdd(fundsAfterSubmit, expectedGasChange)) {
+		diff := mtmath.BigSub(fundsBeforeSubmit, fundsAfterSubmit)
 		colors.PrintRed("Expected ", expectedGasChange)
 		colors.PrintRed("Observed ", diff)
-		colors.PrintRed("Off by   ", arbmath.BigSub(expectedGasChange, diff))
+		colors.PrintRed("Off by   ", mtmath.BigSub(expectedGasChange, diff))
 		Fail(t, "Supplied gas was improperly deducted\n", fundsBeforeSubmit, "\n", fundsAfterSubmit)
 	}
 }

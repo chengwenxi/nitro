@@ -1,8 +1,8 @@
 //
-// Copyright 2021-2022, Offchain Labs, Inc. All rights reserved.
+// Copyright 2021-2022, Mantlenetwork, Inc. All rights reserved.
 //
 
-package arbtest
+package mttest
 
 import (
 	"context"
@@ -15,26 +15,26 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/offchainlabs/nitro/arbutil"
-	"github.com/offchainlabs/nitro/solgen/go/precompilesgen"
+	"github.com/mantlenetworkio/mantle/mtutil"
+	"github.com/mantlenetworkio/mantle/solgen/go/precompilesgen"
 )
 
-func GetPendingBlockNumber(ctx context.Context, client arbutil.L1Interface) (*big.Int, error) {
-	// Attempt to get the block number from ArbSys, if it exists
-	arbSys, err := precompilesgen.NewArbSys(common.BigToAddress(big.NewInt(100)), client)
+func GetPendingBlockNumber(ctx context.Context, client mtutil.L1Interface) (*big.Int, error) {
+	// Attempt to get the block number from MtSys, if it exists
+	arbSys, err := precompilesgen.NewMtSys(common.BigToAddress(big.NewInt(100)), client)
 	if err != nil {
-		return arbutil.GetPendingCallBlockNumber(ctx, client)
+		return mtutil.GetPendingCallBlockNumber(ctx, client)
 	}
 	blockNum, err := arbSys.ArbBlockNumber(&bind.CallOpts{Context: ctx})
 	if err != nil {
-		return arbutil.GetPendingCallBlockNumber(ctx, client)
+		return mtutil.GetPendingCallBlockNumber(ctx, client)
 	}
-	// Arbitrum chains don't have miners, so they're one block behind non-Arbitrum chains.
+	// Mantle chains don't have miners, so they're one block behind non-Mantle chains.
 	return blockNum.Add(blockNum, common.Big1), nil
 }
 
 // Will wait until txhash is in the blockchain and return its receipt
-func WaitForTx(ctxinput context.Context, client arbutil.L1Interface, txhash common.Hash, timeout time.Duration) (*types.Receipt, error) {
+func WaitForTx(ctxinput context.Context, client mtutil.L1Interface, txhash common.Hash, timeout time.Duration) (*types.Receipt, error) {
 	ctx, cancel := context.WithTimeout(ctxinput, timeout)
 	defer cancel()
 
@@ -72,16 +72,16 @@ func WaitForTx(ctxinput context.Context, client arbutil.L1Interface, txhash comm
 	}
 }
 
-func EnsureTxSucceeded(ctx context.Context, client arbutil.L1Interface, tx *types.Transaction) (*types.Receipt, error) {
+func EnsureTxSucceeded(ctx context.Context, client mtutil.L1Interface, tx *types.Transaction) (*types.Receipt, error) {
 	return EnsureTxSucceededWithTimeout(ctx, client, tx, time.Second*5)
 }
 
-func EnsureTxSucceededWithTimeout(ctx context.Context, client arbutil.L1Interface, tx *types.Transaction, timeout time.Duration) (*types.Receipt, error) {
+func EnsureTxSucceededWithTimeout(ctx context.Context, client mtutil.L1Interface, tx *types.Transaction, timeout time.Duration) (*types.Receipt, error) {
 	txRes, err := WaitForTx(ctx, client, tx.Hash(), timeout)
 	if err != nil {
 		return nil, fmt.Errorf("waitFoxTx got: %w", err)
 	}
-	return txRes, arbutil.DetailTxError(ctx, client, tx, txRes)
+	return txRes, mtutil.DetailTxError(ctx, client, tx, txRes)
 }
 
 func headerSubscribeMainLoop(chanOut chan<- *types.Header, ctx context.Context, client ethereum.ChainReader) {
